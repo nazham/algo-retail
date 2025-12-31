@@ -1,0 +1,24 @@
+{
+  "name": "@algo/db-local",
+  "version": "0.0.0",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "scripts": {
+    "generate": "drizzle-kit generate",
+    "migrate": "drizzle-kit migrate"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "better-sqlite3": "^12.5.0",
+    "drizzle-orm": "^0.45.1"
+  },
+  "devDependencies": {
+    "@types/better-sqlite3": "^7.6.13",
+    "@types/node": "^25.0.3",
+    "drizzle-kit": "^0.31.8",
+    "typescript": "^5.9.3"
+  }
+}
