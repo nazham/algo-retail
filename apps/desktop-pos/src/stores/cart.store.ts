@@ -1,4 +1,4 @@
-import { create } from "zustand";
+import { create } from 'zustand';
 
 // Define Types (Move these to @algo/types later for strict sharing)
 export interface CartItem {
@@ -32,7 +32,7 @@ export const useCartStore = create<CartState>((set, get) => ({
       // If exists, just increment quantity
       set({
         items: items.map((i) =>
-          i.productId === product.id ? { ...i, quantity: i.quantity + 1 } : i
+          i.productId === product.id ? { ...i, quantity: i.quantity + 1 } : i,
         ),
       });
     } else {
