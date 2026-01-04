@@ -3,6 +3,6 @@
 interface Window {
   api: {
     getProducts: () => Promise<any[]>;
-    // Add future API methods here
+    createOrder: (data: any) => Promise<{ orderId: string; orderNumber: string }>;
   };
 }

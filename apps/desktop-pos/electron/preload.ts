@@ -3,6 +3,7 @@ import { contextBridge, ipcRenderer } from 'electron';
 // Define the API object
 const api = {
   getProducts: () => ipcRenderer.invoke('products:get-all'),
+  createOrder: (data: any) => ipcRenderer.invoke('orders:create', data),
 };
 
 // Expose it to the window object

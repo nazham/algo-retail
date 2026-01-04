@@ -1,0 +1,68 @@
+import { DB, schema } from '@algo/db-local';
+import { randomUUID } from 'crypto';
+import { eq, sql } from 'drizzle-orm';
+
+// Define the shape of data coming from the frontend
+export interface CreateOrderDto {
+  subtotal: number;
+  taxTotal: number;
+  discountTotal: number;
+  grandTotal: number;
+  items: {
+    productId: string;
+    productName: string;
+    quantity: number;
+    price: number;
+  }[];
+}
+
+export class OrderRepository {
+  constructor(private db: DB) {}
+
+  // The main function can remain async (to match the Promise interface of the Repository)
+  async create(data: CreateOrderDto) {
+    const orderId = randomUUID();
+    const orderNumber = `INV-${Date.now().toString().slice(-6)}`;
+
+    return this.db.transaction((tx) => {
+      // A. Insert Main Order
+      tx.insert(schema.orders)
+        .values({
+          id: orderId,
+          orderNumber,
+          status: 'COMPLETED',
+          subtotal: data.subtotal,
+          taxTotal: data.taxTotal,
+          discountTotal: data.discountTotal,
+          grandTotal: data.grandTotal,
+          isSynced: false,
+        })
+        .run(); // explicit .run() is sometimes needed in raw BS3, but Drizzle handles it usually.
+      // With Drizzle + BS3, just calling the method synchronously works.
+
+      // B. Insert Items & Update Stock
+      for (const item of data.items) {
+        tx.insert(schema.orderItems)
+          .values({
+            id: randomUUID(),
+            orderId: orderId,
+            productId: item.productId,
+            productName: item.productName,
+            quantity: item.quantity,
+            unitPrice: item.price,
+            subtotal: item.price * item.quantity,
+          })
+          .run();
+
+        tx.update(schema.products)
+          .set({
+            stock: sql`${schema.products.stock} - ${item.quantity}`,
+          })
+          .where(eq(schema.products.id, item.productId))
+          .run();
+      }
+
+      return { orderId, orderNumber };
+    });
+  }
+}
