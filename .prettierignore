@@ -1,0 +1,19 @@
+# Ignore Artifacts
+node_modules
+dist
+dist-electron
+build
+out
+.next
+.turbo
+
+# Ignore Package Managers
+pnpm-lock.yaml
+package-lock.json
+
+# Ignore Database
+*.sqlite
+*.db
+
+# Ignore Public Assets (Optional, usually safe to ignore)
+public/

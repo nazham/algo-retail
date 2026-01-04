@@ -48,5 +48,11 @@ coverage
 *.pem
 
 # IDEs
-.vscode
+# Ignore VS Code personal files...
+.vscode/*
+
+# ...but keep team-shared settings
+!.vscode/settings.json
+!.vscode/extensions.json
+!.vscode/launch.json
 .idea
