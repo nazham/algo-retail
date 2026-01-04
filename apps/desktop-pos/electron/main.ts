@@ -2,7 +2,9 @@ import { app, BrowserWindow, ipcMain } from 'electron';
 import path from 'path';
 import { initDb, runMigrations } from '@algo/db-local';
 import { ProductRepository } from './repositories/product.repo';
-import { OrderRepository, CreateOrderDto } from './repositories/order.repo';
+import { OrderRepository } from './repositories/order.repo';
+import { registerProductHandlers } from './handlers/product.handler';
+import { registerOrderHandlers } from './handlers/order.handler';
 
 // 1. Define where the DB lives
 const userDataPath = app.getPath('userData');
@@ -32,12 +34,8 @@ const productRepo = new ProductRepository(db);
 const orderRepo = new OrderRepository(db);
 
 // 4. Define API Handlers
-ipcMain.handle('products:get-all', async () => {
-  return await productRepo.getAll();
-});
-ipcMain.handle('orders:create', async (_, data: CreateOrderDto) => {
-  return await orderRepo.create(data);
-});
+registerProductHandlers(productRepo);
+registerOrderHandlers(orderRepo);
 
 let win: BrowserWindow | null = null;
 

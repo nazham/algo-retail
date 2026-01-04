@@ -1,20 +1,7 @@
 import { DB, schema } from '@algo/db-local';
+import { CreateOrderDto } from '@algo/types';
 import { randomUUID } from 'crypto';
 import { eq, sql } from 'drizzle-orm';
-
-// Define the shape of data coming from the frontend
-export interface CreateOrderDto {
-  subtotal: number;
-  taxTotal: number;
-  discountTotal: number;
-  grandTotal: number;
-  items: {
-    productId: string;
-    productName: string;
-    quantity: number;
-    price: number;
-  }[];
-}
 
 export class OrderRepository {
   constructor(private db: DB) {}

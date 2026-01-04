@@ -1,14 +1,18 @@
 import { contextBridge, ipcRenderer } from 'electron';
+import type { CreateOrderDto, OrderResultDto } from '@algo/types';
 
-// Define the API object
-const api = {
+// Define the API Interface strictly
+export interface AppApi {
+  getProducts: () => Promise<any[]>;
+  createOrder: (data: CreateOrderDto) => Promise<OrderResultDto>;
+}
+
+// Implement it
+const api: AppApi = {
   getProducts: () => ipcRenderer.invoke('products:get-all'),
-  createOrder: (data: any) => ipcRenderer.invoke('orders:create', data),
+  createOrder: (data) => ipcRenderer.invoke('orders:create', data),
 };
 
 // Expose it to the window object
 // contextBridge protect the renderer from accessing full Node.js API
 contextBridge.exposeInMainWorld('api', api);
-
-// TypeScript Helper (Put this in a .d.ts file later, but okay here for reference)
-export type AppApi = typeof api;

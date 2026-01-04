@@ -1,8 +1,7 @@
 /// <reference types="vite/client" />
 
+import type { AppApi } from '../electron/preload';
+
 interface Window {
-  api: {
-    getProducts: () => Promise<any[]>;
-    createOrder: (data: any) => Promise<{ orderId: string; orderNumber: string }>;
-  };
+  api: AppApi;
 }
