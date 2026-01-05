@@ -5,6 +5,10 @@ import { ProductRepository } from './repositories/product.repo';
 import { OrderRepository } from './repositories/order.repo';
 import { registerProductHandlers } from './handlers/product.handler';
 import { registerOrderHandlers } from './handlers/order.handler';
+import dotenv from 'dotenv';
+import { SyncRepository } from './repositories/sync.repo';
+import { SyncService } from './services/sync.service';
+dotenv.config();
 
 // 1. Define where the DB lives
 const userDataPath = app.getPath('userData');
@@ -32,10 +36,21 @@ try {
 // 3. Initialize Repositories
 const productRepo = new ProductRepository(db);
 const orderRepo = new OrderRepository(db);
+const syncRepo = new SyncRepository(db);
+
+const syncService = new SyncService(syncRepo);
 
 // 4. Define API Handlers
 registerProductHandlers(productRepo);
 registerOrderHandlers(orderRepo);
+
+// 5. Start the Sync Loop (Every 60 Seconds)
+setInterval(() => {
+  syncService.sync();
+}, 60 * 1000);
+
+// 6. Run once immediately on startup (Optional, feels snappy)
+setTimeout(() => syncService.sync(), 5000);
 
 let win: BrowserWindow | null = null;
 
