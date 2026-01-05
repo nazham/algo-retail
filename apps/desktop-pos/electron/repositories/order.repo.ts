@@ -1,5 +1,5 @@
 import { DB, schema } from '@algo/db-local';
-import { CreateOrderDto } from '@algo/types';
+import { CreateOrderDto, OrderResultDto } from '@algo/types';
 import { randomUUID } from 'crypto';
 import { eq, sql } from 'drizzle-orm';
 
@@ -7,7 +7,7 @@ export class OrderRepository {
   constructor(private db: DB) {}
 
   // The main function can remain async (to match the Promise interface of the Repository)
-  async create(data: CreateOrderDto) {
+  async create(data: CreateOrderDto): Promise<OrderResultDto> {
     const orderId = randomUUID();
     const orderNumber = `INV-${Date.now().toString().slice(-6)}`;
 
