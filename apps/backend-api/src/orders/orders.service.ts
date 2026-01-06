@@ -4,6 +4,7 @@ import * as schema from '../db/schema';
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import * as crypto from 'crypto';
 import { CreateOrderDto, OrderResultDto } from '@algo/types';
+import { eq, sql } from 'drizzle-orm';
 
 @Injectable()
 export class OrdersService {
@@ -35,19 +36,27 @@ export class OrdersService {
         status: 'SYNCED',
       });
 
-      // 2. Insert Items
-      if (createOrderDto.items.length > 0) {
-        await tx.insert(schema.orderItems).values(
-          createOrderDto.items.map((item) => ({
-            tenantId: MVP_TENANT_ID,
-            orderId: orderId,
-            productId: item.productId, // This assumes Product IDs match! (We need to sync products next)
-            productName: item.productName,
-            quantity: item.quantity,
-            unitPrice: item.price,
-            subtotal: item.price * item.quantity,
-          })),
-        );
+      // 2. Insert Items & UPDATE STOCK (Updated code)
+      for (const item of createOrderDto.items) {
+        // A. Insert Line Item
+        await tx.insert(schema.orderItems).values({
+          tenantId: MVP_TENANT_ID,
+          orderId: orderId,
+          productId: item.productId,
+          productName: item.productName,
+          quantity: item.quantity,
+          unitPrice: item.price,
+          subtotal: item.price * item.quantity,
+        });
+
+        // B. Decrement Stock in Cloud Product Table <--- NEW
+        await tx
+          .update(schema.products)
+          .set({
+            stock: sql`${schema.products.stock} - ${item.quantity}`,
+            updatedAt: new Date(),
+          })
+          .where(eq(schema.products.id, item.productId));
       }
 
       return { orderId, orderNumber: 'SYNCED' };
