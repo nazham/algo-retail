@@ -1,4 +1,5 @@
 ---
+---
 
 # ✅ One-Time Clean Fix
 
@@ -6,10 +7,10 @@
 
 > **Assumptions**
 >
-> * Node.js **v24 is installed system-wide**
-> * **No nvm**, **no Chocolatey**
-> * `.pnpm-store` and `node_modules` contain cached native binaries
-> * Electron app fails with ABI / `.node` errors
+> - Node.js **v24 is installed system-wide**
+> - **No nvm**, **no Chocolatey**
+> - `.pnpm-store` and `node_modules` contain cached native binaries
+> - Electron app fails with ABI / `.node` errors
 
 Follow **every step in order**.
 Skipping steps will reintroduce the problem.
