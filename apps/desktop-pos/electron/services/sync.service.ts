@@ -5,9 +5,11 @@ export class SyncService {
   private isRunning = false;
   private apiUrl: string;
   private tenantId: string;
+  private apiKey: string;
 
   constructor(private repo: SyncRepository) {
     this.apiUrl = process.env.API_URL || 'http://localhost:3000';
+    this.apiKey = process.env.API_KEY || '';
     this.tenantId = process.env.TENANT_ID || '00000000-0000-0000-0000-000000000001';
   }
 
@@ -49,7 +51,11 @@ export class SyncService {
 
           const response = await fetch(`${this.apiUrl}/orders`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: {
+              'Content-Type': 'application/json',
+              'x-api-key': this.apiKey,
+              'x-tenant-id': this.tenantId,
+            },
             body: JSON.stringify(payload),
           });
 

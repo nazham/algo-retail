@@ -1,8 +1,10 @@
-import { Controller, Post, Body, Get } from '@nestjs/common';
+import { Controller, Post, Body, Get, UseGuards } from '@nestjs/common';
 import { OrdersService } from './orders.service';
 import { CreateOrderDto } from '@algo/types';
+import { ApiKeyGuard } from 'src/auth/api-key.guard';
 
 @Controller('orders')
+@UseGuards(ApiKeyGuard)
 export class OrdersController {
   constructor(private readonly ordersService: OrdersService) {}
 
