@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useOrderStore, OrderStatus, PaymentMethod } from '../stores/order.store'; // <--- Using Real Store
+import { useOrderStore, type OrderStatus, type PaymentMethod } from '../stores/order.store'; // <--- Using Real Store
 import {
   Search,
   Calendar,
