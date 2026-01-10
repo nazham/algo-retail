@@ -2,6 +2,15 @@ import { useEffect, useState } from 'react';
 import { Search, Trash2, Plus, Minus } from 'lucide-react';
 import { useCartStore } from '../stores/cart.store'; // <--- Import Store
 
+declare global {
+  interface Window {
+    api: {
+      getProducts: () => Promise<any[]>;
+      createOrder: (order: any) => Promise<{ orderNumber: string }>;
+    };
+  }
+}
+
 export default function PosPage() {
   const [products, setProducts] = useState<any[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
