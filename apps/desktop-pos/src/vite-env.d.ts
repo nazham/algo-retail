@@ -3,5 +3,7 @@
 import type { AppApi } from '../electron/preload';
 
 interface Window {
-  api: AppApi;
+  api: {
+    login: (pin: string) => Promise<{ id: string; name: string; role: string }>;
+  };
 }

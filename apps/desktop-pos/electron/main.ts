@@ -8,6 +8,8 @@ import { registerOrderHandlers } from './handlers/order.handler';
 import dotenv from 'dotenv';
 import { SyncRepository } from './repositories/sync.repo';
 import { SyncService } from './services/sync.service';
+import { UserRepository } from './repositories/user.repo';
+import { registerUserHandlers } from './handlers/user.handler';
 dotenv.config();
 
 // 1. Define where the DB lives
@@ -37,12 +39,14 @@ try {
 const productRepo = new ProductRepository(db);
 const orderRepo = new OrderRepository(db);
 const syncRepo = new SyncRepository(db);
+const userRepo = new UserRepository(db);
 
 const syncService = new SyncService(syncRepo);
 
 // 4. Define API Handlers
 registerProductHandlers(productRepo);
 registerOrderHandlers(orderRepo);
+registerUserHandlers(userRepo);
 
 // 5. Start the Sync Loop (Every 60 Seconds)
 setInterval(() => {
@@ -95,6 +99,7 @@ if (!gotTheLock) {
   // 2. Launch the App (Only ONCE)
   app.whenReady().then(async () => {
     await productRepo.seedIfEmpty();
+    await userRepo.seedIfEmpty();
     createWindow();
   });
 

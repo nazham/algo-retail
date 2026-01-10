@@ -65,3 +65,10 @@ export const customerLedger = sqliteTable('customer_ledger', {
   referenceId: text('reference_id'), // Order ID
   createdAt: text('created_at').default(sql`CURRENT_TIMESTAMP`),
 });
+
+export const users = sqliteTable('users', {
+  id: text('id').primaryKey(),
+  name: text('name').notNull(),
+  pin: text('pin').notNull(), // Simple PIN for MVP
+  role: text('role').notNull().default('CASHIER'), // ADMIN, CASHIER
+});

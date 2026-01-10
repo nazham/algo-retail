@@ -3,16 +3,32 @@ import { drizzle } from 'drizzle-orm/better-sqlite3';
 import { migrate } from 'drizzle-orm/better-sqlite3/migrator';
 import * as schema from './schema';
 import path from 'path';
+import fs from 'fs';
 
 export const initDb = (dbPath: string) => {
-  // 1. Open the file (create if missing)
+  // Ensure the directory exists before opening the DB
+  // This prevents "Disk I/O" errors if the userData folder was deleted.
+  const dbFolder = path.dirname(dbPath);
+  if (!fs.existsSync(dbFolder)) {
+    console.log(`Creating database directory: ${dbFolder}`);
+    fs.mkdirSync(dbFolder, { recursive: true });
+  }
+
+  // Open the file (create if missing)
   const sqlite = new Database(dbPath);
+
   // Enable WAL mode for better performance
-  sqlite.pragma('journal_mode = WAL');
-  // 2. Connect Drizzle
+  try {
+    sqlite.pragma('journal_mode = WAL');
+  } catch (err) {
+    console.error('Failed to set WAL mode:', err);
+    // We continue anyway; the app can run without WAL if absolutely necessary,
+  }
+
+  // Connect Drizzle
   const db = drizzle(sqlite, { schema });
 
-  // 3. Enable Foreign Keys (Critical for SQLite!)
+  // Enable Foreign Keys (Critical for SQLite!)
   sqlite.pragma('foreign_keys = ON');
 
   return db;
