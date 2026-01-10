@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Search, Trash2, Plus, Minus } from 'lucide-react';
-import { useCartStore } from '../stores/cart.store'; // <--- Import Store
+import { useCartStore } from '../stores/cart.store';
+import { useOrderStore } from '../stores/order.store'; // <--- NEW IMPORT
 
 declare global {
   interface Window {
@@ -15,8 +16,12 @@ export default function PosPage() {
   const [products, setProducts] = useState<any[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
 
-  // 1. Hook into the Zustand Store
+  // 1. Hook into the Cart Store
   const { items, addToCart, removeFromCart, updateQuantity, getTotals, clearCart } = useCartStore();
+
+  // 2. Hook into the Order Store (To save history)
+  const addOrder = useOrderStore((state) => state.addOrder);
+
   const totals = getTotals(); // Recalculate whenever items change
 
   // Load products on mount
@@ -34,15 +39,15 @@ export default function PosPage() {
   const handleCharge = async () => {
     if (items.length === 0) return;
 
-    const totals = getTotals();
+    const currentTotals = getTotals();
 
     try {
-      // 1. Send data to Electron
+      // A. Send data to Electron (Backend)
       const result = await window.api.createOrder({
-        subtotal: totals.subtotal,
-        taxTotal: totals.tax,
+        subtotal: currentTotals.subtotal,
+        taxTotal: currentTotals.tax,
         discountTotal: 0,
-        grandTotal: totals.total,
+        grandTotal: currentTotals.total,
         items: items.map((i) => ({
           productId: i.productId,
           productName: i.name,
@@ -51,12 +56,27 @@ export default function PosPage() {
         })),
       });
 
-      // 2. Success Feedback
+      // B. SAVE TO ORDER PAGE (Dynamic Update)
+      addOrder({
+        id: result.orderNumber,
+        date: new Date().toLocaleString('en-US', {
+          month: 'short',
+          day: 'numeric',
+          year: 'numeric',
+          hour: 'numeric',
+          minute: 'numeric',
+          hour12: true,
+        }),
+        customer: 'Walk-in', // Default for now
+        amount: currentTotals.total,
+        payment: 'Cash', // Defaulting to Cash for now
+        status: 'Completed',
+        items: [...items],
+      });
+
+      // C. Success Feedback
       alert(`Order Successful! Invoice: ${result.orderNumber}`);
       clearCart();
-
-      // 3. Optional: Reload products to see updated stock (if we displayed stock)
-      // window.api.getProducts().then(setProducts);
     } catch (error) {
       console.error(error);
       alert('Failed to process order.');
@@ -89,7 +109,7 @@ export default function PosPage() {
               <button
                 key={product.id}
                 className="bg-white p-4 rounded-xl shadow-sm border border-gray-200 hover:border-blue-500 hover:shadow-md transition-all text-left group flex flex-col justify-between h-32 active:scale-95"
-                onClick={() => addToCart(product)} // <--- CONNECTED
+                onClick={() => addToCart(product)}
               >
                 <div>
                   <h3 className="font-bold text-gray-800 line-clamp-2 leading-tight">
