@@ -2,7 +2,7 @@ import { HashRouter, Routes, Route } from 'react-router-dom';
 import MainLayout from './components/layout/MainLayout';
 import PosPage from './pages/PosPage';
 import SettingsPage from './pages/SettingsPage';
-import { OrderPage } from './pages/OrderPage';
+import OrderPage from './pages/OrderPage';
 
 function App() {
   return (
