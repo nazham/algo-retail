@@ -8,7 +8,7 @@ export class SyncService {
   private apiKey: string;
 
   constructor(private repo: SyncRepository) {
-    this.apiUrl = process.env.API_URL || 'http://localhost:3000';
+    this.apiUrl = process.env.API_URL || 'http://localhost:8080';
     this.apiKey = process.env.API_KEY || '';
     this.tenantId = process.env.TENANT_ID || '00000000-0000-0000-0000-000000000001';
   }
