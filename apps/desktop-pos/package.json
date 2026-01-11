@@ -7,7 +7,8 @@
     "dev": "shx rm -rf drizzle && shx cp -r ../../packages/db-local/drizzle ./drizzle && vite",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "postinstall": "electron-builder install-app-deps"
   },
   "dependencies": {
     "@repo/ui": "workspace:*",

@@ -2,6 +2,7 @@ import { Outlet, NavLink } from 'react-router-dom';
 import { LayoutDashboard, Settings, ShoppingCart } from 'lucide-react';
 import { clsx } from 'clsx';
 import Header from './Header';
+import { ErrorBoundary } from '../ErrorBoundary';
 
 export default function MainLayout() {
   const navItems = [
@@ -46,7 +47,9 @@ export default function MainLayout() {
 
         {/* 2. Scrollable Content Area (Bottom) */}
         <main className="flex-1 overflow-auto">
-          <Outlet />
+          <ErrorBoundary>
+            <Outlet />
+          </ErrorBoundary>
         </main>
       </div>
     </div>
