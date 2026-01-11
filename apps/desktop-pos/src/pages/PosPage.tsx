@@ -1,22 +1,22 @@
-import { useEffect, useState } from 'react';
-import { Search, Trash2, Plus, Minus } from 'lucide-react';
-import { useCartStore } from '../stores/cart.store'; // <--- Import Store
-import { Button } from '@repo/ui/components/ui/button';
+import { useState } from 'react';
+import { Search, Trash2, ShoppingCart, Plus, Minus } from 'lucide-react';
+import { useCartStore } from '../stores/cart.store';
+import { Button } from '@repo/ui/components/ui/button'; // Shadcn
+import { useProducts, useCheckout } from '../features/pos/hooks/use-pos-data'; // New Hooks
+import { toast } from 'sonner';
 
 export default function PosPage() {
-  const [products, setProducts] = useState<any[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
 
-  // 1. Hook into the Zustand Store
+  // 1. Use the new Hooks (Trainee-proof)
+  const { products, isLoading } = useProducts();
+  const { processOrder, isProcessing } = useCheckout();
+
+  // 2. Zustand Store
   const { items, addToCart, removeFromCart, updateQuantity, getTotals, clearCart } = useCartStore();
-  const totals = getTotals(); // Recalculate whenever items change
+  const totals = getTotals();
 
-  // Load products on mount
-  useEffect(() => {
-    window.api.getProducts().then(setProducts);
-  }, []);
-
-  // Filter Logic
+  // 3. Logic
   const filteredProducts = products.filter(
     (p) =>
       p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -26,52 +26,48 @@ export default function PosPage() {
   const handleCharge = async () => {
     if (items.length === 0) return;
 
-    const totals = getTotals();
+    // Construct the DTO using store data
+    const orderData = {
+      subtotal: totals.subtotal,
+      taxTotal: totals.tax,
+      discountTotal: 0,
+      grandTotal: totals.total,
+      items: items.map((i) => ({
+        productId: i.productId,
+        productName: i.name,
+        quantity: i.quantity,
+        price: i.price,
+      })),
+    };
 
-    try {
-      // 1. Send data to Electron
-      const result = await window.api.createOrder({
-        subtotal: totals.subtotal,
-        taxTotal: totals.tax,
-        discountTotal: 0,
-        grandTotal: totals.total,
-        items: items.map((i) => ({
-          productId: i.productId,
-          productName: i.name,
-          quantity: i.quantity,
-          price: i.price,
-        })),
-      });
+    // Use the Hook
+    const result = await processOrder(orderData);
 
-      // 2. Success Feedback
-      alert(`Order Successful! Invoice: ${result.orderNumber}`);
+    if (result) {
+      toast.success(`Order Created! ID: ${result.orderNumber}`);
       clearCart();
-
-      // 3. Optional: Reload products to see updated stock (if we displayed stock)
-      // window.api.getProducts().then(setProducts);
-    } catch (error) {
-      console.error(error);
-      alert('Failed to process order.');
+    } else {
+      toast.error('Transaction Failed');
     }
   };
 
+  if (isLoading)
+    return <div className="flex h-full items-center justify-center">Loading Products...</div>;
+
   return (
-    <div className="flex h-full">
-      {/* LEFT: Product Grid Area */}
-      <div className="flex-1 flex flex-col bg-gray-50 border-r border-gray-200">
-        {/* Search Bar Header */}
-        <div className="p-4 bg-white border-b border-gray-200 shadow-sm z-10">
-          <div className="relative">
-            <Search className="absolute left-3 top-3 text-gray-400" size={20} />
-            <input
-              type="text"
-              placeholder="Search products by name or SKU..."
-              className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 font-medium"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              autoFocus
-            />
-          </div>
+    <div className="flex h-full bg-gray-50">
+      {/* LEFT: Product Grid */}
+      <div className="flex-1 flex flex-col p-4 overflow-hidden">
+        {/* Search Bar */}
+        <div className="mb-4 relative">
+          <Search className="absolute left-3 top-3 text-gray-400" size={20} />
+          <input
+            type="text"
+            placeholder="Search products..."
+            className="w-full pl-10 pr-4 py-2 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
         </div>
 
         {/* Scrollable Grid */}
@@ -99,25 +95,28 @@ export default function PosPage() {
         </div>
       </div>
 
-      {/* RIGHT: Cart Sidebar Area */}
-      <div className="w-100 flex flex-col bg-white shadow-xl z-20 h-full">
-        {/* Header */}
-        <div className="p-4 border-b border-gray-100 bg-gray-50 flex justify-between items-center">
-          <div>
-            <h2 className="font-bold text-lg text-gray-700">Current Order</h2>
-            <div className="text-xs text-gray-400">#INV-NEW</div>
-          </div>
-          <Button onClick={clearCart} variant="destructive" size="sm">
+      {/* RIGHT: Cart Sidebar */}
+      <div className="w-96 bg-white border-l border-gray-200 flex flex-col shadow-xl z-10">
+        <div className="p-4 border-b border-gray-100 bg-gray-50/50 flex justify-between items-center">
+          <h2 className="font-bold text-lg flex items-center gap-2">
+            <ShoppingCart size={20} /> Current Sale
+          </h2>
+          <Button
+            onClick={clearCart}
+            variant="destructive"
+            size="sm"
+            disabled={!(items.length > 0)}
+          >
             Clear
           </Button>
         </div>
 
-        {/* Scrollable Cart Items */}
+        {/* Cart Items List */}
         <div className="flex-1 overflow-y-auto p-4 space-y-3">
           {items.length === 0 ? (
-            <div className="h-full flex flex-col items-center justify-center text-gray-400 space-y-2">
-              <span className="text-4xl">🛒</span>
-              <span>Cart is empty</span>
+            <div className="text-center text-gray-400 mt-20">
+              <ShoppingCart size={48} className="mx-auto mb-2 opacity-20" />
+              <p>Cart is empty</p>
             </div>
           ) : (
             items.map((item) => (
@@ -126,50 +125,48 @@ export default function PosPage() {
                 className="flex justify-between items-center bg-white border border-gray-100 p-3 rounded-lg shadow-sm"
               >
                 <div className="flex-1">
-                  <div className="font-bold text-gray-800 line-clamp-1">{item.name}</div>
-                  <div className="text-blue-600 font-mono text-sm">
+                  <div className="font-medium text-gray-800 line-clamp-1">{item.name}</div>
+                  <div className="text-xs text-blue-600 font-bold">
                     Rs. {((item.price * item.quantity) / 100).toFixed(2)}
                   </div>
                 </div>
 
-                {/* Qty Controls */}
-                <div className="flex items-center gap-3 bg-gray-50 rounded-lg p-1">
+                <div className="flex items-center gap-2">
                   <Button
+                    variant="outline"
+                    size="icon"
+                    className="h-8 w-8"
                     onClick={() => updateQuantity(item.productId, -1)}
-                    variant="ghost"
-                    size="icon"
-                    className="h-auto w-auto p-1"
                   >
-                    <Minus size={16} />
+                    <Minus size={12} />
                   </Button>
-                  <span className="font-bold w-4 text-center text-sm">{item.quantity}</span>
+                  <span className="w-6 text-center text-sm font-bold">{item.quantity}</span>
                   <Button
-                    onClick={() => updateQuantity(item.productId, 1)}
-                    variant="ghost"
+                    variant="outline"
                     size="icon"
-                    className="h-auto w-auto p-1"
+                    className="h-8 w-8"
+                    onClick={() => updateQuantity(item.productId, +1)}
                   >
-                    <Plus size={16} />
+                    <Plus size={12} />
                   </Button>
                 </div>
 
-                {/* Remove Button */}
                 <Button
-                  onClick={() => removeFromCart(item.productId)}
                   variant="ghost"
                   size="icon"
-                  className="ml-3 text-gray-300 hover:text-red-500 transition-colors"
+                  className="ml-2 text-gray-400 hover:text-red-500"
+                  onClick={() => removeFromCart(item.productId)}
                 >
-                  <Trash2 size={18} />
+                  <Trash2 size={12} />
                 </Button>
               </div>
             ))
           )}
         </div>
 
-        {/* Footer: Totals & Pay Button */}
-        <div className="p-4 bg-gray-50 border-t border-gray-200 space-y-3 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)]">
-          <div className="space-y-1 text-sm text-gray-600">
+        {/* Totals Section */}
+        <div className="p-6 bg-gray-50 border-t border-gray-200 space-y-4">
+          <div className="space-y-2 text-sm text-gray-600">
             <div className="flex justify-between">
               <span>Subtotal</span>
               <span>Rs. {(totals.subtotal / 100).toFixed(2)}</span>
@@ -180,18 +177,18 @@ export default function PosPage() {
             </div>
           </div>
 
-          <div className="flex justify-between font-bold text-xl text-gray-800 pt-2 border-t border-gray-200">
+          <div className="flex justify-between font-bold text-2xl text-gray-900 pt-2 border-t border-gray-200">
             <span>Total</span>
             <span className="text-blue-600">Rs. {(totals.total / 100).toFixed(2)}</span>
           </div>
 
           <Button
+            size="lg"
+            className="w-full text-lg h-14 font-bold"
             onClick={handleCharge}
-            disabled={items.length === 0}
-            className="w-full h-16 text-lg"
+            disabled={items.length === 0 || isProcessing}
           >
-            <span>CHARGE</span>
-            <span>Rs. {(totals.total / 100).toFixed(2)}</span>
+            {isProcessing ? 'Processing...' : `Charge Rs. ${(totals.total / 100).toFixed(2)}`}
           </Button>
         </div>
       </div>
