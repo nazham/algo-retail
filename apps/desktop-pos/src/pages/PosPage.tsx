@@ -1,16 +1,8 @@
 import { useEffect, useState } from 'react';
 import { Search, Trash2, Plus, Minus } from 'lucide-react';
-import { useCartStore } from '../stores/cart.store';
-import { useOrderStore } from '../stores/order.store'; // <--- NEW IMPORT
-
-declare global {
-  interface Window {
-    api: {
-      getProducts: () => Promise<any[]>;
-      createOrder: (order: any) => Promise<{ orderNumber: string }>;
-    };
-  }
-}
+import { useCartStore } from '../stores/cart.store'; // <--- Import Store
+import { Button } from '@repo/ui/components/ui/button';
+import { useOrderStore } from '../stores/order.store';
 
 export default function PosPage() {
   const [products, setProducts] = useState<any[]>([]);
@@ -106,12 +98,13 @@ export default function PosPage() {
         <div className="flex-1 overflow-y-auto p-4">
           <div className="grid grid-cols-3 lg:grid-cols-4 gap-4">
             {filteredProducts.map((product) => (
-              <button
+              <Button
                 key={product.id}
-                className="bg-white p-4 rounded-xl shadow-sm border border-gray-200 hover:border-blue-500 hover:shadow-md transition-all text-left group flex flex-col justify-between h-32 active:scale-95"
-                onClick={() => addToCart(product)}
+                variant="outline"
+                className="h-32 flex-col items-start justify-between whitespace-normal"
+                onClick={() => addToCart(product)} // <--- CONNECTED
               >
-                <div>
+                <div className="text-left">
                   <h3 className="font-bold text-gray-800 line-clamp-2 leading-tight">
                     {product.name}
                   </h3>
@@ -120,7 +113,7 @@ export default function PosPage() {
                 <div className="font-bold text-blue-600">
                   Rs. {(product.price / 100).toFixed(2)}
                 </div>
-              </button>
+              </Button>
             ))}
           </div>
         </div>
@@ -134,9 +127,9 @@ export default function PosPage() {
             <h2 className="font-bold text-lg text-gray-700">Current Order</h2>
             <div className="text-xs text-gray-400">#INV-NEW</div>
           </div>
-          <button onClick={clearCart} className="text-red-500 text-xs hover:bg-red-50 p-2 rounded">
+          <Button onClick={clearCart} variant="destructive" size="sm">
             Clear
-          </button>
+          </Button>
         </div>
 
         {/* Scrollable Cart Items */}
@@ -161,28 +154,34 @@ export default function PosPage() {
 
                 {/* Qty Controls */}
                 <div className="flex items-center gap-3 bg-gray-50 rounded-lg p-1">
-                  <button
+                  <Button
                     onClick={() => updateQuantity(item.productId, -1)}
-                    className="p-1 hover:bg-white rounded shadow-sm text-gray-600 disabled:opacity-50"
+                    variant="ghost"
+                    size="icon"
+                    className="h-auto w-auto p-1"
                   >
                     <Minus size={16} />
-                  </button>
+                  </Button>
                   <span className="font-bold w-4 text-center text-sm">{item.quantity}</span>
-                  <button
+                  <Button
                     onClick={() => updateQuantity(item.productId, 1)}
-                    className="p-1 hover:bg-white rounded shadow-sm text-gray-600"
+                    variant="ghost"
+                    size="icon"
+                    className="h-auto w-auto p-1"
                   >
                     <Plus size={16} />
-                  </button>
+                  </Button>
                 </div>
 
                 {/* Remove Button */}
-                <button
+                <Button
                   onClick={() => removeFromCart(item.productId)}
+                  variant="ghost"
+                  size="icon"
                   className="ml-3 text-gray-300 hover:text-red-500 transition-colors"
                 >
                   <Trash2 size={18} />
-                </button>
+                </Button>
               </div>
             ))
           )}
@@ -206,14 +205,14 @@ export default function PosPage() {
             <span className="text-blue-600">Rs. {(totals.total / 100).toFixed(2)}</span>
           </div>
 
-          <button
+          <Button
             onClick={handleCharge}
             disabled={items.length === 0}
-            className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white font-bold py-4 rounded-xl shadow-lg transition-transform active:scale-95 text-lg flex items-center justify-center gap-2"
+            className="w-full h-16 text-lg"
           >
             <span>CHARGE</span>
             <span>Rs. {(totals.total / 100).toFixed(2)}</span>
-          </button>
+          </Button>
         </div>
       </div>
     </div>
