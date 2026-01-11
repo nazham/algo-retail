@@ -1,7 +1,7 @@
 import { DB, schema } from '@algo/db-local';
 import { CreateOrderDto, OrderResultDto } from '@algo/types';
 import { randomUUID } from 'crypto';
-import { eq, sql } from 'drizzle-orm';
+import { desc, eq, sql } from 'drizzle-orm';
 
 export class OrderRepository {
   constructor(private db: DB) {}
@@ -50,6 +50,16 @@ export class OrderRepository {
       }
 
       return { orderId, orderNumber };
+    });
+  }
+
+  async findAll() {
+    return this.db.query.orders.findMany({
+      orderBy: [desc(schema.orders.createdAt)],
+      limit: 100, // Safety limit
+      with: {
+        items: true, // Auto-join items
+      },
     });
   }
 }

@@ -1,5 +1,5 @@
 import { sqliteTable, text, integer, real } from 'drizzle-orm/sqlite-core';
-import { sql } from 'drizzle-orm';
+import { relations, sql } from 'drizzle-orm';
 
 // 1. PRODUCTS (Master Data)
 export const products = sqliteTable('products', {
@@ -72,3 +72,18 @@ export const users = sqliteTable('users', {
   pin: text('pin').notNull(), // Simple PIN for MVP
   role: text('role').notNull().default('CASHIER'), // ADMIN, CASHIER
 });
+
+export const ordersRelations = relations(orders, ({ many }) => ({
+  items: many(orderItems),
+}));
+
+export const orderItemsRelations = relations(orderItems, ({ one }) => ({
+  order: one(orders, {
+    fields: [orderItems.orderId],
+    references: [orders.id],
+  }),
+  product: one(products, {
+    fields: [orderItems.productId],
+    references: [products.id],
+  }),
+}));
