@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../features/auth/hooks/use-auth';
 import { Button } from '@repo/ui/components/ui/button';
-import { Delete, Eraser } from 'lucide-react';
+import { Eraser } from 'lucide-react';
 
 export default function LoginPage() {
   const [pin, setPin] = useState('');
@@ -39,23 +39,23 @@ export default function LoginPage() {
   }, [pin, handleLogin]);
 
   return (
-    <div className="flex h-screen w-full items-center justify-center bg-gray-100">
-      <div className="w-96 rounded-2xl bg-white p-8 shadow-2xl">
+    <div className="flex h-screen w-full items-center justify-center bg-muted/40">
+      <div className="w-96 rounded-2xl bg-card p-8 shadow-2xl">
         <div className="mb-8 text-center">
-          <h1 className="text-3xl font-bold text-gray-800">Algo Retail</h1>
-          <p className="text-sm text-gray-500">System Locked</p>
+          <h1 className="text-3xl font-bold text-card-foreground">Algo Retail</h1>
+          <p className="text-sm text-muted-foreground">System Locked</p>
         </div>
 
         {/* PIN Display */}
         <div className="mb-8">
-          <div className="flex h-16 w-full items-center justify-center rounded-xl bg-gray-50 border-2 border-gray-100 transition-colors focus-within:border-blue-500">
-            <span className="text-4xl font-bold tracking-[0.5em] text-gray-800">
+          <div className="flex h-16 w-full items-center justify-center rounded-xl bg-secondary/50 border-2 border-border transition-colors focus-within:border-primary">
+            <span className="text-4xl font-bold tracking-[0.5em] text-card-foreground">
               {pin.replace(/./g, '•')}
             </span>
           </div>
           <div className="h-6 mt-2 text-center">
             {error && (
-              <span className="text-sm font-medium text-red-500 animate-pulse">{error}</span>
+              <span className="text-sm font-medium text-destructive animate-pulse">{error}</span>
             )}
           </div>
         </div>
@@ -66,7 +66,7 @@ export default function LoginPage() {
             <Button
               key={num}
               variant="outline"
-              className="h-20 text-2xl font-bold hover:bg-blue-50 hover:text-blue-600 transition-all"
+              className="h-20 text-2xl font-bold hover:bg-accent hover:text-accent-foreground transition-all"
               onClick={() => appendDigit(num.toString())}
               disabled={isLoading}
             >
@@ -76,7 +76,7 @@ export default function LoginPage() {
 
           <Button
             variant="destructive"
-            className="h-20 bg-red-50 text-red-500 hover:bg-red-100 border-red-100"
+            className="h-20 bg-destructive/10 text-destructive hover:bg-red-100 border-red-100"
             onClick={() => setPin('')}
             disabled={isLoading}
           >
@@ -85,7 +85,7 @@ export default function LoginPage() {
 
           <Button
             variant="outline"
-            className="h-20 text-2xl font-bold hover:bg-blue-50"
+            className="h-20 text-2xl font-bold hover:bg-accent"
             onClick={() => appendDigit('0')}
             disabled={isLoading}
           >
@@ -93,7 +93,7 @@ export default function LoginPage() {
           </Button>
 
           <Button
-            className="h-20 text-lg font-bold bg-blue-600 hover:bg-blue-700"
+            className="h-20 text-lg font-bold bg-primary hover:bg-blue-700"
             onClick={handleLogin}
             disabled={isLoading}
           >

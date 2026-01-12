@@ -1,51 +1,77 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+/* packages/ui/src/globals.css */
+@import 'tailwindcss';
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 240 10% 3.9%;
-    --card: 0 0% 100%;
-    --card-foreground: 240 10% 3.9%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 240 10% 3.9%;
-    --primary: 240 5.9% 10%;
-    --primary-foreground: 0 0% 98%;
-    --secondary: 240 4.8% 95.9%;
-    --secondary-foreground: 240 5.9% 10%;
-    --muted: 240 4.8% 95.9%;
-    --muted-foreground: 240 3.8% 46.1%;
-    --accent: 240 4.8% 95.9%;
-    --accent-foreground: 240 5.9% 10%;
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 240 5.9% 90%;
-    --input: 240 5.9% 90%;
-    --ring: 240 10% 3.9%;
+    /* 1. Base Colors (White background, Dark text) */
+    --background: oklch(1 0 0);
+    --foreground: oklch(0.129 0.042 264.695);
+
+    /* 2. Surfaces (Cards, Popovers) */
+    --card: oklch(1 0 0);
+    --card-foreground: oklch(0.129 0.042 264.695);
+    --popover: oklch(1 0 0);
+    --popover-foreground: oklch(0.129 0.042 264.695);
+
+    /* 3. Brand Colors (From your Prototype) */
+    /* Vibrant Violet/Purple */
+    --primary: oklch(0.5417 0.179 288.0332);
+    --primary-foreground: oklch(1 0 0);
+
+    /* Soft Purple for secondary actions */
+    --secondary: oklch(0.9174 0.0435 292.6901);
+    --secondary-foreground: oklch(0.4143 0.1039 288.1742);
+
+    /* Muted Grays */
+    --muted: oklch(0.958 0.0133 286.1454);
+    --muted-foreground: oklch(0.5426 0.0465 284.7435);
+
+    /* Accents (Hover states) */
+    --accent: oklch(0.9221 0.0373 262.141);
+    --accent-foreground: oklch(0.3015 0.0572 282.4176);
+
+    /* Functional Colors */
+    --destructive: oklch(0.6861 0.2061 14.9941); /* Red */
+    --destructive-foreground: oklch(1 0 0);
+
+    /* Borders & Inputs */
+    --border: oklch(0.897 0.01 292.69);
+    --input: oklch(0.897 0.01 292.69);
+    --ring: oklch(0.5417 0.179 288.0332); /* Focus Ring matches Primary */
+
+    /* Radius */
     --radius: 0.5rem;
   }
 
+  /* DARK MODE (Based on your prototype's dark values) */
   .dark {
-    --background: 240 10% 3.9%;
-    --foreground: 0 0% 98%;
-    --card: 240 10% 3.9%;
-    --card-foreground: 0 0% 98%;
-    --popover: 240 10% 3.9%;
-    --popover-foreground: 0 0% 98%;
-    --primary: 0 0% 98%;
-    --primary-foreground: 240 5.9% 10%;
-    --secondary: 240 3.7% 15.3%;
-    --secondary-foreground: 0 0% 98%;
-    --muted: 240 3.7% 15.3%;
-    --muted-foreground: 240 5% 64.9%;
-    --accent: 240 3.7% 15.3%;
-    --accent-foreground: 0 0% 98%;
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 240 3.7% 15.3%;
-    --input: 240 3.7% 15.3%;
-    --ring: 240 4.9% 83.9%;
+    --background: oklch(0.129 0.042 264.695); /* Deep Blue/Black */
+    --foreground: oklch(0.985 0 0);
+
+    --card: oklch(0.129 0.042 264.695); /* Matches background for clean look */
+    --card-foreground: oklch(0.985 0 0);
+
+    --popover: oklch(0.129 0.042 264.695);
+    --popover-foreground: oklch(0.985 0 0);
+
+    --primary: oklch(0.5417 0.179 288.0332); /* Keep Brand Color consistent */
+    --primary-foreground: oklch(1 0 0);
+
+    --secondary: oklch(0.274 0.041 264.576); /* Darker purple/blue */
+    --secondary-foreground: oklch(0.985 0 0);
+
+    --muted: oklch(0.274 0.041 264.576);
+    --muted-foreground: oklch(0.704 0.04 256.79);
+
+    --accent: oklch(0.274 0.041 264.576);
+    --accent-foreground: oklch(0.985 0 0);
+
+    --destructive: oklch(0.396 0.141 25.723);
+    --destructive-foreground: oklch(0.985 0 0);
+
+    --border: oklch(0.274 0.041 264.576);
+    --input: oklch(0.274 0.041 264.576);
+    --ring: oklch(0.5417 0.179 288.0332);
   }
 }
 
