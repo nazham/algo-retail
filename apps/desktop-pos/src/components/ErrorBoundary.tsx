@@ -24,9 +24,9 @@ export class ErrorBoundary extends Component<Props, State> {
   public render() {
     if (this.state.hasError) {
       return (
-        <div className="flex h-full flex-col items-center justify-center space-y-4 p-8 text-center bg-red-50">
-          <h2 className="text-xl font-bold text-red-600">Something went wrong</h2>
-          <p className="text-sm text-gray-600 max-w-md bg-white p-4 rounded border border-red-100 font-mono">
+        <div className="flex h-full flex-col items-center justify-center space-y-4 p-8 text-center bg-destructive/10">
+          <h2 className="text-xl font-bold text-destructive">Something went wrong</h2>
+          <p className="text-sm text-muted-foreground max-w-md bg-card p-4 rounded border border-red-100 font-mono">
             {this.state.error?.message}
           </p>
           <Button

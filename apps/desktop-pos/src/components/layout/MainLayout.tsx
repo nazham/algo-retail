@@ -12,11 +12,11 @@ export default function MainLayout() {
   ];
 
   return (
-    <div className="flex h-screen bg-gray-100 overflow-hidden">
+    <div className="flex h-screen bg-background overflow-hidden">
       {/* Sidebar (Left) */}
-      <aside className="w-20 bg-white border-r border-gray-200 flex flex-col items-center py-6 gap-4 shadow-sm z-20">
-        <div className="mb-4 bg-blue-600 p-2 rounded-lg">
-          <span className="text-white font-bold text-xl">AR</span>
+      <aside className="w-20 bg-card border-r border-input flex flex-col items-center py-6 gap-4 shadow-sm z-20">
+        <div className="mb-4 bg-primary p-2 rounded-lg">
+          <span className="text-primary-foreground font-bold text-xl">AR</span>
         </div>
 
         {navItems.map((item) => (
@@ -27,13 +27,13 @@ export default function MainLayout() {
               clsx(
                 'p-3 rounded-xl transition-all duration-200 group relative',
                 isActive
-                  ? 'bg-blue-50 text-blue-600 shadow-sm'
-                  : 'text-gray-400 hover:bg-gray-50 hover:text-gray-600',
+                  ? 'bg-accent text-accent-foreground shadow-sm'
+                  : 'text-muted-foreground hover:bg-muted hover:text-foreground',
               )
             }
           >
             <item.icon size={24} strokeWidth={2} />
-            <span className="absolute left-16 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-50">
+            <span className="absolute left-16 bg-popover text-popover-foreground text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-50">
               {item.label}
             </span>
           </NavLink>

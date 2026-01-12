@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { LogOut, User } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { ModeToggle } from '@repo/ui/components/mode-toggle';
 
 export default function Header() {
   const navigate = useNavigate();
@@ -20,27 +21,28 @@ export default function Header() {
   };
 
   return (
-    <header className="flex h-16 items-center justify-between bg-white px-6 shadow-sm">
+    <header className="flex h-16 items-center justify-between bg-card px-6 shadow-sm">
       {/* Left: Brand */}
-      <div className="text-xl font-bold text-blue-600">Algo Retail</div>
+      <div className="text-xl font-bold text-primary">Algo Retail</div>
 
       {/* Right: User Info */}
       <div className="flex items-center gap-4">
+        <ModeToggle />
         {user && (
-          <div className="flex items-center gap-2 text-sm font-medium text-gray-700">
-            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-100 text-blue-600">
+          <div className="flex items-center gap-2 text-sm font-medium text-foreground">
+            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-primary">
               <User size={16} />
             </div>
             <div className="flex flex-col items-end leading-tight">
               <span>{user.name}</span>
-              <span className="text-xs text-gray-400">{user.role}</span>
+              <span className="text-xs text-muted-foreground">{user.role}</span>
             </div>
           </div>
         )}
 
         <button
           onClick={handleLogout}
-          className="rounded-lg p-2 text-gray-400 hover:bg-red-50 hover:text-red-500"
+          className="rounded-lg p-2 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
           title="Logout"
         >
           <LogOut size={20} />
