@@ -1,1 +1,17 @@
+/* apps/desktop-pos/src/index.css */
 @import "tailwindcss";
+
+/* 1. LOAD THE V3 CONFIG (Crucial Fix) */
+/* This tells v4 to read your UI library's custom colors/styles */
+@config "../../../packages/ui/tailwind.config.js";
+
+/* 2. Source the files for content scanning */
+@source "../../../packages/ui";
+
+/* 3. Import the globals (Variables & Base Styles) */
+@import "@repo/ui/globals.css";
+
+/* 4. Custom Styles */
+:root {
+  font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
+}

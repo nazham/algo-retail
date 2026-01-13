@@ -1,0 +1,8 @@
+{
+  "recommendations": [
+    "dbaeumer.vscode-eslint", // specific linter
+    "esbenp.prettier-vscode", // formatter
+    "bradlc.vscode-tailwindcss", // tailwind class autocomplete
+    "usernamehw.errorlens" // shows errors inline (highly recommended)
+  ]
+}

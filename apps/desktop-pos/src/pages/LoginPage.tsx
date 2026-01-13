@@ -1,28 +1,21 @@
 import { useState, useEffect, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../features/auth/hooks/use-auth';
+import { Button } from '@repo/ui/components/ui/button';
+import { Eraser } from 'lucide-react';
 
 export default function LoginPage() {
   const [pin, setPin] = useState('');
-  const [error, setError] = useState('');
-  const navigate = useNavigate();
+  const { login, isLoading, error, setError } = useAuth(); // Use Hook
 
-  // 1. Define Login Logic
+  // 1. Logic
   const handleLogin = useCallback(async () => {
     if (!pin) return;
-    try {
-      setError('');
-      const user = await window.api.login(pin);
-      // Save user to session storage (or a Global Auth Context)
-      sessionStorage.setItem('algo_user', JSON.stringify(user));
-      navigate('/'); // Go to POS
-    } catch (err) {
-      console.error(err);
-      setError('Invalid PIN');
-      setPin('');
-    }
-  }, [pin, navigate]);
+    await login(pin);
+    // If failed, we clear pin or handle error (hook handles error state)
+    if (error) setPin('');
+  }, [pin, login, error]);
 
-  // 2. Define Input Logic
+  // 2. Input Logic
   const appendDigit = (digit: string) => {
     if (pin.length < 4) {
       setPin((prev) => prev + digit);
@@ -30,90 +23,83 @@ export default function LoginPage() {
     }
   };
 
-  // 3. The Keyboard Listener (NEW)
+  // 3. Keyboard Listener
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      // Allow numbers 0-9
-      if (/^[0-9]$/.test(e.key)) {
-        appendDigit(e.key);
-      }
-      // Handle Backspace
-      else if (e.key === 'Backspace') {
+      if (/^[0-9]$/.test(e.key)) appendDigit(e.key);
+      if (e.key === 'Backspace') {
         setPin((prev) => prev.slice(0, -1));
         setError('');
       }
-      // Handle Enter
-      else if (e.key === 'Enter') {
-        handleLogin();
-      }
-      // Handle Escape (Clear)
-      else if (e.key === 'Escape') {
-        setPin('');
-        setError('');
-      }
+      if (e.key === 'Enter') handleLogin();
+      if (e.key === 'Escape') setPin('');
     };
-
     window.addEventListener('keydown', handleKeyDown);
-
-    // Cleanup listener on unmount
-    return () => {
-      window.removeEventListener('keydown', handleKeyDown);
-    };
-  }, [pin, handleLogin]); // Dependencies ensure state is fresh
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [pin, handleLogin]);
 
   return (
-    <div className="flex h-screen w-full items-center justify-center bg-gray-100">
-      <div className="w-96 rounded-2xl bg-white p-8 shadow-2xl">
+    <div className="flex h-screen w-full items-center justify-center bg-muted/40">
+      <div className="w-96 rounded-2xl bg-card p-8 shadow-2xl">
         <div className="mb-8 text-center">
-          <h1 className="text-3xl font-bold text-gray-800">Algo Retail</h1>
-          <p className="text-sm text-gray-500">System Locked</p>
+          <h1 className="text-3xl font-bold text-card-foreground">Algo Retail</h1>
+          <p className="text-sm text-muted-foreground">System Locked</p>
         </div>
 
         {/* PIN Display */}
         <div className="mb-8">
-          <div className="flex h-16 w-full items-center justify-center rounded-xl bg-gray-50 border-2 border-gray-100">
-            <span className="text-4xl font-bold tracking-[0.5em] text-gray-800">
+          <div className="flex h-16 w-full items-center justify-center rounded-xl bg-secondary/50 border-2 border-border transition-colors focus-within:border-primary">
+            <span className="text-4xl font-bold tracking-[0.5em] text-card-foreground">
               {pin.replace(/./g, '•')}
             </span>
           </div>
-          {error && <p className="mt-2 text-center text-sm font-medium text-red-500">{error}</p>}
+          <div className="h-6 mt-2 text-center">
+            {error && (
+              <span className="text-sm font-medium text-destructive animate-pulse">{error}</span>
+            )}
+          </div>
         </div>
 
-        {/* Keypad Visuals (Still clickable) */}
+        {/* Shadcn Keypad */}
         <div className="grid grid-cols-3 gap-4">
           {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((num) => (
-            <button
+            <Button
               key={num}
+              variant="outline"
+              className="h-20 text-2xl font-bold hover:bg-accent hover:text-accent-foreground transition-all"
               onClick={() => appendDigit(num.toString())}
-              className="flex h-20 w-full items-center justify-center rounded-xl bg-gray-50 text-2xl font-bold text-gray-700 transition-all hover:bg-blue-50 active:scale-95"
+              disabled={isLoading}
             >
               {num}
-            </button>
+            </Button>
           ))}
 
-          <button
+          <Button
+            variant="destructive"
+            className="h-20 bg-destructive/10 text-destructive hover:bg-red-100 border-red-100"
             onClick={() => setPin('')}
-            className="flex h-20 w-full items-center justify-center rounded-xl bg-red-50 text-lg font-bold text-red-500 transition-all hover:bg-red-100 active:scale-95"
+            disabled={isLoading}
           >
-            CLR
-          </button>
+            <Eraser />
+          </Button>
 
-          <button
+          <Button
+            variant="outline"
+            className="h-20 text-2xl font-bold hover:bg-accent"
             onClick={() => appendDigit('0')}
-            className="flex h-20 w-full items-center justify-center rounded-xl bg-gray-50 text-2xl font-bold text-gray-700 transition-all hover:bg-blue-50 active:scale-95"
+            disabled={isLoading}
           >
             0
-          </button>
+          </Button>
 
-          <button
+          <Button
+            className="h-20 text-lg font-bold bg-primary hover:bg-secondary"
             onClick={handleLogin}
-            className="flex h-20 w-full items-center justify-center rounded-xl bg-blue-600 text-lg font-bold text-white transition-all hover:bg-blue-700 active:scale-95"
+            disabled={isLoading}
           >
-            GO
-          </button>
+            {isLoading ? '...' : 'GO'}
+          </Button>
         </div>
-
-        <p className="mt-6 text-center text-xs text-gray-400">Use Numpad or On-Screen Keys</p>
       </div>
     </div>
   );

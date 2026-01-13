@@ -4,6 +4,7 @@ import PosPage from './pages/PosPage';
 import SettingsPage from './pages/SettingsPage';
 import LoginPage from './pages/LoginPage';
 import type { JSX } from 'react';
+import { Toaster } from '@repo/ui/components/ui/sonner';
 
 function ProtectedRoute({ children }: { children: JSX.Element }) {
   const user = sessionStorage.getItem('algo_user');
@@ -32,6 +33,7 @@ function App() {
           <Route path="/orders" element={<div className="p-10">Orders Coming Soon</div>} />
         </Route>
       </Routes>
+      <Toaster />
     </HashRouter>
   );
 }
