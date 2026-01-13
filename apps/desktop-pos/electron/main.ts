@@ -1,4 +1,4 @@
-import { app, BrowserWindow, ipcMain } from 'electron';
+import { app, BrowserWindow } from 'electron';
 import path from 'path';
 import { initDb, runMigrations } from '@algo/db-local';
 import { ProductRepository } from './repositories/product.repo';
@@ -11,6 +11,17 @@ import { SyncService } from './services/sync.service';
 import { UserRepository } from './repositories/user.repo';
 import { registerUserHandlers } from './handlers/user.handler';
 dotenv.config();
+
+/**
+ * ⚠️ ARCHITECTURE NOTE:
+ * This app uses `better-sqlite3` v12.5.0, while the root workspace uses v12.6.0.
+ *
+ * DO NOT SYNC THEM.
+ *
+ * We use "Version Skewing" to force pnpm to keep the binaries in separate folders.
+ * This allows the App to compile for Electron (ABI 140) while the CLI compiles
+ * for System Node (ABI 127) without overwriting each other.
+ */
 
 // 1. Define where the DB lives
 const userDataPath = app.getPath('userData');
