@@ -73,6 +73,11 @@ export const users = sqliteTable('users', {
   role: text('role').notNull().default('CASHIER'), // ADMIN, CASHIER
 });
 
+export const _test_table = sqliteTable('_test_table', {
+  id: text('id').primaryKey(),
+  note: text('note'),
+});
+
 export const ordersRelations = relations(orders, ({ many }) => ({
   items: many(orderItems),
 }));

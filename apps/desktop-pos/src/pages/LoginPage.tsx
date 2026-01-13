@@ -93,7 +93,7 @@ export default function LoginPage() {
           </Button>
 
           <Button
-            className="h-20 text-lg font-bold bg-primary hover:bg-blue-700"
+            className="h-20 text-lg font-bold bg-primary hover:bg-secondary"
             onClick={handleLogin}
             disabled={isLoading}
           >
