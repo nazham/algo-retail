@@ -285,7 +285,7 @@ importers:
   packages/db-local:
     dependencies:
       better-sqlite3:
-        specifier: ^12.6.0
+        specifier: 12.6.0
         version: 12.6.0
       drizzle-orm:
         specifier: ^0.45.1
