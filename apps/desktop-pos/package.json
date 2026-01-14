@@ -4,7 +4,7 @@
   "private": true,
   "version": "0.0.0",
   "scripts": {
-    "dev": "shx rm -rf drizzle && shx mkdir -p drizzle && shx cp -r ../../packages/db-local/drizzle/* ./drizzle 2>/dev/null || true && vite",
+    "dev": "node scripts/sync-migrations.js && vite",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview",
