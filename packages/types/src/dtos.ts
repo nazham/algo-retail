@@ -16,8 +16,22 @@ export class CreateOrderDto {
 }
 
 export interface OrderResultDto {
-  // Return types CAN remain interfaces because NestJS doesn't validate OUTGOING data by default.
-  // But making it a class is fine too.
   orderId: string;
   orderNumber: string;
+}
+
+export interface OrderItemDto {
+  id: string;
+  productName: string;
+  quantity: number;
+  unitPrice: number;
+}
+
+export interface OrderDto {
+  id: string;
+  orderNumber: string;
+  grandTotal: number;
+  status: string;
+  createdAt: string;
+  items: OrderItemDto[];
 }
