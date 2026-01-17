@@ -32,19 +32,23 @@ console.log('Database location:', dbPath);
 // 2. Initialize DB
 const db = initDb(dbPath);
 
-// Run Migrations
-const isDev = process.env.NODE_ENV === 'development' || !app.isPackaged;
-const migrationsPath = isDev
-  ? path.join(__dirname, '../drizzle')
-  : path.join(process.resourcesPath, 'drizzle');
+/**
+ * DISABLE MIGRATIONS FOR RAPID MVP
+ */
 
-try {
-  console.log('Running migrations from:', migrationsPath);
-  runMigrations(db, migrationsPath);
-  console.log('Migrations applied successfully!');
-} catch (err) {
-  console.error('Migration failed:', err);
-}
+// Run Migrations
+// const isDev = process.env.NODE_ENV === 'development' || !app.isPackaged;
+// const migrationsPath = isDev
+//   ? path.join(__dirname, '../drizzle')
+//   : path.join(process.resourcesPath, 'drizzle');
+
+// try {
+//   console.log('Running migrations from:', migrationsPath);
+//   runMigrations(db, migrationsPath);
+//   console.log('Migrations applied successfully!');
+// } catch (err) {
+//   console.error('Migration failed:', err);
+// }
 
 // 3. Initialize Repositories
 const productRepo = new ProductRepository(db);

@@ -1,36 +1,66 @@
 import { sqliteTable, text, integer, real } from 'drizzle-orm/sqlite-core';
 import { relations, sql } from 'drizzle-orm';
 
-// 1. PRODUCTS (Master Data)
-export const products = sqliteTable('products', {
-  id: text('id').primaryKey(), // UUID
+// 1. CATEGORIES
+export const categories = sqliteTable('categories', {
+  id: text('id').primaryKey(),
+  tenantId: text('tenant_id'), // Optional locally, but good for alignment
   name: text('name').notNull(),
-  sku: text('sku').notNull().unique(),
-  price: integer('price').notNull(), // Cents
-  stock: real('current_stock').default(0),
-  taxRate: real('tax_rate').default(0),
-  updatedAt: text('updated_at').default(sql`CURRENT_TIMESTAMP`),
 });
 
-// 2. ORDERS (Transactions)
+// 2. PRODUCTS (The Master Table)
+export const products = sqliteTable('products', {
+  id: text('id').primaryKey(), // UUID
+  tenantId: text('tenant_id'), // Kept for type alignment with Cloud
+
+  // Core Identity
+  name: text('name').notNull(),
+  sku: text('sku').unique(), // Barcode
+  parentId: text('parent_id'), // Links "Rice 1kg" to "Rice 25kg"
+
+  // Pricing (Cents)
+  price: integer('price').notNull(), // MRP
+  costPrice: integer('cost_price').default(0),
+  wholesalePrice: integer('wholesale_price').default(0),
+  taxRate: real('tax_rate').default(0),
+
+  // Inventory
+  stock: real('current_stock').default(0),
+  uom: text('uom').default('pc'), // 'kg', 'box', 'l'
+  reorderPoint: real('reorder_point').default(0),
+  safetyStock: real('safety_stock').default(0),
+  location: text('location'),
+
+  // ERP / GSheet Data
+  batchNo: text('batch_no'),
+  expiryDate: text('expiry_date'), // YYYY-MM-DD
+  mfgDate: text('mfg_date'),
+  supplier: text('supplier'),
+  brand: text('brand'),
+
+  updatedAt: text('updated_at').default(sql`CURRENT_TIMESTAMP`),
+  categoryId: text('category_id').references(() => categories.id),
+});
+
+// 3. ORDERS
 export const orders = sqliteTable('orders', {
   id: text('id').primaryKey(),
-  orderNumber: text('order_number').notNull(), // INV-001
-  status: text('status').notNull().default('PENDING'), // PENDING, COMPLETED, VOID
+  tenantId: text('tenant_id'), // Useful for "Offline Backup" verification
+  orderNumber: text('order_number').notNull(),
+  status: text('status').default('COMPLETED'),
+  paymentMethod: text('payment_method').notNull().default('CASH'),
 
-  // Money (Stored as integers/cents)
+  // Totals (Cents)
   subtotal: integer('subtotal').notNull(),
   taxTotal: integer('tax_total').default(0),
   discountTotal: integer('discount_total').default(0),
   grandTotal: integer('grand_total').notNull(),
 
-  // Metadata
-  customerId: text('customer_id'), // Nullable for walk-ins
   createdAt: text('created_at').default(sql`CURRENT_TIMESTAMP`),
   isSynced: integer('is_synced', { mode: 'boolean' }).default(false),
 });
 
-// 3. ORDER ITEMS (Line Items)
+// 4. ORDER ITEMS
 export const orderItems = sqliteTable('order_items', {
   id: text('id').primaryKey(),
   orderId: text('order_id')
@@ -40,7 +70,7 @@ export const orderItems = sqliteTable('order_items', {
     .notNull()
     .references(() => products.id),
 
-  // Snapshots (Protect history!)
+  // Snapshots
   productName: text('product_name').notNull(),
   quantity: real('quantity').notNull(),
   unitPrice: integer('unit_price').notNull(),
@@ -73,10 +103,13 @@ export const users = sqliteTable('users', {
   role: text('role').notNull().default('CASHIER'), // ADMIN, CASHIER
 });
 
-export const _test_table = sqliteTable('_test_table', {
-  id: text('id').primaryKey(),
-  note: text('note'),
-});
+// Relations
+export const productsRelations = relations(products, ({ one }) => ({
+  category: one(categories, {
+    fields: [products.categoryId],
+    references: [categories.id],
+  }),
+}));
 
 export const ordersRelations = relations(orders, ({ many }) => ({
   items: many(orderItems),

@@ -7,6 +7,10 @@
   "license": "UNLICENSED",
   "scripts": {
     "build": "nest build",
+    "generate": "drizzle-kit generate",
+    "migrate": "drizzle-kit migrate",
+    "db:push": "drizzle-kit push",
+    "studio": "drizzle-kit studio",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "start": "nest start",
     "start:dev": "nest start --watch",

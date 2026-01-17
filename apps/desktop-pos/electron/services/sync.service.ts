@@ -67,6 +67,7 @@ export class SyncService {
           }
         } catch (err) {
           console.error(`   -> Network Error for ${order.orderNumber}`);
+          console.error(err);
         }
       }
 

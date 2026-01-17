@@ -17,6 +17,7 @@
   "type": "commonjs",
   "dependencies": {
     "better-sqlite3": "12.6.0",
+    "csv-parse": "^6.1.0",
     "drizzle-orm": "^0.45.1"
   },
   "devDependencies": {
