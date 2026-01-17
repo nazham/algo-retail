@@ -2,6 +2,8 @@ import { type ElementType } from 'react';
 import { clsx } from 'clsx';
 import { Eye, Printer, RefreshCcw, MoreHorizontal } from 'lucide-react';
 
+// --- 1. Original Components (Restored) ---
+
 type TableHeaderProps = {
   label: string;
   align?: 'left' | 'center' | 'right';
@@ -52,11 +54,16 @@ export function StatCard({ title, value, icon: Icon, trend, variant }: StatCardP
 type FilterButtonProps = {
   icon: ElementType;
   label: string;
+  // Added onClick support just in case, though not strictly required for this task
+  onClick?: () => void;
 };
 
-export function FilterButton({ icon: Icon, label }: FilterButtonProps) {
+export function FilterButton({ icon: Icon, label, onClick }: FilterButtonProps) {
   return (
-    <button className="flex items-center gap-2 px-3 py-2 bg-card border text-muted-foreground rounded-lg text-sm font-medium hover:bg-muted/50 hover:border-input transition-all">
+    <button
+      onClick={onClick}
+      className="flex items-center gap-2 px-3 py-2 bg-card border text-muted-foreground rounded-lg text-sm font-medium hover:bg-muted/50 hover:border-input transition-all"
+    >
       <Icon size={16} />
       <span>{label}</span>
     </button>
@@ -109,15 +116,19 @@ export function StatusBadge({ status }: { status: string }) {
   );
 }
 
+// --- 2. Updated Components for the Feature ---
+
 type MenuItemProps = {
   icon: ElementType;
   label: string;
   variant?: 'default' | 'destructive';
+  onClick?: () => void; // <--- ADDED THIS
 };
 
-export function MenuItem({ icon: Icon, label, variant = 'default' }: MenuItemProps) {
+export function MenuItem({ icon: Icon, label, variant = 'default', onClick }: MenuItemProps) {
   return (
     <button
+      onClick={onClick} // <--- CONNECTED HERE
       className={clsx(
         'w-full flex items-center gap-2 px-3 py-2 text-sm rounded-md transition-colors',
         variant === 'destructive'
@@ -135,9 +146,10 @@ type MenuProps = {
   orderId: string;
   activeMenu: string | null;
   toggleMenu: (id: string) => void;
+  onViewDetails: () => void; // <--- ADDED THIS
 };
 
-export function OrderActionsMenu({ orderId, activeMenu, toggleMenu }: MenuProps) {
+export function OrderActionsMenu({ orderId, activeMenu, toggleMenu, onViewDetails }: MenuProps) {
   return (
     <>
       <button
@@ -154,7 +166,15 @@ export function OrderActionsMenu({ orderId, activeMenu, toggleMenu }: MenuProps)
       {activeMenu === orderId && (
         <div className="absolute right-10 mt-1 w-48 bg-card rounded-lg shadow-xl border z-50 overflow-hidden animate-in fade-in zoom-in-95 duration-100">
           <div className="p-1">
-            <MenuItem icon={Eye} label="View Details" />
+            {/* VIEW DETAILS BUTTON */}
+            <MenuItem
+              icon={Eye}
+              label="View Details"
+              onClick={() => {
+                onViewDetails(); // Trigger the popup
+                toggleMenu(orderId); // Close the menu
+              }}
+            />
             <MenuItem icon={Printer} label="Reprint Receipt" />
             <div className="h-px bg-border my-1"></div>
             <MenuItem icon={RefreshCcw} label="Refund" variant="destructive" />
