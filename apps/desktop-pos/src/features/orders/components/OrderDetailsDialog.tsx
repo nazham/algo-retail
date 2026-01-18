@@ -78,7 +78,7 @@ export function OrderDetailsDialog({ order, open, onOpenChange }: OrderDetailsDi
                     </td>
                     <td className="py-2 text-center align-top text-[11px]">{item.quantity}</td>
                     <td className="py-2 text-right align-top text-[11px]">
-                      {formatCurrency(item.price * item.quantity)}
+                      {formatCurrency(item.unitPrice * item.quantity)}
                     </td>
                   </tr>
                 ))}
