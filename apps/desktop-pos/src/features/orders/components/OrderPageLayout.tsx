@@ -29,9 +29,10 @@ export function OrderPageLayout({
   };
 
   return (
+    // 👇 CHANGED: 'overflow-hidden' -> 'overflow-y-auto' (Enables page scrolling)
     <div className="flex flex-col h-full bg-muted/40 p-6 space-y-6 overflow-y-auto">
       {/* --- Header --- */}
-      <div className="flex justify-between items-center">
+      <div className="flex justify-between items-center shrink-0">
         <h1 className="text-2xl font-bold text-foreground">Transactions</h1>
         <div className="text-sm text-muted-foreground">
           Current Session: <span className="font-mono font-medium text-foreground">POS-01</span>
@@ -39,7 +40,7 @@ export function OrderPageLayout({
       </div>
 
       {/* --- Stats Cards --- */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 shrink-0">
         <StatCard
           title="Total Revenue"
           value={formatCurrency(totalRevenue)}
@@ -63,8 +64,7 @@ export function OrderPageLayout({
       </div>
 
       {/* --- Filter Bar --- */}
-      <div className="bg-card p-4 rounded-xl shadow-sm border flex flex-wrap gap-3 items-center justify-between">
-        {/* --- Search Bar (Restored as Input) --- */}
+      <div className="bg-card p-4 rounded-xl shadow-sm border flex flex-wrap gap-3 items-center justify-between shrink-0">
         <div className="relative flex-1 min-w-62.5">
           <Search
             className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
@@ -80,16 +80,13 @@ export function OrderPageLayout({
         </div>
 
         <div className="flex gap-2">
-          {/* Date Picker with Fixed Width */}
           <DatePicker
             date={date}
             setDate={setDate}
             className="w-60"
             placeholder="Filter by Date..."
           />
-
           <FilterButton icon={Filter} label="All Status" />
-
           <button
             onClick={handleClearFilters}
             className="px-4 py-2 text-sm font-medium text-destructive hover:bg-destructive/10 rounded-lg transition-colors"
@@ -99,8 +96,11 @@ export function OrderPageLayout({
         </div>
       </div>
 
-      {/* --- Data Table --- */}
-      <OrderTable orders={orders} />
+      {/* --- Data Table Container --- */}
+      {/* 👇 CHANGED: Removed 'flex-1 overflow-hidden' so it expands naturally */}
+      <div className="flex flex-col">
+        <OrderTable orders={orders} />
+      </div>
     </div>
   );
 }

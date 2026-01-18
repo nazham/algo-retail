@@ -1,35 +1,51 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import type { OrderDto } from '@algo/types';
-import { Wallet } from 'lucide-react';
-// Imports should work fine now that ui.tsx is fixed
+import { Wallet, ChevronLeft, ChevronRight } from 'lucide-react';
 import { TableHeader, PaymentBadge, StatusBadge, OrderActionsMenu } from './ui';
-import { OrderDetailsDialog } from './OrderDetailsDialog'; // Ensure this file exists
+import { OrderDetailsDialog } from './OrderDetailsDialog';
 import { formatCurrency, formatDate } from '../lib/utils';
+import { Button } from '@repo/ui/components/ui/button';
 
 type OrderTableProps = {
   orders: OrderDto[];
 };
 
+const ITEMS_PER_PAGE = 10;
+
 export function OrderTable({ orders }: OrderTableProps) {
   const [activeMenu, setActiveMenu] = useState<string | null>(null);
-
-  // --- New State ---
   const [selectedOrder, setSelectedOrder] = useState<OrderDto | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [orders]);
+
+  const totalPages = Math.ceil(orders.length / ITEMS_PER_PAGE);
+  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+  const currentOrders = orders.slice(startIndex, startIndex + ITEMS_PER_PAGE);
 
   const toggleMenu = (id: string) => {
     setActiveMenu(activeMenu === id ? null : id);
   };
 
-  // --- Handler ---
   const handleViewDetails = (order: OrderDto) => {
     setSelectedOrder(order);
     setIsDialogOpen(true);
   };
 
+  const handlePageChange = (newPage: number) => {
+    if (newPage >= 1 && newPage <= totalPages) {
+      setCurrentPage(newPage);
+    }
+  };
+
   return (
     <>
-      <div className="bg-card rounded-xl shadow-sm border flex-1 overflow-hidden flex flex-col">
+      {/* 👇 CHANGED: Removed 'flex-1 overflow-hidden', added 'h-fit' */}
+      <div className="bg-card rounded-xl shadow-sm border flex flex-col h-fit">
+        {/* 👇 CHANGED: Removed 'flex-1', kept 'overflow-x-auto' for horizontal scroll only */}
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead className="bg-muted/50 border-b">
@@ -55,7 +71,7 @@ export function OrderTable({ orders }: OrderTableProps) {
                   </td>
                 </tr>
               ) : (
-                orders.map((order) => (
+                currentOrders.map((order) => (
                   <tr key={order.id} className="hover:bg-muted/50 transition-colors relative">
                     <td className="p-4">
                       <span className="font-mono text-primary font-medium text-sm">
@@ -80,7 +96,6 @@ export function OrderTable({ orders }: OrderTableProps) {
                       <StatusBadge status={order.status} />
                     </td>
                     <td className="p-4 text-right">
-                      {/* --- Update this component call --- */}
                       <OrderActionsMenu
                         orderId={order.id}
                         activeMenu={activeMenu}
@@ -94,9 +109,47 @@ export function OrderTable({ orders }: OrderTableProps) {
             </tbody>
           </table>
         </div>
+
+        {/* --- Pagination Footer --- */}
+        {orders.length > 0 && (
+          <div className="border-t p-4 flex items-center justify-between bg-card">
+            <div className="text-sm text-muted-foreground">
+              Showing <span className="font-medium text-foreground">{startIndex + 1}</span> to{' '}
+              <span className="font-medium text-foreground">
+                {Math.min(startIndex + ITEMS_PER_PAGE, orders.length)}
+              </span>{' '}
+              of <span className="font-medium text-foreground">{orders.length}</span> results
+            </div>
+
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => handlePageChange(currentPage - 1)}
+                disabled={currentPage === 1}
+                className="h-8 px-3"
+              >
+                <ChevronLeft className="h-4 w-4 mr-1" />
+                Previous
+              </Button>
+              <div className="text-sm font-medium px-2">
+                Page {currentPage} of {totalPages}
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => handlePageChange(currentPage + 1)}
+                disabled={currentPage === totalPages}
+                className="h-8 px-3"
+              >
+                Next
+                <ChevronRight className="h-4 w-4 ml-1" />
+              </Button>
+            </div>
+          </div>
+        )}
       </div>
 
-      {/* --- Dialog rendered here --- */}
       <OrderDetailsDialog
         order={selectedOrder}
         open={isDialogOpen}
