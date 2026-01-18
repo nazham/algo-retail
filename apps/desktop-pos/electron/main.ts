@@ -1,4 +1,4 @@
-import { app, BrowserWindow } from 'electron';
+import { app, BrowserWindow, ipcMain } from 'electron';
 import path from 'path';
 import { initDb, runMigrations } from '@algo/db-local';
 import { ProductRepository } from './repositories/product.repo';
@@ -10,6 +10,7 @@ import { SyncRepository } from './repositories/sync.repo';
 import { SyncService } from './services/sync.service';
 import { UserRepository } from './repositories/user.repo';
 import { registerUserHandlers } from './handlers/user.handler';
+import { PrinterService } from './services/printer.service';
 dotenv.config();
 
 /**
@@ -62,6 +63,20 @@ const syncService = new SyncService(syncRepo);
 registerProductHandlers(productRepo);
 registerOrderHandlers(orderRepo);
 registerUserHandlers(userRepo);
+ipcMain.handle('print-receipt', async (event, payload) => {
+  // Payload expects { order, items }
+  console.log('🖨️ Printing Receipt for Order:', payload.order.orderNumber);
+  return await PrinterService.printReceipt(payload.order, payload.items);
+});
+
+ipcMain.handle('list-printers', async (event) => {
+  const printers = await event.sender.getPrintersAsync();
+  console.log(
+    '🖨️ AVAILABLE PRINTERS:',
+    printers.map((p) => p.name),
+  );
+  return printers;
+});
 
 // 5. Start the Sync Loop (Every 60 Seconds)
 setInterval(() => {
