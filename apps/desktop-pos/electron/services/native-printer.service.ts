@@ -8,6 +8,12 @@ interface ReceiptData {
   paymentMethod: string;
 }
 
+interface PaymentDetails {
+  method: string;
+  tenderedAmount?: number;
+  changeDue?: number;
+}
+
 interface ReceiptItem {
   productName: string;
   quantity: number;
@@ -129,6 +135,7 @@ export class NativePrinterService {
     items: ReceiptItem[],
     customerName: string,
     cashierName: string,
+    paymentDetails?: PaymentDetails,
   ): string {
     const shop = this.getShopConfig();
     const fmt = this.formatCurrency;
@@ -219,7 +226,17 @@ export class NativePrinterService {
             <span>Rs. ${fmt(total)}</span>
           </div>
           <div class="payment-info">
-            Payment: ${receiptData.paymentMethod}
+            Payment: ${paymentDetails?.method || receiptData.paymentMethod}
+            ${
+              paymentDetails?.tenderedAmount !== undefined
+                ? `<br>Received: Rs. ${fmt(paymentDetails.tenderedAmount)}`
+                : ''
+            }
+            ${
+              paymentDetails?.changeDue !== undefined && paymentDetails.changeDue > 0
+                ? `<br>Change: Rs. ${fmt(paymentDetails.changeDue)}`
+                : ''
+            }
           </div>
         </div>
 
@@ -228,9 +245,7 @@ export class NativePrinterService {
           <div class="thank-you">Thank You For Your Purchase!</div>
           
           <div class="return-policy">
-            RETURN POLICY: Items may be returned within 7 days<br>
-            with original receipt. Clearance items are final sale.<br>
-            For assistance, please contact us.
+            RETURN POLICY: Items may be returned within 7 days with original receipt. Clearance items are final sale. For assistance, please contact us.
           </div>
 
           <div class="software-credit">Powered by AlgoRetail POS</div>
@@ -248,13 +263,20 @@ export class NativePrinterService {
     items: ReceiptItem[],
     customerName?: string,
     cashierName?: string,
+    paymentDetails?: PaymentDetails,
   ): Promise<{ success: boolean; error?: string }> {
     try {
       const customer = customerName || 'Walk-in Customer';
       const cashier = cashierName || 'Cashier';
 
       // Generate HTML content
-      const htmlContent = this.generateReceiptHTML(orderData, items, customer, cashier);
+      const htmlContent = this.generateReceiptHTML(
+        orderData,
+        items,
+        customer,
+        cashier,
+        paymentDetails,
+      );
 
       // Create a hidden print window
       const printWindow = new BrowserWindow({

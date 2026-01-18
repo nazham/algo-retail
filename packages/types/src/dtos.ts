@@ -1,5 +1,8 @@
 // packages/types/src/dtos.ts
 
+// Payment Method Type
+export type PaymentMethod = 'CASH' | 'BANK_TRANSFER';
+
 export class CreateOrderItemDto {
   productId!: string;
   productName!: string;

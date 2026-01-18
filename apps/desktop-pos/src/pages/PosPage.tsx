@@ -1,19 +1,18 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Search, Trash2, ShoppingCart, Plus, Minus } from 'lucide-react';
 import { useCartStore } from '../stores/cart.store';
 import { Button } from '@repo/ui/components/ui/button'; // Shadcn
-import { useProducts, useCheckout } from '../features/pos/hooks/use-pos-data'; // New Hooks
-import { usePrintReceipt } from '../features/orders/hooks/use-print-receipt';
+import { useProducts } from '../features/pos/hooks/use-pos-data'; // New Hooks
 import { toast } from 'sonner';
 import { useBarcodeScanner } from '../hooks/use-barcode-scanner';
+import { CheckoutModal } from '../features/pos/components/CheckoutModal';
 
 export default function PosPage() {
   const [searchQuery, setSearchQuery] = useState('');
+  const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
 
   // 1. Use the new Hooks (Trainee-proof)
   const { products, isLoading } = useProducts();
-  const { processOrder, isProcessing } = useCheckout();
-  const { printReceipt } = usePrintReceipt();
 
   // 2. Zustand Store
   const { items, addToCart, removeFromCart, updateQuantity, getTotals, clearCart } = useCartStore();
@@ -26,6 +25,7 @@ export default function PosPage() {
       p.sku.toLowerCase().includes(searchQuery.toLowerCase()),
   );
 
+  // Barcode Scanner Hook
   useBarcodeScanner((scannedSku) => {
     console.log('🔫 Scanned:', scannedSku);
 
@@ -43,53 +43,27 @@ export default function PosPage() {
     }
   });
 
-  const handleCharge = async () => {
-    if (items.length === 0) return;
-
-    // Construct the DTO using store data
-    const orderData = {
-      subtotal: totals.subtotal,
-      taxTotal: totals.tax,
-      discountTotal: 0,
-      grandTotal: totals.total,
-      items: items.map((i) => ({
-        productId: i.productId,
-        productName: i.name,
-        quantity: i.quantity,
-        price: i.price,
-      })),
+  // Spacebar to Open Checkout
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Only trigger if not typing in an input and cart has items
+      if (
+        e.code === 'Space' &&
+        items.length > 0 &&
+        !isCheckoutOpen &&
+        !(e.target instanceof HTMLInputElement)
+      ) {
+        e.preventDefault();
+        setIsCheckoutOpen(true);
+      }
     };
 
-    // Use the Hook
-    const result = await processOrder(orderData);
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [items.length, isCheckoutOpen]);
 
-    if (result) {
-      toast.success(`Order Created! ID: ${result.orderNumber}`);
-
-      // Print receipt automatically
-      const printResult = await printReceipt(
-        {
-          orderNumber: result.orderNumber,
-          grandTotal: totals.total,
-          paymentMethod: 'CASH',
-        },
-        items.map((i) => ({
-          productName: i.name,
-          quantity: i.quantity,
-          subtotal: i.price * i.quantity,
-        })),
-      );
-
-      if (printResult.success) {
-        toast.success('Receipt printed!');
-      } else {
-        toast.error(`Print failed: ${printResult.error}`);
-      }
-
-      clearCart();
-    } else {
-      toast.error('Transaction Failed');
-    }
+  const handleCheckoutComplete = () => {
+    setIsCheckoutOpen(false);
   };
 
   if (isLoading)
@@ -226,13 +200,20 @@ export default function PosPage() {
           <Button
             size="lg"
             className="w-full text-lg h-14 font-bold"
-            onClick={handleCharge}
-            disabled={items.length === 0 || isProcessing}
+            onClick={() => setIsCheckoutOpen(true)}
+            disabled={items.length === 0}
           >
-            {isProcessing ? 'Processing...' : `Charge Rs. ${(totals.total / 100).toFixed(2)}`}
+            Checkout (Space)
           </Button>
         </div>
       </div>
+
+      {/* Checkout Modal */}
+      <CheckoutModal
+        isOpen={isCheckoutOpen}
+        onClose={() => setIsCheckoutOpen(false)}
+        onComplete={handleCheckoutComplete}
+      />
     </div>
   );
 }

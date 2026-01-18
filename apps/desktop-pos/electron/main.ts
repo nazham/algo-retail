@@ -63,7 +63,7 @@ registerProductHandlers(productRepo);
 registerOrderHandlers(orderRepo);
 registerUserHandlers(userRepo);
 ipcMain.handle('print-receipt', async (event, payload) => {
-  // Payload expects { order, items, customerName?, cashierName? }
+  // Payload expects { order, items, customerName?, cashierName?, paymentDetails? }
   console.log('🖨️ Printing Receipt for Order:', payload.order.orderNumber);
   // Using native Electron printing instead of electron-pos-printer
   const { NativePrinterService } = await import('./services/native-printer.service');
@@ -72,6 +72,7 @@ ipcMain.handle('print-receipt', async (event, payload) => {
     payload.items,
     payload.customerName,
     payload.cashierName,
+    payload.paymentDetails,
   );
 });
 
