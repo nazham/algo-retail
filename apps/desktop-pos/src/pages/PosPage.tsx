@@ -3,7 +3,9 @@ import { Search, Trash2, ShoppingCart, Plus, Minus } from 'lucide-react';
 import { useCartStore } from '../stores/cart.store';
 import { Button } from '@repo/ui/components/ui/button'; // Shadcn
 import { useProducts, useCheckout } from '../features/pos/hooks/use-pos-data'; // New Hooks
+import { usePrintReceipt } from '../features/orders/hooks/use-print-receipt';
 import { toast } from 'sonner';
+import { useBarcodeScanner } from '../hooks/use-barcode-scanner';
 
 export default function PosPage() {
   const [searchQuery, setSearchQuery] = useState('');
@@ -11,6 +13,7 @@ export default function PosPage() {
   // 1. Use the new Hooks (Trainee-proof)
   const { products, isLoading } = useProducts();
   const { processOrder, isProcessing } = useCheckout();
+  const { printReceipt } = usePrintReceipt();
 
   // 2. Zustand Store
   const { items, addToCart, removeFromCart, updateQuantity, getTotals, clearCart } = useCartStore();
@@ -22,6 +25,23 @@ export default function PosPage() {
       p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       p.sku.toLowerCase().includes(searchQuery.toLowerCase()),
   );
+
+  useBarcodeScanner((scannedSku) => {
+    console.log('🔫 Scanned:', scannedSku);
+
+    // 1. Find the product
+    const product = products.find((p) => p.sku === scannedSku);
+
+    if (product) {
+      // 2. Add to Cart
+      addToCart(product);
+      toast.success(`Added: ${product.name}`);
+    } else {
+      // 3. Error (Sound/Alert)
+      toast.error(`Product not found: ${scannedSku}`);
+      // Optional: Play a "beep" sound here
+    }
+  });
 
   const handleCharge = async () => {
     if (items.length === 0) return;
@@ -45,6 +65,27 @@ export default function PosPage() {
 
     if (result) {
       toast.success(`Order Created! ID: ${result.orderNumber}`);
+
+      // Print receipt automatically
+      const printResult = await printReceipt(
+        {
+          orderNumber: result.orderNumber,
+          grandTotal: totals.total,
+          paymentMethod: 'CASH',
+        },
+        items.map((i) => ({
+          productName: i.name,
+          quantity: i.quantity,
+          subtotal: i.price * i.quantity,
+        })),
+      );
+
+      if (printResult.success) {
+        toast.success('Receipt printed!');
+      } else {
+        toast.error(`Print failed: ${printResult.error}`);
+      }
+
       clearCart();
     } else {
       toast.error('Transaction Failed');
