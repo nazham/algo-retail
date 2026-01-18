@@ -2,8 +2,18 @@ import { Wallet, ArrowUpRight, CreditCard, RefreshCcw, Search, Filter } from 'lu
 import { StatCard, FilterButton } from './ui';
 import { OrderTable } from './OrderTable';
 import type { OrderDto } from '@algo/types';
-import { formatCurrency } from '../lib/utils';
 import { DatePicker } from '@repo/ui/components/ui/datepicker';
+
+// 1. FORMATTER: Adds commas (e.g. 1250 -> "Rs. 1,250.00")
+const formatCurrency = (amount: number) => {
+  return (
+    'Rs. ' +
+    (amount || 0).toLocaleString('en-US', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    })
+  );
+};
 
 type OrderPageLayoutProps = {
   orders: OrderDto[];
@@ -20,7 +30,11 @@ export function OrderPageLayout({
   date,
   setDate,
 }: OrderPageLayoutProps) {
-  const totalRevenue = orders.reduce((acc, o) => acc + o.grandTotal, 0);
+  // 2. THE FIX: Divide by 100 because your DB sends "cents" (integers)
+  // Example: 125000 becomes 1250.00
+  const totalRevenue = orders.reduce((acc, o) => acc + (Number(o.grandTotal) || 0), 0) / 100;
+
+  // Avg Ticket also needs the division (implicitly handled since totalRevenue is divided)
   const avgTicket = orders.length > 0 ? totalRevenue / orders.length : 0;
 
   const handleClearFilters = () => {
@@ -29,7 +43,6 @@ export function OrderPageLayout({
   };
 
   return (
-    // 👇 CHANGED: 'overflow-hidden' -> 'overflow-y-auto' (Enables page scrolling)
     <div className="flex flex-col h-full bg-muted/40 p-6 space-y-6 overflow-y-auto">
       {/* --- Header --- */}
       <div className="flex justify-between items-center shrink-0">
@@ -80,12 +93,12 @@ export function OrderPageLayout({
         </div>
 
         <div className="flex gap-2">
-          <DatePicker
+          {/*<DatePicker
             date={date}
             setDate={setDate}
             className="w-60"
             placeholder="Filter by Date..."
-          />
+          />*/}
           <FilterButton icon={Filter} label="All Status" />
           <button
             onClick={handleClearFilters}
@@ -97,7 +110,6 @@ export function OrderPageLayout({
       </div>
 
       {/* --- Data Table Container --- */}
-      {/* 👇 CHANGED: Removed 'flex-1 overflow-hidden' so it expands naturally */}
       <div className="flex flex-col">
         <OrderTable orders={orders} />
       </div>
