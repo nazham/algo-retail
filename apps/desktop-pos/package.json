@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "node scripts/sync-migrations.js && vite",
     "build": "tsc -b && vite build",
+    "package": "npm run build && electron-builder",
     "lint": "eslint .",
     "preview": "vite preview",
     "postinstall": "electron-builder install-app-deps"
@@ -48,10 +49,39 @@
     "vite-plugin-electron-renderer": "^0.14.6"
   },
   "build": {
-    "electronVersion": "39.2.7",
-    "appId": "com.algo.retail",
+    "appId": "com.algoretail.pos",
+    "productName": "Algo Retail POS",
     "directories": {
-      "output": "dist"
+      "output": "release"
+    },
+    "files": [
+      "dist/**/*",
+      "dist-electron/**/*",
+      "package.json"
+    ],
+    "extraResources": [
+      {
+        "from": "drizzle",
+        "to": "drizzle",
+        "filter": [
+          "**/*"
+        ]
+      }
+    ],
+    "mac": {
+      "target": "dmg",
+      "artifactName": "${productName}-${version}-Mac.${ext}"
+    },
+    "win": {
+      "target": "nsis",
+      "artifactName": "${productName}-${version}-Setup.${ext}",
+      "icon": "build/icon.ico"
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "shortcutName": "Algo Retail"
     }
   }
 }
