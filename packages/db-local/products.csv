@@ -1,0 +1,51 @@
+Item ID,Product Name,Category,MRP,Wholesale Price,Cost Price,Stock Quantity,UOM,Reorder Point,Safety stock,Barcode/SKU,Batch NO,Supplier,Brand,Expiry date,Manufacture Date,Inventory Location
+PD003,Premium Basmati Rice 5kg,Grocery,850,800,750,200,Kg,40,15,8901000000101,RICE250,Asia Foods Inc.,Golden Grain,10/1/2027,11/1/2025,"Warehouse A, Rack 3"
+PD004,Organic Oats 1kg,Breakfast,320,300,280,120,Kg,30,10,8901000000202,OAT789,Healthy Bites Co.,Nature's Best,8/20/2026,10/20/2025,"Shelf 1, Section C"
+PD005,Strawberry Jam 300g,Spreads,250,230,200,90,bottle,20,5,8901000000303,JAMST45,Sweet Delights,Fruitopia,5/10/2027,12/10/2025,Cold Room Shelf 1
+PD006,Instant Coffee 100g,Beverages,550,520,480,180,Pcs,50,20,4792037107742,COF998,Global Coffee Co.,Nescafe,1/15/2028,11/15/2025,Office cupboard
+PD007,Dishwashing Liquid 1L,Cleaning Agent,380,350,320,250,bottle,60,10,4792037107743,DWL100,Kitchen Essentials,Sunlight,9/25/2027,8/25/2025,Room1 Shelf2
+PD008,AA Batteries (Pack of 4),Electronics,120,100,80,300,Pcs,75,25,4792037107744,BATA4X,Tech Supply Co.,Energizer,12/31/2029,1/1/2025,Room3 Drawer A
+PD009,White Sugar 1kg,Grocery,180,170,150,400,Kg,100,30,8901000000404,SUGW1K,Local Traders Ltd,Sugar King,6/10/2028,12/1/2025,"Warehouse B, Bin 1"
+PD010,Toothpaste 150g,Personal Care,190,180,160,150,Pcs,40,10,8901000000505,TP150M,Health & Hygiene,Colgate,4/5/2027,10/5/2025,Display Shelf 5
+PD011,Black Tea Bags (100),Beverages,420,400,360,110,box,25,5,8901000000606,TBAG10,Tea Masters Inc.,Lipton,11/30/2026,9/30/2025,Office cupboard
+PD012,Laundry Detergent Powder 2kg,Cleaning Agent,750,700,650,160,Kg,50,15,4792037107745,LDP2KG,Kitchen Essentials,Tide,3/1/2027,7/1/2025,Room1 Shelf3
+PD013,Canned Tuna in Oil 185g,Canned Goods,300,280,250,220,Pcs,55,10,8901000000707,TUNA185,Sea Harvest Co.,Ocean Blue,4/10/2026,4/10/2025,"Shelf 2, Section A"
+PD014,Multivitamin Tablets (60 Pcs),Health,950,900,820,80,bottle,20,5,4792037107746,MVIT60,Pharma World,Vitamax,1/20/2027,11/20/2025,Medicine Cabinet
+PD015,Chocolate Bar 50g,Confectionery,100,90,75,500,Pcs,120,40,4792037107747,CHOC50,Candy King Distributors,Cadbury,5/1/2026,3/1/2025,Checkout Counter
+PD016,Whole Wheat Flour 2kg,Grocery,450,420,380,130,Kg,35,10,8901000000808,WFLR2K,Local Traders Ltd,Harvest Gold,12/20/2026,10/20/2025,"Warehouse A, Rack 4"
+PD017,Shampoo 400ml,Personal Care,580,550,500,190,bottle,45,15,8901000000909,SHP400U,Health & Hygiene,Dove,8/10/2027,6/10/2025,Display Shelf 6
+PD018,Bottled Water 1L,Beverages,90,85,70,600,bottle,150,50,4792037107748,BWAT1L,Hydration Partners,Aqua Pure,3/15/2028,12/15/2025,Front Cooler
+PD019,All-Purpose Cleaner Spray 750ml,Cleaning Agent,350,320,290,110,bottle,30,5,4792037107749,APC750,Kitchen Essentials,Mr. Clean,1/1/2027,9/1/2025,Room1 Shelf2
+PD020,Kidney Beans 500g,Pulses,160,150,130,280,Kg,70,20,8901000001010,KBAN500,Global Pulses Corp,Bean King,10/25/2026,8/25/2025,"Shelf 3, Section D"
+PD021,Mayonnaise 200ml,Sauces,290,270,240,95,bottle,25,8,4792037107750,MAYO200,Condiment Supply,Heinz,9/5/2026,11/5/2025,Cold Room Shelf 2
+PD022,Pencils (Pack of 12),Stationery,80,70,60,450,box,100,30,4792037107751,PENC12,Paper & Pen Co.,Faber,1/1/2030,5/1/2025,Room3 Drawer B
+PD023,Cooking Oil (Sunflower) 5L,Grocery,1500,1450,1350,70,bottle,20,5,8901000001111,OILSF5L,Agri-Products Ltd,SunDrop,3/20/2027,9/20/2025,"Warehouse B, Bin 2"
+PD024,Facial Tissues (Box of 100),Paper Goods,110,100,90,350,box,80,20,4792037107752,TISS100,Health & Hygiene,Kleenex,5/1/2028,6/1/2025,Display Shelf 7
+PD025,Orange Juice (Concentrate) 1L,Beverages,380,360,330,140,bottle,35,10,4792037107753,OJUIC1L,Global Coffee Co.,Minute Maid,2/1/2026,10/1/2025,Cold Room Shelf 3
+PD026,Glass Cleaner 500ml,Cleaning Agent,250,230,210,85,bottle,20,5,4792037107754,GCLN500,Kitchen Essentials,Windex,10/10/2027,12/10/2025,Room1 Shelf1
+PD027,HDMI Cable 2m,Electronics,400,380,340,60,Pcs,15,5,4792037107755,HDM2M,Tech Supply Co.,CableTech,1/1/2030,1/1/2025,Room3 Drawer C
+PD028,Salt Iodized 1kg,Grocery,70,65,50,550,Kg,150,50,8901000001221,SALT1K,Local Traders Ltd,Table Salt,1/1/2029,8/1/2025,"Warehouse A, Rack 5"
+PD029,Bar Soap (Pack of 3),Personal Care,150,140,120,210,Pcs,50,15,8901000001332,SOAP3P,Health & Hygiene,Lifebuoy,12/20/2027,9/20/2025,Display Shelf 8
+PD030,Energy Drink 250ml,Beverages,180,170,150,230,bottle,60,10,4792037107756,ED250R,Hydration Partners,Red Bull,6/1/2026,11/1/2025,Front Cooler
+PD031,Toilet Cleaner Gel 500ml,Cleaning Agent,290,270,240,100,bottle,25,5,4792037107757,TCGL500,Kitchen Essentials,Lysol,5/15/2027,7/15/2025,Room1 Shelf3
+PD032,Black Pepper Powder 100g,Spices,350,330,300,170,Pcs,40,10,8901000001443,BPEP100,Spice Routes Co.,MD,4/1/2028,10/1/2025,"Shelf 4, Section E"
+PD033,Ketchup 400g,Sauces,190,180,160,150,bottle,35,8,4792037107758,KTCH400,Condiment Supply,Maggi,11/10/2027,8/10/2025,Cold Room Shelf 4
+PD034,Notebook A4 (100 Pages),Stationery,150,140,120,250,Pcs,60,20,4792037107759,NOTEA4,Paper & Pen Co.,Atlas,1/1/2030,3/1/2025,Room3 Drawer D
+PD035,Lentils (Red) 1kg,Pulses,220,200,180,300,Kg,75,25,8901000001554,LENTR1K,Global Pulses Corp,Pulse King,11/1/2026,9/1/2025,"Warehouse B, Bin 3"
+PD036,Milk Powder (Full Cream) 400g,Dairy,650,620,580,90,Pcs,25,10,4792037107760,MPL400,Dairy Best Corp,Anchor,2/28/2027,12/28/2025,Cold Room Shelf 5
+PD037,Mouthwash 250ml,Personal Care,320,300,270,110,bottle,30,5,8901000001665,MWASH25,Health & Hygiene,Listerine,7/1/2027,10/1/2025,Display Shelf 9
+PD038,Instant Noodles (Chicken Flavor),Snacks,90,85,70,400,Pcs,100,30,4792037107761,NOODLCH,Food & Snack Empire,Prima,3/25/2026,11/25/2025,"Shelf 5, Section F"
+PD039,Bleach 1L,Cleaning Agent,150,140,120,200,bottle,50,15,4792037107762,BLEA1L,Kitchen Essentials,Clorox,9/1/2027,5/1/2025,Room1 Shelf2
+PD040,Cookies (Chocolate Chip) 200g,Confectionery,200,180,150,160,Pcs,40,10,8901000001776,COOK200,Candy King Distributors,Maliban,8/1/2026,12/1/2025,Checkout Counter
+PD041,Hair Conditioner 200ml,Personal Care,450,420,380,130,bottle,35,8,8901000001887,HCON200,Health & Hygiene,Head & Shoulders,6/15/2027,4/15/2025,Display Shelf 10
+PD042,Canned Peas 400g,Canned Goods,180,170,150,190,Pcs,45,10,8901000001998,CPEAS400,Sea Harvest Co.,Green Valley,5/20/2026,11/20/2025,"Shelf 2, Section B"
+PD043,USB Flash Drive 32GB,Electronics,800,750,680,70,Pcs,15,5,4792037107763,USB32GB,Tech Supply Co.,SanDisk,1/1/2030,10/1/2025,Room3 Drawer E
+PD044,Green Gram 500g,Pulses,280,260,230,240,Kg,60,15,8901000002009,GGRAM500,Global Pulses Corp,Nature's Gem,12/5/2026,7/5/2025,"Shelf 3, Section D"
+PD045,Vinegar (White) 500ml,Condiments,120,110,95,180,bottle,40,10,4792037107764,VINEG500,Condiment Supply,White Star,1/1/2028,9/1/2025,Cold Room Shelf 6
+PD046,Ballpoint Pens (Pack of 5),Stationery,50,45,35,500,Pcs,120,40,4792037107765,PENB5P,Paper & Pen Co.,Bic,1/1/2030,4/1/2025,Room3 Drawer F
+PD047,Black Olives (Jar) 300g,Condiments,480,450,400,80,bottle,20,5,4792037107766,OLIVE300,Gourmet Imports,Del Monte,10/20/2027,12/20/2025,Cold Room Shelf 7
+PD048,Hand Sanitizer 100ml,Personal Care,150,140,120,280,bottle,70,20,8901000002110,HSAN100,Health & Hygiene,Dettol,9/10/2026,5/10/2025,Checkout Counter
+PD049,Tomato Paste 100g,Sauces,60,55,45,350,Pcs,80,25,8901000002221,TPASTE10,Condiment Supply,Del Monte,4/1/2027,11/1/2025,"Shelf 4, Section E"
+PD050,Kitchen Towels (Roll),Paper Goods,170,160,140,200,Pcs,50,15,4792037107767,KTOWEL,Health & Hygiene,Viva,2/1/2028,6/1/2025,Display Shelf 7
+PD051,Pineapple Juice 400ml,Beverages,160,150,130,170,bottle,40,10,4792037107768,PJUIC400,Global Coffee Co.,Ole,1/15/2026,9/15/2025,Office cupboard
+PD052,Floor Cleaner 1L,Cleaning Agent,420,400,360,140,bottle,35,8,4792037107769,FCLN1L,Kitchen Essentials,Harpic,11/25/2027,11/25/2025,Room1 Shelf1

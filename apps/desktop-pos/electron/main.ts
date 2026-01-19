@@ -1,4 +1,4 @@
-import { app, BrowserWindow } from 'electron';
+import { app, BrowserWindow, ipcMain } from 'electron';
 import path from 'path';
 import { initDb, runMigrations } from '@algo/db-local';
 import { ProductRepository } from './repositories/product.repo';
@@ -32,19 +32,23 @@ console.log('Database location:', dbPath);
 // 2. Initialize DB
 const db = initDb(dbPath);
 
-// Run Migrations
-const isDev = process.env.NODE_ENV === 'development' || !app.isPackaged;
-const migrationsPath = isDev
-  ? path.join(__dirname, '../drizzle')
-  : path.join(process.resourcesPath, 'drizzle');
+/**
+ * DISABLE MIGRATIONS FOR RAPID MVP
+ */
 
-try {
-  console.log('Running migrations from:', migrationsPath);
-  runMigrations(db, migrationsPath);
-  console.log('Migrations applied successfully!');
-} catch (err) {
-  console.error('Migration failed:', err);
-}
+// Run Migrations
+// const isDev = process.env.NODE_ENV === 'development' || !app.isPackaged;
+// const migrationsPath = isDev
+//   ? path.join(__dirname, '../drizzle')
+//   : path.join(process.resourcesPath, 'drizzle');
+
+// try {
+//   console.log('Running migrations from:', migrationsPath);
+//   runMigrations(db, migrationsPath);
+//   console.log('Migrations applied successfully!');
+// } catch (err) {
+//   console.error('Migration failed:', err);
+// }
 
 // 3. Initialize Repositories
 const productRepo = new ProductRepository(db);
@@ -58,6 +62,19 @@ const syncService = new SyncService(syncRepo);
 registerProductHandlers(productRepo);
 registerOrderHandlers(orderRepo);
 registerUserHandlers(userRepo);
+ipcMain.handle('print-receipt', async (event, payload) => {
+  // Payload expects { order, items, customerName?, cashierName?, paymentDetails? }
+  console.log('🖨️ Printing Receipt for Order:', payload.order.orderNumber);
+  // Using native Electron printing instead of electron-pos-printer
+  const { NativePrinterService } = await import('./services/native-printer.service');
+  return await NativePrinterService.printReceipt(
+    payload.order,
+    payload.items,
+    payload.customerName,
+    payload.cashierName,
+    payload.paymentDetails,
+  );
+});
 
 // 5. Start the Sync Loop (Every 60 Seconds)
 setInterval(() => {
