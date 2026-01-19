@@ -11,7 +11,6 @@ node_modules
 .next/
 dist
 dist-electron
-build
 out
 
 # Database & Local Storage
