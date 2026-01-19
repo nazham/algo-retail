@@ -266,8 +266,8 @@ export class NativePrinterService {
     paymentDetails?: PaymentDetails,
   ): Promise<{ success: boolean; error?: string }> {
     try {
-      const customer = customerName || 'Walk-in Customer';
-      const cashier = cashierName || 'Cashier';
+      const customer = customerName || 'Customer: Walk-in';
+      const cashier = cashierName || 'Cashier: Admin';
 
       // Generate HTML content
       const htmlContent = this.generateReceiptHTML(
