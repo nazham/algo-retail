@@ -303,7 +303,7 @@ export class NativePrinterService {
           {
             silent: true,
             printBackground: true,
-            deviceName: 'XP_80C',
+            deviceName: process.env.PRINTER_NAME || 'XP-80C',
             pageSize: { width: 78000, height: 200000 },
             margins: { marginType: 'none' },
           },
