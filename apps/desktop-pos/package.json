@@ -82,8 +82,7 @@
       "perMachine": false,
       "allowToChangeInstallationDirectory": true,
       "shortcutName": "Algo Retail",
-      "deleteAppDataOnUninstall": true,
-      "include": "build/installer.nsh"
+      "deleteAppDataOnUninstall": true
     }
   }
 }
