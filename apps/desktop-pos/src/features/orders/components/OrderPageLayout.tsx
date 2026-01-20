@@ -19,7 +19,7 @@ type OrderPageLayoutProps = {
   orders: OrderDto[];
   searchTerm: string;
   setSearchTerm: (term: string) => void;
-  date: Date | undefined;
+  // date: Date | undefined;
   setDate: (date: Date | undefined) => void;
 };
 
@@ -27,7 +27,7 @@ export function OrderPageLayout({
   orders,
   searchTerm,
   setSearchTerm,
-  date,
+  // date,
   setDate,
 }: OrderPageLayoutProps) {
   // 2. THE FIX: Divide by 100 because your DB sends "cents" (integers)
