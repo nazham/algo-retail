@@ -4,7 +4,8 @@ import { X } from 'lucide-react';
 import { useCartStore } from '../../../stores/cart.store';
 import { Button } from '@repo/ui/components/ui/button';
 import { toast } from 'sonner';
-import type { PaymentMethod } from '@algo/types';
+import type { PaymentMethod, PrintReceiptDto } from '@algo/types';
+import { usePrintReceipt } from '../../orders/hooks/use-print-receipt';
 
 interface CheckoutModalProps {
   isOpen: boolean;
@@ -68,6 +69,8 @@ export function CheckoutModal({ isOpen, onClose, onComplete }: CheckoutModalProp
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('CASH');
   const [isProcessing, setIsProcessing] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  const { printReceipt } = usePrintReceipt();
 
   // Cart Store
   const { items, getTotals, clearCart } = useCartStore();
@@ -146,11 +149,13 @@ export function CheckoutModal({ isOpen, onClose, onComplete }: CheckoutModalProp
         throw new Error('Failed to create order');
       }
 
-      // 3. Print Receipt (IPC) with payment details
-      const printResult = await window.api.invoke('print-receipt', {
+      // 3. Print Receipt using the hook
+      const printData: PrintReceiptDto = {
         order: {
           orderNumber: result.orderNumber,
           grandTotal: totals.total,
+          subtotal: totals.subtotal,
+          discountTotal: 0,
           paymentMethod,
         },
         items: items.map((item) => ({
@@ -163,7 +168,8 @@ export function CheckoutModal({ isOpen, onClose, onComplete }: CheckoutModalProp
           tenderedAmount: tenderedAmountCents,
           changeDue: paymentMethod === 'CASH' ? changeDue : 0,
         },
-      });
+      };
+      const printResult = await printReceipt(printData);
 
       if (!printResult.success) {
         console.error('Print failed:', printResult.error);
@@ -205,7 +211,7 @@ export function CheckoutModal({ isOpen, onClose, onComplete }: CheckoutModalProp
   if (!isOpen) return null;
 
   return createPortal(
-    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
+    <div className="fixed inset-0 z-100 flex items-center justify-center bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
       {/* UPDATED CONTAINER SIZE:
         1. Changed 'max-w-lg' to 'max-w-md' (makes it narrower)
         2. Added 'overflow-hidden' to ensure corners stay rounded

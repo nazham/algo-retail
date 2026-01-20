@@ -10,6 +10,7 @@ import { SyncRepository } from './repositories/sync.repo';
 import { SyncService } from './services/sync.service';
 import { UserRepository } from './repositories/user.repo';
 import { registerUserHandlers } from './handlers/user.handler';
+import { registerPrintHandlers } from './handlers/print.handler';
 dotenv.config();
 
 /**
@@ -62,19 +63,7 @@ const syncService = new SyncService(syncRepo);
 registerProductHandlers(productRepo);
 registerOrderHandlers(orderRepo);
 registerUserHandlers(userRepo);
-ipcMain.handle('print-receipt', async (event, payload) => {
-  // Payload expects { order, items, customerName?, cashierName?, paymentDetails? }
-  console.log('🖨️ Printing Receipt for Order:', payload.order.orderNumber);
-  // Using native Electron printing instead of electron-pos-printer
-  const { NativePrinterService } = await import('./services/native-printer.service');
-  return await NativePrinterService.printReceipt(
-    payload.order,
-    payload.items,
-    payload.customerName,
-    payload.cashierName,
-    payload.paymentDetails,
-  );
-});
+registerPrintHandlers();
 
 // 5. Start the Sync Loop (Every 60 Seconds)
 setInterval(() => {

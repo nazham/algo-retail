@@ -38,3 +38,25 @@ export interface OrderDto {
   createdAt: string;
   items: OrderItemDto[];
 }
+
+export interface PrintReceiptDto {
+  order: {
+    orderNumber: string;
+    grandTotal: number;
+    subtotal: number;
+    discountTotal: number;
+    paymentMethod: string;
+  };
+  items: {
+    productName: string;
+    quantity: number;
+    subtotal: number;
+  }[];
+  paymentDetails: {
+    method: string;
+    tenderedAmount: number;
+    changeDue: number;
+  };
+  customerName?: string;
+  cashierName?: string;
+}
