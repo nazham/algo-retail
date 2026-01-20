@@ -2,6 +2,7 @@ import { HashRouter, Routes, Route, Navigate } from 'react-router-dom';
 import MainLayout from './components/layout/MainLayout';
 import PosPage from './pages/PosPage';
 import SettingsPage from './pages/SettingsPage';
+import OrderPage from './pages/OrderPage';
 import LoginPage from './pages/LoginPage';
 import type { JSX } from 'react';
 import { Toaster } from '@repo/ui/components/ui/sonner';
@@ -30,7 +31,7 @@ function App() {
         >
           <Route index element={<PosPage />} />
           <Route path="/settings" element={<SettingsPage />} />
-          <Route path="/orders" element={<div className="p-10">Orders Coming Soon</div>} />
+          <Route path="/orders" element={<OrderPage />} />
         </Route>
       </Routes>
       <Toaster />
