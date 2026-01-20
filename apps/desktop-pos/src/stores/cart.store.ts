@@ -1,42 +1,56 @@
 import { create } from 'zustand';
 
-// Define Types (Move these to @algo/types later for strict sharing)
 export interface CartItem {
   productId: string;
   name: string;
   price: number; // in cents
   quantity: number;
-  taxRate: number; // e.g. 0 or 18.0
+  taxRate: number;
+}
+
+// New Interface for Held Orders
+export interface HeldOrder {
+  id: string;
+  items: CartItem[];
+  timestamp: number;
+  total: number;
+  note?: string;
 }
 
 interface CartState {
   items: CartItem[];
+  heldOrders: HeldOrder[]; // <--- New State for storing held orders
+
   // Actions
   addToCart: (product: any) => void;
   removeFromCart: (productId: string) => void;
   updateQuantity: (productId: string, delta: number) => void;
   clearCart: () => void;
-  // Computed (Getters)
+
+  // New Hold/Retrieve Actions
+  holdOrder: () => void;
+  restoreOrder: (id: string) => void;
+  discardHeldOrder: (id: string) => void;
+
+  // Computed
   getTotals: () => { subtotal: number; tax: number; total: number };
 }
 
 export const useCartStore = create<CartState>((set, get) => ({
   items: [],
+  heldOrders: [], // Initialize empty list
 
   addToCart: (product) => {
     const { items } = get();
-    // Check if item already exists
     const existingItem = items.find((i) => i.productId === product.id);
 
     if (existingItem) {
-      // If exists, just increment quantity
       set({
         items: items.map((i) =>
           i.productId === product.id ? { ...i, quantity: i.quantity + 1 } : i,
         ),
       });
     } else {
-      // If new, add to array
       set({
         items: [
           ...items,
@@ -66,11 +80,50 @@ export const useCartStore = create<CartState>((set, get) => ({
         }
         return item;
       }),
-      // Optional: Remove if qty drops to 0? For now, let's keep it min 1.
     });
   },
 
   clearCart: () => set({ items: [] }),
+
+  // --- NEW LOGIC START ---
+  holdOrder: () => {
+    const { items, heldOrders, getTotals } = get();
+    if (items.length === 0) return;
+
+    const newHeldOrder: HeldOrder = {
+      id: Date.now().toString(), // Simple ID based on time
+      timestamp: Date.now(),
+      items: [...items], // Copy current items
+      total: getTotals().total,
+    };
+
+    set({
+      heldOrders: [...heldOrders, newHeldOrder], // Add to held list
+      items: [], // Clear current cart
+    });
+  },
+
+  restoreOrder: (id) => {
+    const { heldOrders, items } = get();
+
+    // Optional: If current cart has items, you might want to hold them first?
+    // For now, we assume we just overwrite or user clears first.
+
+    const orderToRestore = heldOrders.find((o) => o.id === id);
+    if (!orderToRestore) return;
+
+    set({
+      items: orderToRestore.items, // Restore items to cart
+      heldOrders: heldOrders.filter((o) => o.id !== id), // Remove from held list
+    });
+  },
+
+  discardHeldOrder: (id) => {
+    set((state) => ({
+      heldOrders: state.heldOrders.filter((o) => o.id !== id),
+    }));
+  },
+  // --- NEW LOGIC END ---
 
   getTotals: () => {
     const { items } = get();
@@ -80,9 +133,6 @@ export const useCartStore = create<CartState>((set, get) => ({
     items.forEach((item) => {
       const lineTotal = item.price * item.quantity;
       subtotal += lineTotal;
-      // Tax Logic: (Price * Qty * Rate) / 100
-      // Note: In real world, handle inclusive/exclusive tax carefully here.
-      // We assume EXCLUSIVE tax for this calculation example.
       tax += (lineTotal * item.taxRate) / 100;
     });
 
