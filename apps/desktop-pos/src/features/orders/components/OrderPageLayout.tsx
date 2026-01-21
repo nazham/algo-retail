@@ -19,7 +19,7 @@ type OrderPageLayoutProps = {
   orders: OrderDto[];
   searchTerm: string;
   setSearchTerm: (term: string) => void;
-  date: Date | undefined;
+  // date: Date | undefined;
   setDate: (date: Date | undefined) => void;
 };
 

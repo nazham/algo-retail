@@ -42,7 +42,7 @@ export default function OrderPage() {
       orders={filteredOrders}
       searchTerm={searchTerm}
       setSearchTerm={setSearchTerm}
-      date={date}
+      // date={date}
       setDate={setDate}
     />
   );
