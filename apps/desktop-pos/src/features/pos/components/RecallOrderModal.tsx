@@ -14,8 +14,8 @@ export default function RecallOrderModal(props: RecallOrderModalProps) {
   return (
     <div className="absolute inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-10">
       <div className="bg-white rounded-lg shadow-2xl w-full max-w-2xl max-h-full flex flex-col overflow-hidden">
-        <div className="p-4 border-b flex justify-between items-center bg-gray-50">
-          <h2 className="font-bold text-lg flex items-center gap-2">
+        <div className="p-4 border-b flex justify-between items-center bg-background">
+          <h2 className="font-bold flex items-center gap-2 text-foreground">
             <RotateCcw className="w-5 h-5" /> Recall Held Order
           </h2>
           <Button variant="ghost" size="icon" onClick={() => props.setIsRecallOpen(false)}>
@@ -23,14 +23,14 @@ export default function RecallOrderModal(props: RecallOrderModalProps) {
           </Button>
         </div>
 
-        <div className="flex-1 overflow-y-auto p-4 space-y-3">
+        <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-background">
           {props.heldOrders.length === 0 ? (
             <div className="text-center text-gray-400 py-10">No held orders found.</div>
           ) : (
             props.heldOrders.map((order) => (
               <div
                 key={order.id}
-                className="border rounded-lg p-3 hover:bg-gray-50 transition-colors flex justify-between items-center"
+                className="border rounded-lg p-3 hover:bg-accent transition-colors flex justify-between items-center"
               >
                 <div
                   className="flex-1 cursor-pointer"
