@@ -148,7 +148,38 @@ export default function PosPage() {
           <h2 className="font-bold text-lg flex items-center gap-2">
             <ShoppingCart size={20} /> Current Sale
           </h2>
-          <div className="text-xs text-muted-foreground">{items.length} Items</div>
+
+          {/* ACTION BUTTONS */}
+          <div className="grid grid-cols-2 gap-3 pt-2">
+            {/* If cart is empty, show RECALL button, otherwise show HOLD button */}
+            {items.length === 0 && heldOrders.length > 0 ? (
+              <Button
+                variant="outline"
+                className="w-full bg-blue-50 text-blue-700 border-blue-200 hover:bg-blue-100"
+                onClick={() => setIsRecallOpen(true)}
+              >
+                <RotateCcw className="mr-2 h-4 w-4" />({heldOrders.length})
+              </Button>
+            ) : (
+              <Button
+                variant="outline"
+                className="w-full border-dashed border-gray-400 hover:border-gray-500 hover:bg-gray-100"
+                onClick={handleHoldOrder}
+                disabled={items.length === 0}
+              >
+                <PauseCircle className="mr-2 h-4 w-4" />
+              </Button>
+            )}
+
+            <Button
+              variant="destructive"
+              className="w-full"
+              onClick={clearCart}
+              disabled={items.length === 0}
+            >
+              <Trash2 className="w-5 h-5" />
+            </Button>
+          </div>
         </div>
 
         {/* Cart Items List */}
@@ -203,57 +234,30 @@ export default function PosPage() {
         </div>
 
         {/* Totals Section */}
-        <div className="p-6 bg-secondary/50 border-t border-input space-y-4">
-          <div className="space-y-2 text-sm text-muted-foreground">
+        <div className="p-3 pt-2 bg-secondary/50 border-t border-input space-y-4">
+          <div className="space-y-2 text-sm text-muted-foreground pt-1">
+            <div className="flex justify-between">
+              <span>Items</span>
+              <span className="text-xs text-muted-foreground">{items.length}</span>
+            </div>
             <div className="flex justify-between">
               <span>Subtotal</span>
               <span>Rs. {(totals.subtotal / 100).toFixed(2)}</span>
             </div>
+            <div className="flex justify-between">
+              <span>Discount</span>
+              <span>Rs. 0.00</span>
+            </div>
           </div>
 
-          <div className="flex justify-between font-bold text-2xl text-foreground pt-2 border-t border-input">
+          <div className="flex justify-between font-bold text-xl text-foreground pt-2 pb-1 border-t border-input">
             <span>Total</span>
             <span className="text-primary">Rs. {(totals.total / 100).toFixed(2)}</span>
           </div>
 
-          {/* --- ACTION BUTTONS --- */}
-          <div className="grid grid-cols-2 gap-3 pt-2">
-            {/* If cart is empty, show RECALL button, otherwise show HOLD button */}
-            {items.length === 0 && heldOrders.length > 0 ? (
-              <Button
-                variant="outline"
-                className="w-full bg-blue-50 text-blue-700 border-blue-200 hover:bg-blue-100"
-                onClick={() => setIsRecallOpen(true)}
-              >
-                <RotateCcw className="mr-2 h-4 w-4" />
-                Recall ({heldOrders.length})
-              </Button>
-            ) : (
-              <Button
-                variant="outline"
-                className="w-full border-dashed border-gray-400 hover:border-gray-500 hover:bg-gray-100"
-                onClick={handleHoldOrder}
-                disabled={items.length === 0}
-              >
-                <PauseCircle className="mr-2 h-4 w-4" />
-                Hold Order
-              </Button>
-            )}
-
-            <Button
-              variant="destructive"
-              className="w-full"
-              onClick={clearCart}
-              disabled={items.length === 0}
-            >
-              <Trash2 className="mr-2 h-4 w-4" />
-              Clear
-            </Button>
-          </div>
-
           <Button
             size="lg"
-            className="w-full text-lg h-14 font-bold"
+            className="w-full text-lg h-11 font-bold pt-0"
             onClick={() => setIsCheckoutOpen(true)}
             disabled={items.length === 0}
           >
