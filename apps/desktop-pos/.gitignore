@@ -25,4 +25,6 @@ release
 *.sln
 *.sw?
 
-/drizzle
+drizzle
+drizzle/meta/_journal.json
+apps/desktop-pos/drizzle/
