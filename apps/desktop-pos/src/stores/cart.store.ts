@@ -85,7 +85,7 @@ export const useCartStore = create<CartState>((set, get) => ({
 
   clearCart: () => set({ items: [] }),
 
-  // --- NEW LOGIC START ---
+  // ---LOGIC TO HOLD THE ORDERS AND TO MAINTAIN IT ---
   holdOrder: () => {
     const { items, heldOrders, getTotals } = get();
     if (items.length === 0) return;
