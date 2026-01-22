@@ -61,7 +61,7 @@ export class ReportService {
     }));
 
     return {
-      shopName: 'Mini Supermarket',
+      shopName: process.env.SHOP_NAME || 'Algo Retail',
       generatedAt: new Date().toLocaleString(),
       date: targetDate.toLocaleDateString(),
       shiftStart,

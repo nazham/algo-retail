@@ -16,6 +16,8 @@ export interface ZReportData {
   }[];
 }
 
+import { formatCurrency } from '../utils/common.utils';
+
 export function zReportTemplate(data: ZReportData): string {
   const {
     shopName,
@@ -31,8 +33,7 @@ export function zReportTemplate(data: ZReportData): string {
     paymentBreakdown,
   } = data;
 
-  // A simple formatCurrency helper for this template
-  const fmt = (cents: number) => `Rs. ${(cents / 100).toFixed(2)}`;
+  const fmt = formatCurrency;
 
   return `
     <!DOCTYPE html>

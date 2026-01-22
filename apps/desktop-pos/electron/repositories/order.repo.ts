@@ -18,7 +18,7 @@ export class OrderRepository {
           id: orderId,
           orderNumber,
           status: 'COMPLETED',
-          paymentMethod: (data as any).paymentMethod || 'CASH',
+          paymentMethod: data.paymentMethod,
           subtotal: data.subtotal,
           taxTotal: data.taxTotal,
           discountTotal: data.discountTotal,

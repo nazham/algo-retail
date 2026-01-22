@@ -15,6 +15,7 @@ export class CreateOrderDto {
   taxTotal!: number;
   discountTotal!: number;
   grandTotal!: number;
+  paymentMethod!: PaymentMethod;
   items!: CreateOrderItemDto[]; // Array of the class above
 }
 
@@ -33,7 +34,11 @@ export interface OrderItemDto {
 export interface OrderDto {
   id: string;
   orderNumber: string;
+  subtotal: number;
+  taxTotal: number;
+  discountTotal: number;
   grandTotal: number;
+  paymentMethod: string;
   status: string;
   createdAt: string;
   items: OrderItemDto[];
