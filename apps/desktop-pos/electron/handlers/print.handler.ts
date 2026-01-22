@@ -21,7 +21,7 @@ export const registerPrintHandlers = () => {
         paymentMethod: order.paymentMethod,
       },
       items: items,
-      customerName: customerName || 'Walk-in Customer',
+      customerName: customerName || 'Walk-in',
       cashierName: cashierName || 'Admin',
       paymentDetails: paymentDetails,
     };

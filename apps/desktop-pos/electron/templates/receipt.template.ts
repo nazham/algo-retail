@@ -118,8 +118,14 @@ export function generateReceipt(data: ReceiptTemplateData): string {
             })}</span>
           </div>
           <div class="meta-row">
-            <span>${customerName}</span>
-            <span>${cashierName}</span>
+             <div>
+                <span>Customer:</span>
+                <span>${customerName}</span>
+             </div>
+             <div>
+                <span>Cashier:</span>
+                <span>${cashierName}</span>
+             </div>
           </div>
         </div>
 
