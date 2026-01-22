@@ -1,6 +1,6 @@
 import { X, Printer } from 'lucide-react';
 import { Button } from '@repo/ui/components/ui/button';
-import type { OrderDto, PrintReceiptDto } from '@algo/types';
+import type { OrderDto } from '@algo/types';
 // import { formatCurrency } from '../lib/utils';
 import { formatCurrency } from '../../../../electron/utils/common.utils';
 // TODO: centralize curruncy formattings & extend support
@@ -14,7 +14,8 @@ type OrderDetailsDialogProps = {
 };
 
 export function OrderDetailsDialog({ order, open, onOpenChange }: OrderDetailsDialogProps) {
-  const { printReceipt } = usePrintReceipt();
+  const { printFromOrder } = usePrintReceipt();
+
   // Close on Escape key
   useEffect(() => {
     const handleEsc = (e: KeyboardEvent) => {
@@ -26,28 +27,8 @@ export function OrderDetailsDialog({ order, open, onOpenChange }: OrderDetailsDi
 
   if (!open || !order) return null;
 
-  const printData: PrintReceiptDto = {
-    order: {
-      orderNumber: order.orderNumber,
-      grandTotal: order.grandTotal,
-      subtotal: order.subtotal,
-      discountTotal: order.discountTotal,
-      paymentMethod: order.paymentMethod,
-    },
-    items: order.items.map((item) => ({
-      productName: item.productName,
-      unitPrice: item.unitPrice,
-      quantity: item.quantity,
-      subtotal: item.unitPrice * item.quantity,
-    })),
-    paymentDetails: {
-      method: order.paymentMethod,
-      tenderedAmount: order.grandTotal,
-      changeDue: 0,
-    },
-  };
-  const printResult = async () => {
-    await printReceipt(printData);
+  const handlePrint = async () => {
+    await printFromOrder(order);
   };
 
   return (
@@ -183,7 +164,7 @@ export function OrderDetailsDialog({ order, open, onOpenChange }: OrderDetailsDi
           <Button
             size="sm"
             className="flex-1 bg-black hover:bg-gray-800 text-white h-9"
-            onClick={() => printResult()}
+            onClick={handlePrint}
           >
             <Printer className="w-3 h-3 mr-2" />
             Print

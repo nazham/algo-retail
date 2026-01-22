@@ -97,6 +97,7 @@ export function OrderTable({ orders }: OrderTableProps) {
                     <td className="p-4 text-right">
                       <OrderActionsMenu
                         orderId={order.id}
+                        order={order}
                         activeMenu={activeMenu}
                         toggleMenu={toggleMenu}
                         onViewDetails={() => handleViewDetails(order)}

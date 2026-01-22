@@ -167,6 +167,7 @@ export function CheckoutModal({ isOpen, onClose, onComplete }: CheckoutModalProp
           },
           items: items.map((item) => ({
             productName: item.name,
+            unitPrice: item.price,
             quantity: item.quantity,
             subtotal: item.price * item.quantity,
           })),
