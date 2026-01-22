@@ -62,12 +62,11 @@ export function OrderTable({ orders }: OrderTableProps) {
             <tbody className="divide-y">
               {orders.length === 0 ? (
                 <tr>
-                  <td
-                    colSpan={7}
-                    className="p-10 text-center text-muted-foreground flex flex-col items-center gap-2"
-                  >
-                    <Wallet size={40} className="text-muted-foreground/50" />
-                    <span>No transactions recorded yet.</span>
+                  <td colSpan={7} className="p-10 text-center">
+                    <div className="flex flex-col items-center justify-center gap-2 text-muted-foreground">
+                      <Wallet size={40} className="text-muted-foreground/50" />
+                      <span className="">No transactions recorded yet.</span>
+                    </div>
                   </td>
                 </tr>
               ) : (

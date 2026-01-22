@@ -205,7 +205,7 @@ export function CheckoutModal({ isOpen, onClose, onComplete }: CheckoutModalProp
   if (!isOpen) return null;
 
   return createPortal(
-    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
       {/* UPDATED CONTAINER SIZE:
         1. Changed 'max-w-lg' to 'max-w-md' (makes it narrower)
         2. Added 'overflow-hidden' to ensure corners stay rounded
