@@ -26,9 +26,9 @@ export default function PosPage() {
     updateQuantity,
     getTotals,
     clearCart,
-    holdOrder, // <--- New Action
-    restoreOrder, // <--- New Action
-    discardHeldOrder, // <--- New Action
+    holdOrder,
+    restoreOrder,
+    discardHeldOrder,
   } = useCartStore();
 
   const totals = getTotals();
