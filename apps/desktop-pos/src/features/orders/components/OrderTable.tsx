@@ -5,7 +5,6 @@ import { TableHeader, PaymentBadge, StatusBadge, OrderActionsMenu } from './ui';
 import { OrderDetailsDialog } from './OrderDetailsDialog';
 import { formatCurrency, formatDate } from '../lib/utils';
 import { Button } from '@repo/ui/components/ui/button';
-/*import LocalDateTime from './LocalDateTime';*/
 
 type OrderTableProps = {
   orders: OrderDto[];
