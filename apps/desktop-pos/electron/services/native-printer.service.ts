@@ -177,8 +177,14 @@ export class NativePrinterService {
             })}</span>
           </div>
           <div class="meta-row">
-            <span>${customerName}</span>
-            <span>${cashierName}</span>
+             <div>
+                <span>Customer:</span>
+                <span>${customerName}</span>
+             </div>
+             <div>
+                <span>Cashier:</span>
+                <span>${cashierName}</span>
+             </div>
           </div>
         </div>
 
@@ -266,8 +272,8 @@ export class NativePrinterService {
     paymentDetails?: PaymentDetails,
   ): Promise<{ success: boolean; error?: string }> {
     try {
-      const customer = customerName || 'Customer: Walk-in';
-      const cashier = cashierName || 'Cashier: Admin';
+      const customer = customerName || 'Walk-in';
+      const cashier = cashierName || 'Admin';
 
       // Generate HTML content
       const htmlContent = this.generateReceiptHTML(
