@@ -273,7 +273,7 @@ export class NativePrinterService {
   ): Promise<{ success: boolean; error?: string }> {
     try {
       const customer = customerName || 'Walk-in';
-      const cashier = cashierName || 'Cashier';
+      const cashier = cashierName || 'Admin';
 
       // Generate HTML content
       const htmlContent = this.generateReceiptHTML(
