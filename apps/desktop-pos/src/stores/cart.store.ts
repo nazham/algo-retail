@@ -106,8 +106,7 @@ export const useCartStore = create<CartState>((set, get) => ({
   restoreOrder: (id) => {
     const { heldOrders, items } = get();
 
-    // Optional: If current cart has items, you might want to hold them first?
-    // For now, we assume we just overwrite or user clears first.
+    // Optional: If current cart has items, you might want to hold them first.
 
     const orderToRestore = heldOrders.find((o) => o.id === id);
     if (!orderToRestore) return;
