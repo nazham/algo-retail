@@ -1,5 +1,3 @@
-'use client'; // 👈 This tells Next.js this code runs in the browser
-
 import { useState, useEffect } from 'react';
 import { formatDate } from '../lib/utils'; // Import your function
 
