@@ -3,6 +3,7 @@ import path from 'path';
 import { initDb, runMigrations } from '@algo/db-local';
 import { ProductRepository } from './repositories/product.repo';
 import { OrderRepository } from './repositories/order.repo';
+import { ReportRepository } from './repositories/report.repo';
 import { registerProductHandlers } from './handlers/product.handler';
 import { registerOrderHandlers } from './handlers/order.handler';
 import dotenv from 'dotenv';
@@ -10,6 +11,9 @@ import { SyncRepository } from './repositories/sync.repo';
 import { SyncService } from './services/sync.service';
 import { UserRepository } from './repositories/user.repo';
 import { registerUserHandlers } from './handlers/user.handler';
+import { registerPrintHandlers } from './handlers/print.handler';
+import { ReportService } from './services/report.service';
+import { registerReportHandlers } from './handlers/report.handler';
 dotenv.config();
 
 /**
@@ -55,26 +59,17 @@ const productRepo = new ProductRepository(db);
 const orderRepo = new OrderRepository(db);
 const syncRepo = new SyncRepository(db);
 const userRepo = new UserRepository(db);
+const reportRepo = new ReportRepository(db);
 
 const syncService = new SyncService(syncRepo);
+const reportService = new ReportService(reportRepo);
 
 // 4. Define API Handlers
 registerProductHandlers(productRepo);
 registerOrderHandlers(orderRepo);
 registerUserHandlers(userRepo);
-ipcMain.handle('print-receipt', async (event, payload) => {
-  // Payload expects { order, items, customerName?, cashierName?, paymentDetails? }
-  console.log('🖨️ Printing Receipt for Order:', payload.order.orderNumber);
-  // Using native Electron printing instead of electron-pos-printer
-  const { NativePrinterService } = await import('./services/native-printer.service');
-  return await NativePrinterService.printReceipt(
-    payload.order,
-    payload.items,
-    payload.customerName,
-    payload.cashierName,
-    payload.paymentDetails,
-  );
-});
+registerPrintHandlers();
+registerReportHandlers(reportService);
 
 // 5. Start the Sync Loop (Every 60 Seconds)
 setInterval(() => {
@@ -85,11 +80,15 @@ setInterval(() => {
 setTimeout(() => syncService.sync(), 5000);
 
 let win: BrowserWindow | null = null;
+import { Menu } from 'electron';
+
+Menu.setApplicationMenu(null);
 
 const createWindow = () => {
   win = new BrowserWindow({
     width: 1024,
     height: 768,
+    autoHideMenuBar: true, // important for Windows/Linux
     webPreferences: {
       nodeIntegration: false,
       contextIsolation: true,

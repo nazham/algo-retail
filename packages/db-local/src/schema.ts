@@ -38,7 +38,9 @@ export const products = sqliteTable('products', {
   supplier: text('supplier'),
   brand: text('brand'),
 
-  updatedAt: text('updated_at').default(sql`CURRENT_TIMESTAMP`),
+  updatedAt: integer('updated_at', { mode: 'timestamp_ms' })
+    .notNull()
+    .default(sql`(unixepoch() * 1000)`),
   categoryId: text('category_id').references(() => categories.id),
 });
 
@@ -56,7 +58,9 @@ export const orders = sqliteTable('orders', {
   discountTotal: integer('discount_total').default(0),
   grandTotal: integer('grand_total').notNull(),
 
-  createdAt: text('created_at').default(sql`CURRENT_TIMESTAMP`),
+  createdAt: integer('created_at', { mode: 'timestamp_ms' })
+    .notNull()
+    .default(sql`(unixepoch() * 1000)`),
   isSynced: integer('is_synced', { mode: 'boolean' }).default(false),
 });
 
@@ -93,7 +97,9 @@ export const customerLedger = sqliteTable('customer_ledger', {
   type: text('type').notNull(), // SALE (Debt) or PAYMENT (Repayment)
   amount: integer('amount').notNull(), // Value in cents
   referenceId: text('reference_id'), // Order ID
-  createdAt: text('created_at').default(sql`CURRENT_TIMESTAMP`),
+  createdAt: integer('created_at', { mode: 'timestamp_ms' })
+    .notNull()
+    .default(sql`(unixepoch() * 1000)`),
 });
 
 export const users = sqliteTable('users', {

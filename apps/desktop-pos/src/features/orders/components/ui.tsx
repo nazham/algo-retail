@@ -1,6 +1,8 @@
 import { type ElementType } from 'react';
 import { clsx } from 'clsx';
 import { Eye, Printer, RefreshCcw, MoreHorizontal } from 'lucide-react';
+import type { OrderDto } from '@algo/types';
+import { usePrintReceipt } from '../hooks/use-print-receipt';
 
 // --- 1. Original Components (Restored) ---
 
@@ -144,12 +146,26 @@ export function MenuItem({ icon: Icon, label, variant = 'default', onClick }: Me
 
 type MenuProps = {
   orderId: string;
+  order: OrderDto; // <--- ADDED THIS
   activeMenu: string | null;
   toggleMenu: (id: string) => void;
-  onViewDetails: () => void; // <--- ADDED THIS
+  onViewDetails: () => void;
 };
 
-export function OrderActionsMenu({ orderId, activeMenu, toggleMenu, onViewDetails }: MenuProps) {
+export function OrderActionsMenu({
+  orderId,
+  order,
+  activeMenu,
+  toggleMenu,
+  onViewDetails,
+}: MenuProps) {
+  const { printFromOrder } = usePrintReceipt();
+
+  const handlePrintReceipt = async () => {
+    await printFromOrder(order);
+    toggleMenu(orderId); // Close the menu after printing
+  };
+
   return (
     <>
       <button
@@ -175,7 +191,7 @@ export function OrderActionsMenu({ orderId, activeMenu, toggleMenu, onViewDetail
                 toggleMenu(orderId); // Close the menu
               }}
             />
-            <MenuItem icon={Printer} label="Reprint Receipt" />
+            <MenuItem icon={Printer} label="Reprint Receipt" onClick={handlePrintReceipt} />
             <div className="h-px bg-border my-1"></div>
             <MenuItem icon={RefreshCcw} label="Refund" variant="destructive" />
           </div>

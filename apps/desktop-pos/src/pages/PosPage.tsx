@@ -112,18 +112,20 @@ export default function PosPage() {
 
       {/* RIGHT: Cart Sidebar */}
       <div className="w-96 bg-card border-l border-input flex flex-col shadow-xl z-10">
-        <div className="p-4 border-b border-border bg-secondary/50/50 flex justify-between items-center">
-          <h2 className="font-bold text-lg flex items-center gap-2">
-            <ShoppingCart size={20} /> Current Sale
-          </h2>
-          <Button
-            onClick={clearCart}
-            variant="destructive"
-            size="sm"
-            disabled={!(items.length > 0)}
-          >
-            Clear
-          </Button>
+        <div className="p-4 border-b border-border bg-secondary/50/50">
+          <div className="flex justify-between items-center mb-3">
+            <h2 className="font-bold text-lg flex items-center gap-2">
+              <ShoppingCart size={20} /> Current Sale
+            </h2>
+            <Button
+              onClick={clearCart}
+              variant="destructive"
+              size="sm"
+              disabled={!(items.length > 0)}
+            >
+              Clear
+            </Button>
+          </div>
         </div>
 
         {/* Cart Items List */}
