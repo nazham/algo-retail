@@ -23,9 +23,9 @@ export default function LoginPage() {
     }
   };
 
-  // ---------------------------------------------------------
-  // 3. NEW: Auto-Login Trigger
-  // ---------------------------------------------------------
+  /**
+    3. Auto-Login Trigger
+   */
   useEffect(() => {
     // Check if PIN length is 6 (or whatever your required length is)
     if (pin.length === 6) {
