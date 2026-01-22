@@ -6,6 +6,7 @@ import { Button } from '@repo/ui/components/ui/button';
 import { toast } from 'sonner';
 import type { PaymentMethod, PrintReceiptDto } from '@algo/types';
 import { usePrintReceipt } from '../../orders/hooks/use-print-receipt';
+import { useCreateOrder } from '../../orders/hooks/use-create-order';
 
 interface CheckoutModalProps {
   isOpen: boolean;
@@ -68,9 +69,12 @@ export function CheckoutModal({ isOpen, onClose, onComplete }: CheckoutModalProp
   const [tenderedAmount, setTenderedAmount] = useState<string>('');
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('CASH');
   const [isProcessing, setIsProcessing] = useState(false);
+  const [shouldPrintReceipt, setShouldPrintReceipt] = useState(true);
   const inputRef = useRef<HTMLInputElement>(null);
 
+  // Hooks
   const { printReceipt } = usePrintReceipt();
+  const { createOrder, isCreating } = useCreateOrder();
 
   // Cart Store
   const { items, getTotals, clearCart } = useCartStore();
@@ -94,6 +98,7 @@ export function CheckoutModal({ isOpen, onClose, onComplete }: CheckoutModalProp
       const exactAmount = (grandTotal / 100).toFixed(2);
       setTenderedAmount(exactAmount);
       setPaymentMethod('CASH');
+      setShouldPrintReceipt(true); // Reset to print by default
       setIsProcessing(false);
 
       // Focus input after modal render
@@ -134,6 +139,7 @@ export function CheckoutModal({ isOpen, onClose, onComplete }: CheckoutModalProp
         taxTotal: totals.tax,
         discountTotal: 0,
         grandTotal: totals.total,
+        paymentMethod,
         items: items.map((item) => ({
           productId: item.productId,
           productName: item.name,
@@ -142,44 +148,48 @@ export function CheckoutModal({ isOpen, onClose, onComplete }: CheckoutModalProp
         })),
       };
 
-      // 2. Save to Database (IPC)
-      const result = await window.api.invoke('orders:create', orderData);
+      // 2. Save to Database using hook
+      const orderResult = await createOrder(orderData);
 
-      if (!result || !result.orderNumber) {
-        throw new Error('Failed to create order');
+      if (!orderResult.success || !orderResult.data) {
+        throw new Error(orderResult.error || 'Failed to create order');
       }
 
-      // 3. Print Receipt using the hook
-      const printData: PrintReceiptDto = {
-        order: {
-          orderNumber: result.orderNumber,
-          grandTotal: totals.total,
-          subtotal: totals.subtotal,
-          discountTotal: 0,
-          paymentMethod,
-        },
-        items: items.map((item) => ({
-          productName: item.name,
-          quantity: item.quantity,
-          subtotal: item.price * item.quantity,
-        })),
-        paymentDetails: {
-          method: paymentMethod,
-          tenderedAmount: tenderedAmountCents,
-          changeDue: paymentMethod === 'CASH' ? changeDue : 0,
-        },
-      };
-      const printResult = await printReceipt(printData);
+      // 3. Print Receipt (only if enabled)
+      if (shouldPrintReceipt) {
+        const printData: PrintReceiptDto = {
+          order: {
+            orderNumber: orderResult.data.orderNumber,
+            grandTotal: totals.total,
+            subtotal: totals.subtotal,
+            discountTotal: 0,
+            paymentMethod,
+          },
+          items: items.map((item) => ({
+            productName: item.name,
+            quantity: item.quantity,
+            subtotal: item.price * item.quantity,
+          })),
+          paymentDetails: {
+            method: paymentMethod,
+            tenderedAmount: tenderedAmountCents,
+            changeDue: paymentMethod === 'CASH' ? changeDue : 0,
+          },
+        };
+        const printResult = await printReceipt(printData);
 
-      if (!printResult.success) {
-        console.error('Print failed:', printResult.error);
-        toast.error(`Receipt print failed: ${printResult.error}`);
+        if (!printResult.success) {
+          console.error('Print failed:', printResult.error);
+          toast.error(`Receipt print failed: ${printResult.error}`);
+        } else {
+          toast.success('Receipt printed successfully!');
+        }
       } else {
-        toast.success('Receipt printed successfully!');
+        toast.success('Order completed (no receipt)');
       }
 
       // 4. Success - Clear Cart & Close
-      toast.success(`Order #${result.orderNumber} completed!`);
+      toast.success(`Order #${orderResult.data.orderNumber} completed!`);
       clearCart();
       onComplete();
     } catch (error) {
@@ -272,6 +282,20 @@ export function CheckoutModal({ isOpen, onClose, onComplete }: CheckoutModalProp
               Bank Transfer
             </Button>
           </div>
+        </div>
+
+        {/* Print Receipt Option */}
+        <div className="px-5 pb-3">
+          <label className="flex items-center gap-2 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={shouldPrintReceipt}
+              onChange={(e) => setShouldPrintReceipt(e.target.checked)}
+              className="w-4 h-4 rounded border-input accent-primary cursor-pointer"
+              disabled={isProcessing}
+            />
+            <span className="text-sm font-medium text-foreground">Print Receipt</span>
+          </label>
         </div>
 
         {/* Input Area */}

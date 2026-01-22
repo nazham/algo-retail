@@ -15,6 +15,13 @@
       "when": 1767990762791,
       "tag": "0001_spooky_scarecrow",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1769010403874,
+      "tag": "0002_overrated_madame_web",
+      "breakpoints": true
     }
   ]
 }
