@@ -1,8 +1,11 @@
 import { X, Printer } from 'lucide-react';
 import { Button } from '@repo/ui/components/ui/button';
 import type { OrderDto } from '@algo/types';
-import { formatCurrency } from '../lib/utils';
+// import { formatCurrency } from '../lib/utils';
+import { formatCurrency } from '../../../../electron/utils/common.utils';
+// TODO: centralize curruncy formattings & extend support
 import { useEffect } from 'react';
+import { usePrintReceipt } from '../hooks/use-print-receipt';
 
 type OrderDetailsDialogProps = {
   order: OrderDto | null;
@@ -11,6 +14,8 @@ type OrderDetailsDialogProps = {
 };
 
 export function OrderDetailsDialog({ order, open, onOpenChange }: OrderDetailsDialogProps) {
+  const { printFromOrder } = usePrintReceipt();
+
   // Close on Escape key
   useEffect(() => {
     const handleEsc = (e: KeyboardEvent) => {
@@ -22,11 +27,9 @@ export function OrderDetailsDialog({ order, open, onOpenChange }: OrderDetailsDi
 
   if (!open || !order) return null;
 
-  // Derived totals
-  const subTotal = order.grandTotal; // Fallback if subTotal missing
-  // Assuming tax/discount might be calculated or exist in your DTO.
-  // Using simple logic to match the sample structure:
-  const discount = 0; // Replace with order.discount if available
+  const handlePrint = async () => {
+    await printFromOrder(order);
+  };
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
@@ -40,10 +43,10 @@ export function OrderDetailsDialog({ order, open, onOpenChange }: OrderDetailsDi
          - Modeled after the "Thermal Printer" width (~80mm)
          - font-mono is crucial for the receipt look
       */}
-      <div className="relative z-50 bg-white w-full max-w-[360px] shadow-2xl animate-in fade-in zoom-in-95 rounded-sm flex flex-col max-h-[90vh] print:shadow-none print:w-auto print:max-w-none print:max-h-none print:fixed print:inset-0 print:flex print:justify-center print:pt-0">
+      <div className="relative z-50 bg-white w-full max-w-90 shadow-2xl animate-in fade-in zoom-in-95 rounded-sm flex flex-col max-h-[90vh] print:shadow-none print:w-auto print:max-w-none print:max-h-none print:fixed print:inset-0 print:flex print:justify-center print:pt-0">
         {/* SCROLLABLE CONTENT AREA */}
         <div className="overflow-y-auto p-4 text-black font-mono leading-tight print:overflow-visible print:p-0 print:w-[76mm] print:mx-auto">
-          {/* --- HEADER --- */}
+          {/* --- HEADER --- 
           <div className="text-center border-b-2 border-black pb-3 mb-3">
             <h1 className="text-[18px] font-bold tracking-wide mb-2 uppercase">Algo Retail</h1>
             <div className="text-[10px] space-y-0.5 leading-snug">
@@ -53,7 +56,7 @@ export function OrderDetailsDialog({ order, open, onOpenChange }: OrderDetailsDi
               <p>Email: info@algoretail.com</p>
             </div>
           </div>
-
+*/}
           {/* --- METADATA --- */}
           <div className="mb-3 text-[11px] space-y-1">
             <div className="flex justify-between">
@@ -112,13 +115,13 @@ export function OrderDetailsDialog({ order, open, onOpenChange }: OrderDetailsDi
           <div className="border-t border-black pt-2 mt-2 space-y-1 text-[11px]">
             <div className="flex justify-between">
               <span>Subtotal:</span>
-              <span>{formatCurrency(subTotal)}</span>
+              <span>{formatCurrency(order.subtotal)}</span>
             </div>
 
-            {discount > 0 && (
+            {order.discountTotal > 0 && (
               <div className="flex justify-between text-gray-600">
                 <span>Discount:</span>
-                <span>- {formatCurrency(discount)}</span>
+                <span>- {formatCurrency(order.discountTotal)}</span>
               </div>
             )}
 
@@ -130,13 +133,13 @@ export function OrderDetailsDialog({ order, open, onOpenChange }: OrderDetailsDi
 
             {/* Payment Info */}
             <div className="text-right pt-2 text-[11px] leading-snug">
-              <p>Payment: Cash</p>
+              <p>Payment: {order.paymentMethod}</p>
               {/* If you have tendered/change data, render it here */}
-              {/* <p>Received: {formatCurrency(order.grandTotal)}</p> */}
+              <p>Received: {formatCurrency(order.grandTotal)}</p>
             </div>
           </div>
 
-          {/* --- FOOTER --- */}
+          {/* --- FOOTER --- 
           <div className="text-center mt-4 pt-3 border-t border-dashed border-gray-500">
             <p className="text-[14px] font-bold mb-2">Thank You!</p>
             <p className="text-[9px] leading-snug text-gray-800 mb-2">
@@ -145,6 +148,7 @@ export function OrderDetailsDialog({ order, open, onOpenChange }: OrderDetailsDi
             </p>
             <p className="text-[9px] text-gray-500">Powered by AlgoRetail POS</p>
           </div>
+          */}
         </div>
 
         {/* --- ACTIONS (Hidden on print) --- */}
@@ -160,7 +164,7 @@ export function OrderDetailsDialog({ order, open, onOpenChange }: OrderDetailsDi
           <Button
             size="sm"
             className="flex-1 bg-black hover:bg-gray-800 text-white h-9"
-            onClick={() => window.print()}
+            onClick={handlePrint}
           >
             <Printer className="w-3 h-3 mr-2" />
             Print
@@ -178,3 +182,5 @@ export function OrderDetailsDialog({ order, open, onOpenChange }: OrderDetailsDi
     </div>
   );
 }
+
+// TODO: Change the commented out static data into Dynamic

@@ -5,7 +5,7 @@ import { Eraser } from 'lucide-react';
 
 export default function LoginPage() {
   const [pin, setPin] = useState('');
-  const { login, isLoading, error, setError } = useAuth(); // Use Hook
+  const { login, isLoading, error, setError } = useAuth();
 
   // 1. Logic
   const handleLogin = useCallback(async () => {
@@ -17,15 +17,29 @@ export default function LoginPage() {
 
   // 2. Input Logic
   const appendDigit = (digit: string) => {
-    if (pin.length < 4) {
+    if (pin.length < 6) {
       setPin((prev) => prev + digit);
       setError('');
     }
   };
 
-  // 3. Keyboard Listener
+  /**
+    3. Auto-Login Trigger
+   */
+  useEffect(() => {
+    // Check if PIN length is 6 (or whatever your required length is)
+    if (pin.length === 6) {
+      handleLogin();
+    }
+  }, [pin, handleLogin]);
+  // This runs every time 'pin' changes. If it hits 6, it logs in.
+
+  // 4. Keyboard Listener
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+      // Prevent typing if already loading to avoid double submission
+      if (isLoading) return;
+
       if (/^[0-9]$/.test(e.key)) appendDigit(e.key);
       if (e.key === 'Backspace') {
         setPin((prev) => prev.slice(0, -1));
@@ -36,14 +50,14 @@ export default function LoginPage() {
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [pin, handleLogin]);
+  }, [pin, handleLogin, isLoading]); // Added isLoading to dependencies
 
   return (
     <div className="flex h-screen w-full items-center justify-center bg-muted/40">
       <div className="w-96 rounded-2xl bg-card p-8 shadow-2xl">
         <div className="mb-8 text-center">
           <h1 className="text-3xl font-bold text-card-foreground">Algo Retail</h1>
-          <p className="text-sm text-muted-foreground">System Locked</p>
+          <p className="text-sm text-muted-foreground pt-2">System Locked</p>
         </div>
 
         {/* PIN Display */}
@@ -55,7 +69,7 @@ export default function LoginPage() {
           </div>
           <div className="h-6 mt-2 text-center">
             {error && (
-              <span className="text-sm font-medium text-destructive animate-pulse">{error}</span>
+              <span className="text-lg font-medium text-destructive animate-pulse">{error}</span>
             )}
           </div>
         </div>
@@ -92,6 +106,7 @@ export default function LoginPage() {
             0
           </Button>
 
+          {/* You can keep the GO button as a fallback, or remove it if you want purely auto-login */}
           <Button
             className="h-20 text-lg font-bold bg-primary hover:bg-secondary"
             onClick={handleLogin}
