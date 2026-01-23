@@ -74,7 +74,7 @@ export function CheckoutModal({ isOpen, onClose, onComplete }: CheckoutModalProp
 
   // Hooks
   const { printReceipt } = usePrintReceipt();
-  const { createOrder, isCreating } = useCreateOrder();
+  const { createOrder } = useCreateOrder();
 
   // Cart Store
   const { items, getTotals, clearCart } = useCartStore();

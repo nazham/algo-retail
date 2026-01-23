@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import type { OrderDto } from '@algo/types';
 
 export interface Order {
   id: string;
@@ -15,7 +16,7 @@ export interface Order {
 }
 
 export function useOrders() {
-  const [orders, setOrders] = useState<Order[]>([]);
+  const [orders, setOrders] = useState<OrderDto[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 

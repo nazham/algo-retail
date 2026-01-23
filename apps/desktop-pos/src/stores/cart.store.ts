@@ -104,7 +104,7 @@ export const useCartStore = create<CartState>((set, get) => ({
   },
 
   restoreOrder: (id) => {
-    const { heldOrders, items } = get();
+    const { heldOrders } = get();
 
     // Optional: If current cart has items, you might want to hold them first.
 
