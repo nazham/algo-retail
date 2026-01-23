@@ -1,5 +1,5 @@
 import { SyncRepository } from '../repositories/sync.repo';
-import { CreateOrderDto } from '@algo/types';
+import { CreateOrderDto, PaymentMethod } from '@algo/types';
 
 export class SyncService {
   private isRunning = false;
@@ -47,6 +47,10 @@ export class SyncService {
               quantity: i.quantity,
               price: i.unitPrice ?? 0,
             })),
+            id: order.id,
+            orderNumber: order.orderNumber,
+            createdAt: new Date(order.createdAt).toISOString(),
+            paymentMethod: (order.paymentMethod as PaymentMethod) || 'CASH',
           };
 
           const response = await fetch(`${this.apiUrl}/orders`, {

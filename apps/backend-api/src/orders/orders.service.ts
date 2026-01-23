@@ -12,9 +12,19 @@ export class OrdersService {
     @Inject(DB_CONNECTION) private db: NodePgDatabase<typeof schema>,
   ) {}
 
-  async create(createOrderDto: CreateOrderDto): Promise<OrderResultDto> {
+  async create(dto: CreateOrderDto): Promise<OrderResultDto> {
     // MVP Hack: Hardcode the Tenant ID for now (Simulating Single Tenant)
     const MVP_TENANT_ID = '00000000-0000-0000-0000-000000000001';
+
+    // 1. Idempotency Check: Does this Order ID already exist?
+    const existing = await this.db.query.orders.findFirst({
+      where: eq(schema.orders.id, dto.id),
+    });
+
+    if (existing) {
+      console.log(`⚠️ Order ${dto.orderNumber} already synced. Skipping.`);
+      return { orderId: dto.id, orderNumber: dto.orderNumber };
+    }
 
     return await this.db.transaction(async (tx) => {
       // 1. Insert Order
@@ -23,25 +33,26 @@ export class OrdersService {
       // and map it back, OR trust the Desktop ID if it's a UUID.
       // Let's trust the Desktop UUID for simplicity in MVP.
 
-      const orderId = crypto.randomUUID(); // Node 19+ native
-
       await tx.insert(schema.orders).values({
-        id: orderId,
+        id: dto.id, // 🟢 Trust the Desktop UUID
         tenantId: MVP_TENANT_ID,
-        orderNumber: `WEB-${Date.now()}`, // Temporary, ideally we sync the Desktop Number
-        subtotal: createOrderDto.subtotal,
-        taxTotal: createOrderDto.taxTotal,
-        discountTotal: createOrderDto.discountTotal,
-        grandTotal: createOrderDto.grandTotal,
+        orderNumber: dto.orderNumber, // 🟢 Trust the Desktop Receipt #
+        createdAt: new Date(dto.createdAt), // 🟢 Trust the Desktop Time
+
+        subtotal: dto.subtotal,
+        taxTotal: dto.taxTotal,
+        discountTotal: dto.discountTotal,
+        grandTotal: dto.grandTotal,
+        paymentMethod: dto.paymentMethod,
         status: 'SYNCED',
       });
 
       // 2. Insert Items & UPDATE STOCK (Updated code)
-      for (const item of createOrderDto.items) {
-        // A. Insert Line Item
+      // 3. Insert Items & Decrement Stock
+      for (const item of dto.items) {
         await tx.insert(schema.orderItems).values({
           tenantId: MVP_TENANT_ID,
-          orderId: orderId,
+          orderId: dto.id,
           productId: item.productId,
           productName: item.productName,
           quantity: item.quantity,
@@ -49,7 +60,7 @@ export class OrdersService {
           subtotal: item.price * item.quantity,
         });
 
-        // B. Decrement Stock in Cloud Product Table <--- NEW
+        // 📉 Stock Adjustment (Logic stays the same)
         await tx
           .update(schema.products)
           .set({
@@ -59,7 +70,8 @@ export class OrdersService {
           .where(eq(schema.products.id, item.productId));
       }
 
-      return { orderId, orderNumber: 'SYNCED' };
+      console.log(`✅ Synced Order: ${dto.orderNumber}`);
+      return { orderId: dto.id, orderNumber: dto.orderNumber };
     });
   }
 
