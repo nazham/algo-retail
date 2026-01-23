@@ -1,69 +1,90 @@
 import { useState, useEffect } from 'react';
-import { Search, Trash2, ShoppingCart, Plus, Minus } from 'lucide-react';
+import { Search, Trash2, ShoppingCart, Plus, Minus, PauseCircle, RotateCcw } from 'lucide-react';
 import { useCartStore } from '../stores/cart.store';
-import { Button } from '@repo/ui/components/ui/button'; // Shadcn
-import { useProducts } from '../features/pos/hooks/use-pos-data'; // New Hooks
+import { Button } from '@repo/ui/components/ui/button';
+import { useProducts } from '../features/pos/hooks/use-pos-data';
 import { toast } from 'sonner';
 import { useBarcodeScanner } from '../hooks/use-barcode-scanner';
 import { CheckoutModal } from '../features/pos/components/CheckoutModal';
+import RecallOrderModal from '../features/pos/components/RecallOrderModal';
 
 export default function PosPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
 
-  // 1. Use the new Hooks (Trainee-proof)
+  // New State for Held Orders Modal
+  const [isRecallOpen, setIsRecallOpen] = useState(false);
+
   const { products, isLoading } = useProducts();
 
-  // 2. Zustand Store
-  const { items, addToCart, removeFromCart, updateQuantity, getTotals, clearCart } = useCartStore();
+  // Updated Store destructuring
+  const {
+    items,
+    heldOrders, // <--- Get held orders list
+    addToCart,
+    removeFromCart,
+    updateQuantity,
+    getTotals,
+    clearCart,
+    holdOrder,
+    restoreOrder,
+    discardHeldOrder,
+  } = useCartStore();
+
   const totals = getTotals();
 
-  // 3. Logic
+  // Logic
   const filteredProducts = products.filter(
     (p) =>
       p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       p.sku.toLowerCase().includes(searchQuery.toLowerCase()),
   );
 
-  // Barcode Scanner Hook
+  // Barcode Scanner
   useBarcodeScanner((scannedSku) => {
-    console.log('🔫 Scanned:', scannedSku);
-
-    // 1. Find the product
     const product = products.find((p) => p.sku === scannedSku);
-
     if (product) {
-      // 2. Add to Cart
       addToCart(product);
       toast.success(`Added: ${product.name}`);
     } else {
-      // 3. Error (Sound/Alert)
       toast.error(`Product not found: ${scannedSku}`);
-      // Optional: Play a "beep" sound here
     }
   });
 
-  // Spacebar to Open Checkout
+  // Spacebar Checkout
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      // Only trigger if not typing in an input and cart has items
       if (
         e.code === 'Space' &&
         items.length > 0 &&
         !isCheckoutOpen &&
+        !isRecallOpen && // Don't trigger if modal is open
         !(e.target instanceof HTMLInputElement)
       ) {
         e.preventDefault();
         setIsCheckoutOpen(true);
       }
     };
-
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [items.length, isCheckoutOpen]);
+  }, [items.length, isCheckoutOpen, isRecallOpen]);
 
-  const handleCheckoutComplete = () => {
-    setIsCheckoutOpen(false);
+  // --- Handlers ---
+
+  const handleHoldOrder = () => {
+    if (items.length === 0) return;
+    holdOrder(); // Call store action
+    toast.info('Order placed on hold');
+  };
+
+  const handleRestore = (orderId: string) => {
+    if (items.length > 0) {
+      toast.warning('Please clear current cart before restoring.');
+      return;
+    }
+    restoreOrder(orderId);
+    setIsRecallOpen(false);
+    toast.success('Order restored!');
   };
 
   if (isLoading)
@@ -72,7 +93,7 @@ export default function PosPage() {
   return (
     <div className="flex h-full bg-secondary/50">
       {/* LEFT: Product Grid */}
-      <div className="flex-1 flex flex-col p-4 overflow-hidden">
+      <div className="flex-1 flex flex-col p-4 overflow-hidden relative">
         {/* Search Bar */}
         <div className="mb-4 relative">
           <Search className="absolute left-3 top-3 text-muted-foreground" size={20} />
@@ -93,7 +114,7 @@ export default function PosPage() {
                 key={product.id}
                 variant="outline"
                 className="h-32 flex-col items-start justify-between whitespace-normal"
-                onClick={() => addToCart(product)} // <--- CONNECTED
+                onClick={() => addToCart(product)}
               >
                 <div className="text-left">
                   <h3 className="font-bold text-card-foreground line-clamp-2 leading-tight">
@@ -108,22 +129,55 @@ export default function PosPage() {
             ))}
           </div>
         </div>
+
+        {/* --- RECALL MODAL (Overlay) --- */}
+        {isRecallOpen && (
+          <RecallOrderModal
+            isOpen={isRecallOpen}
+            setIsRecallOpen={setIsRecallOpen}
+            heldOrders={heldOrders}
+            handleRestore={handleRestore}
+            discardHeldOrder={discardHeldOrder}
+          />
+        )}
       </div>
 
       {/* RIGHT: Cart Sidebar */}
       <div className="w-96 bg-card border-l border-input flex flex-col shadow-xl z-10">
-        <div className="p-4 border-b border-border bg-secondary/50/50">
-          <div className="flex justify-between items-center mb-3">
-            <h2 className="font-bold text-lg flex items-center gap-2">
-              <ShoppingCart size={20} /> Current Sale
-            </h2>
+        <div className="p-4 border-b border-border bg-secondary/50/50 flex justify-between items-center">
+          <h2 className="font-bold text-lg flex items-center gap-2">
+            <ShoppingCart size={20} /> Current Sale
+          </h2>
+
+          {/* ACTION BUTTONS */}
+          <div className="grid grid-cols-2 gap-3 pt-2">
+            {/* If cart is empty, show RECALL button, otherwise show HOLD button */}
+            {items.length === 0 && heldOrders.length > 0 ? (
+              <Button
+                variant="outline"
+                className="w-full bg-blue-50 text-blue-700 border-blue-200 hover:bg-blue-100"
+                onClick={() => setIsRecallOpen(true)}
+              >
+                <RotateCcw className="mr-2 h-4 w-4" />({heldOrders.length})
+              </Button>
+            ) : (
+              <Button
+                variant="outline"
+                className="w-full border-dashed border-gray-400 hover:border-gray-500 hover:bg-gray-100"
+                onClick={handleHoldOrder}
+                disabled={items.length === 0}
+              >
+                <PauseCircle className="mr-2 h-4 w-4" />
+              </Button>
+            )}
+
             <Button
-              onClick={clearCart}
               variant="destructive"
-              size="sm"
-              disabled={!(items.length > 0)}
+              className="w-full"
+              onClick={clearCart}
+              disabled={items.length === 0}
             >
-              Clear
+              <Trash2 className="w-5 h-5" />
             </Button>
           </div>
         </div>
@@ -147,7 +201,6 @@ export default function PosPage() {
                     Rs. {((item.price * item.quantity) / 100).toFixed(2)}
                   </div>
                 </div>
-
                 <div className="flex items-center gap-2">
                   <Button
                     variant="outline"
@@ -167,7 +220,6 @@ export default function PosPage() {
                     <Plus size={12} />
                   </Button>
                 </div>
-
                 <Button
                   variant="ghost"
                   size="icon"
@@ -182,26 +234,30 @@ export default function PosPage() {
         </div>
 
         {/* Totals Section */}
-        <div className="p-6 bg-secondary/50 border-t border-input space-y-4">
-          <div className="space-y-2 text-sm text-muted-foreground">
+        <div className="p-3 pt-2 bg-secondary/50 border-t border-input space-y-4">
+          <div className="space-y-2 text-sm text-muted-foreground pt-1">
+            <div className="flex justify-between">
+              <span>Items</span>
+              <span className="text-xs text-muted-foreground">{items.length}</span>
+            </div>
             <div className="flex justify-between">
               <span>Subtotal</span>
               <span>Rs. {(totals.subtotal / 100).toFixed(2)}</span>
             </div>
-            <div className="flex justify-between text-muted-foreground">
-              <span>Tax (0%)</span>
-              <span>Rs. {(totals.tax / 100).toFixed(2)}</span>
+            <div className="flex justify-between">
+              <span>Discount</span>
+              <span>Rs. 0.00</span>
             </div>
           </div>
 
-          <div className="flex justify-between font-bold text-2xl text-foreground pt-2 border-t border-input">
+          <div className="flex justify-between font-bold text-xl text-foreground pt-2 pb-1 border-t border-input">
             <span>Total</span>
             <span className="text-primary">Rs. {(totals.total / 100).toFixed(2)}</span>
           </div>
 
           <Button
             size="lg"
-            className="w-full text-lg h-14 font-bold"
+            className="w-full text-lg h-11 font-bold pt-0"
             onClick={() => setIsCheckoutOpen(true)}
             disabled={items.length === 0}
           >
@@ -210,11 +266,10 @@ export default function PosPage() {
         </div>
       </div>
 
-      {/* Checkout Modal */}
       <CheckoutModal
         isOpen={isCheckoutOpen}
         onClose={() => setIsCheckoutOpen(false)}
-        onComplete={handleCheckoutComplete}
+        onComplete={() => setIsCheckoutOpen(false)}
       />
     </div>
   );
