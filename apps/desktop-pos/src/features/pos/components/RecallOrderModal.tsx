@@ -46,7 +46,13 @@ export default function RecallOrderModal(props: RecallOrderModalProps) {
                     {order.items.length} items • Rs. {(order.total / 100).toFixed(2)}
                   </div>
                   <div className="text-xs text-gray-400 mt-1 truncate max-w-md">
-                    {order.items.map((i) => `${i.name} _x${i.quantity}`).join(', ')}
+                    {order.items.map((i, index) => (
+                      <span key={i.productId}>
+                        {i.name} <span className="font-bold text-muted-foreground">x </span>
+                        {i.quantity}
+                        {index < order.items.length - 1 && ', '}
+                      </span>
+                    ))}
                   </div>
                 </div>
 
