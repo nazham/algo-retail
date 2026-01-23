@@ -14,3 +14,5 @@ export function useProducts() {
 
   return { products, isLoading };
 }
+
+export { useCategories } from './use-categories';

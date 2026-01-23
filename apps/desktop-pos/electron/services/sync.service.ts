@@ -1,5 +1,5 @@
 import { SyncRepository } from '../repositories/sync.repo';
-import { CreateOrderDto } from '@algo/types';
+import { CreateOrderDto, PaymentMethod } from '@algo/types';
 
 export class SyncService {
   private isRunning = false;
@@ -47,6 +47,10 @@ export class SyncService {
               quantity: i.quantity,
               price: i.unitPrice ?? 0,
             })),
+            id: order.id,
+            orderNumber: order.orderNumber,
+            createdAt: new Date(order.createdAt).toISOString(),
+            paymentMethod: (order.paymentMethod as PaymentMethod) || 'CASH',
           };
 
           const response = await fetch(`${this.apiUrl}/orders`, {
@@ -74,10 +78,10 @@ export class SyncService {
       // 3. Update Local DB
       if (successfulIds.length > 0) {
         await this.repo.markOrdersAsSynced(successfulIds);
-        console.log(`🎉 Sync Complete: Marked ${successfulIds.length} orders as synced.`);
+        console.log(`Sync Complete: Marked ${successfulIds.length} orders as synced.`);
       }
     } catch (error) {
-      console.error('❌ Sync Worker Critical Failure:', error);
+      console.error('Sync Worker Critical Failure:', error);
     } finally {
       this.isRunning = false;
     }

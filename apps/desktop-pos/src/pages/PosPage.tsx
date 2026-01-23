@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Search, Trash2, ShoppingCart, Plus, Minus, PauseCircle, RotateCcw } from 'lucide-react';
 import { useCartStore } from '../stores/cart.store';
 import { Button } from '@repo/ui/components/ui/button';
-import { useProducts } from '../features/pos/hooks/use-pos-data';
+import { useProducts, useCategories } from '../features/pos/hooks/use-pos-data';
 import { toast } from 'sonner';
 import { useBarcodeScanner } from '../hooks/use-barcode-scanner';
 import { CheckoutModal } from '../features/pos/components/CheckoutModal';
@@ -11,11 +11,13 @@ import RecallOrderModal from '../features/pos/components/RecallOrderModal';
 export default function PosPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
+  const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(null);
 
   // New State for Held Orders Modal
   const [isRecallOpen, setIsRecallOpen] = useState(false);
 
   const { products, isLoading } = useProducts();
+  const { categories } = useCategories();
 
   // Updated Store destructuring
   const {
@@ -33,12 +35,18 @@ export default function PosPage() {
 
   const totals = getTotals();
 
-  // Logic
-  const filteredProducts = products.filter(
-    (p) =>
+  // Combined filtering: category + search
+  const filteredProducts = products.filter((p) => {
+    // Category filter (if a category is selected)
+    const matchesCategory = selectedCategoryId === null || p.categoryId === selectedCategoryId;
+
+    // Search filter
+    const matchesSearch =
       p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      p.sku.toLowerCase().includes(searchQuery.toLowerCase()),
-  );
+      p.sku.toLowerCase().includes(searchQuery.toLowerCase());
+
+    return matchesCategory && matchesSearch;
+  });
 
   // Barcode Scanner
   useBarcodeScanner((scannedSku) => {
@@ -93,7 +101,28 @@ export default function PosPage() {
   return (
     <div className="flex h-full bg-secondary/50">
       {/* LEFT: Product Grid */}
-      <div className="flex-1 flex flex-col p-4 overflow-hidden relative">
+      <div className="flex-1 flex flex-col p-4 overflow-hidden relative no-scrollbar">
+        {/* Category Tabs */}
+        <div className="mb-4 flex gap-2 overflow-x-auto pb-2 no-scrollbar scroll-smooth snap-x">
+          <Button
+            variant={selectedCategoryId === null ? 'default' : 'outline'}
+            className="whitespace-nowrap snap-start"
+            onClick={() => setSelectedCategoryId(null)}
+          >
+            All
+          </Button>
+          {categories.map((category) => (
+            <Button
+              key={category.id}
+              variant={selectedCategoryId === category.id ? 'default' : 'outline'}
+              className="whitespace-nowrap snap-start"
+              onClick={() => setSelectedCategoryId(category.id)}
+            >
+              {category.name}
+            </Button>
+          ))}
+        </div>
+
         {/* Search Bar */}
         <div className="mb-4 relative">
           <Search className="absolute left-3 top-3 text-muted-foreground" size={20} />

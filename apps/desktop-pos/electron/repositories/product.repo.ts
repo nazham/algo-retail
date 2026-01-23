@@ -13,7 +13,12 @@ export class ProductRepository {
   constructor(private db: DB) {}
 
   async getAll() {
-    return this.db.select().from(schema.products).all();
+    // Use Drizzle's relational query to include category data
+    return this.db.query.products.findMany({
+      with: {
+        category: true,
+      },
+    });
   }
 
   // A helper to seed data if empty
@@ -35,6 +40,7 @@ export class ProductRepository {
             sku: 'MC-001',
             price: 15000, // Rs. 150.00
             stock: 50,
+            categoryId: 'cat-snacks',
           },
           {
             id: PRODUCT_IDS.ANCHOR,
@@ -42,6 +48,7 @@ export class ProductRepository {
             sku: 'AN-400',
             price: 125000, // Rs. 1250.00
             stock: 20,
+            categoryId: 'cat-groceries',
           },
           {
             id: PRODUCT_IDS.SUNLIGHT,
@@ -49,6 +56,7 @@ export class ProductRepository {
             sku: 'SL-01',
             price: 8500, // Rs. 85.00
             stock: 100,
+            categoryId: 'cat-household',
           },
           {
             id: PRODUCT_IDS.RICE,
@@ -56,6 +64,7 @@ export class ProductRepository {
             sku: 'RICE-01',
             price: 26000, // Rs. 260.00
             stock: 500,
+            categoryId: 'cat-groceries',
           },
         ])
         .run();
