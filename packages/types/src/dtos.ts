@@ -1,7 +1,7 @@
 // packages/types/src/dtos.ts
 
 // Payment Method Type
-export type PaymentMethod = 'CASH' | 'BANK_TRANSFER';
+export type PaymentMethod = 'CASH' | 'BANK_TRANSFER' | 'CARD';
 
 export class CreateOrderItemDto {
   productId!: string;
@@ -11,6 +11,12 @@ export class CreateOrderItemDto {
 }
 
 export class CreateOrderDto {
+  // 🟢 IDENTITY FIELDS (New)
+  id!: string; // The UUID from SQLite (Primary Key)
+  orderNumber!: string; // The Receipt Number (e.g., INV-2026-001)
+  createdAt!: string; // When it actually happened (ISO String)
+
+  // 🟢 FINANCIALS
   subtotal!: number;
   taxTotal!: number;
   discountTotal!: number;
@@ -64,4 +70,20 @@ export interface PrintReceiptDto {
   };
   customerName?: string;
   cashierName?: string;
+}
+
+// Category DTOs
+export interface CategoryDto {
+  id: string;
+  name: string;
+}
+
+export interface ProductWithCategoryDto {
+  id: string;
+  name: string;
+  sku: string;
+  price: number;
+  stock: number;
+  categoryId: string | null;
+  category: CategoryDto | null;
 }

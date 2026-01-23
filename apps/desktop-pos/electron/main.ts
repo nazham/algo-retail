@@ -2,9 +2,11 @@ import { app, BrowserWindow, ipcMain } from 'electron';
 import path from 'path';
 import { initDb, runMigrations } from '@algo/db-local';
 import { ProductRepository } from './repositories/product.repo';
+import { CategoryRepository } from './repositories/category.repo';
 import { OrderRepository } from './repositories/order.repo';
 import { ReportRepository } from './repositories/report.repo';
 import { registerProductHandlers } from './handlers/product.handler';
+import { registerCategoryHandlers } from './handlers/category.handler';
 import { registerOrderHandlers } from './handlers/order.handler';
 import dotenv from 'dotenv';
 import { SyncRepository } from './repositories/sync.repo';
@@ -56,6 +58,7 @@ const db = initDb(dbPath);
 
 // 3. Initialize Repositories
 const productRepo = new ProductRepository(db);
+const categoryRepo = new CategoryRepository(db);
 const orderRepo = new OrderRepository(db);
 const syncRepo = new SyncRepository(db);
 const userRepo = new UserRepository(db);
@@ -66,6 +69,7 @@ const reportService = new ReportService(reportRepo);
 
 // 4. Define API Handlers
 registerProductHandlers(productRepo);
+registerCategoryHandlers(categoryRepo);
 registerOrderHandlers(orderRepo);
 registerUserHandlers(userRepo);
 registerPrintHandlers();
@@ -125,6 +129,7 @@ if (!gotTheLock) {
 
   // 2. Launch the App (Only ONCE)
   app.whenReady().then(async () => {
+    await categoryRepo.seedIfEmpty();
     await productRepo.seedIfEmpty();
     await userRepo.seedIfEmpty();
     createWindow();
