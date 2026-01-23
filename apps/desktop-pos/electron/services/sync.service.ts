@@ -78,10 +78,10 @@ export class SyncService {
       // 3. Update Local DB
       if (successfulIds.length > 0) {
         await this.repo.markOrdersAsSynced(successfulIds);
-        console.log(`🎉 Sync Complete: Marked ${successfulIds.length} orders as synced.`);
+        console.log(`Sync Complete: Marked ${successfulIds.length} orders as synced.`);
       }
     } catch (error) {
-      console.error('❌ Sync Worker Critical Failure:', error);
+      console.error('Sync Worker Critical Failure:', error);
     } finally {
       this.isRunning = false;
     }

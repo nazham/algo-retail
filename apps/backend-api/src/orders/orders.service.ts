@@ -14,7 +14,8 @@ export class OrdersService {
 
   async create(dto: CreateOrderDto): Promise<OrderResultDto> {
     // MVP Hack: Hardcode the Tenant ID for now (Simulating Single Tenant)
-    const MVP_TENANT_ID = '00000000-0000-0000-0000-000000000001';
+    const MVP_TENANT_ID =
+      process.env.MVP_TENANT_ID || '00000000-0000-0000-0000-000000000001';
 
     // 1. Idempotency Check: Does this Order ID already exist?
     const existing = await this.db.query.orders.findFirst({
@@ -27,11 +28,7 @@ export class OrdersService {
     }
 
     return await this.db.transaction(async (tx) => {
-      // 1. Insert Order
-      // Note: We generate a NEW ID for the Cloud, or we could use the Desktop ID.
-      // For sync resilience, it's often safer to let the Cloud generate its own ID
-      // and map it back, OR trust the Desktop ID if it's a UUID.
-      // Let's trust the Desktop UUID for simplicity in MVP.
+      // 2. Insert Order
 
       await tx.insert(schema.orders).values({
         id: dto.id, // 🟢 Trust the Desktop UUID
