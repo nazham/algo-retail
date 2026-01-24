@@ -75,26 +75,29 @@ export const EndOfDayModal = ({ isOpen, onClose }: EndOfDayModalProps) => {
 
   return (
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-      <div className="bg-background w-full max-w-lg rounded-xl shadow-2xl border border-border overflow-hidden">
-        {/* Header */}
-        <div className="bg-secondary/50 px-6 py-4 border-b border-border">
-          <h2 className="text-xl font-bold">End of Day Report</h2>
-          <p className="text-sm text-muted-foreground mt-1">
+      {/* Changed max-w-lg to max-w-md for slimmer width */}
+      <div className="bg-background w-full max-w-md rounded-xl shadow-2xl border border-border overflow-hidden">
+        {/* Header - Reduced vertical padding (py-4 -> py-3) */}
+        <div className="bg-secondary/50 px-5 py-3 border-b border-border">
+          <h2 className="text-lg font-bold">End of Day Report</h2>
+          <p className="text-xs text-muted-foreground mt-0.5">
             Review today's shift summary before printing
           </p>
         </div>
 
-        {/* Content */}
-        <div className="p-6">
+        {/* Content - Reduced padding (p-6 -> p-4) */}
+        <div className="p-4">
           {isLoading ? (
-            <div className="flex flex-col items-center justify-center py-12">
-              <Loader2 className="h-8 w-8 animate-spin text-primary mb-3" />
-              <p className="text-muted-foreground">Generating report...</p>
+            <div className="flex flex-col items-center justify-center py-8">
+              <Loader2 className="h-6 w-6 animate-spin text-primary mb-2" />
+              <p className="text-sm text-muted-foreground">Generating report...</p>
             </div>
           ) : reportData ? (
-            <div className="space-y-4">
-              {/* Report Info */}
-              <div className="bg-secondary/50 rounded-lg p-4 space-y-1 text-sm">
+            <div className="space-y-3">
+              {' '}
+              {/* Reduced gap between sections */}
+              {/* Report Info - Reduced padding (p-4 -> p-3) */}
+              <div className="bg-secondary/50 rounded-lg p-3 space-y-1 text-xs">
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Report Date:</span>
                   <span className="font-medium">{reportData.date}</span>
@@ -112,11 +115,12 @@ export const EndOfDayModal = ({ isOpen, onClose }: EndOfDayModalProps) => {
                   </div>
                 )}
               </div>
-
-              {/* Sales Summary */}
-              <div className="border border-border rounded-lg p-4">
-                <h3 className="font-bold mb-3 text-base">Sales Summary</h3>
-                <div className="space-y-2 text-sm">
+              {/* Sales Summary - Reduced padding and font sizes */}
+              <div className="border border-border rounded-lg p-3">
+                <h3 className="font-bold mb-2 text-sm">Sales Summary</h3>
+                <div className="space-y-1 text-xs">
+                  {' '}
+                  {/* Tighter vertical list */}
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Total Orders:</span>
                     <span className="font-medium">{reportData.totalOrders}</span>
@@ -135,30 +139,29 @@ export const EndOfDayModal = ({ isOpen, onClose }: EndOfDayModalProps) => {
                     <span className="text-muted-foreground">Tax:</span>
                     <span className="font-medium">{formatCurrency(reportData.totalTax)}</span>
                   </div>
-                  <div className="flex justify-between pt-2 border-t border-border">
-                    <span className="font-bold">Net Sales:</span>
-                    <span className="font-bold text-primary text-lg">
+                  <div className="flex justify-between pt-2 mt-1 border-t border-border">
+                    <span className="font-bold text-sm">Net Sales:</span>
+                    <span className="font-bold text-primary text-base">
                       {formatCurrency(reportData.netSales)}
                     </span>
                   </div>
                 </div>
               </div>
-
-              {/* Payment Breakdown */}
-              <div className="border border-border rounded-lg p-4">
-                <h3 className="font-bold mb-3 text-base">Payment Breakdown</h3>
-                <div className="space-y-2">
+              {/* Payment Breakdown - Reduced padding */}
+              <div className="border border-border rounded-lg p-3">
+                <h3 className="font-bold mb-2 text-sm">Payment Breakdown</h3>
+                <div className="space-y-1.5">
                   {reportData.paymentBreakdown.map((payment) => (
                     <div
                       key={payment.method}
-                      className="flex justify-between items-center text-sm bg-secondary/30 px-3 py-2 rounded"
+                      className="flex justify-between items-center text-xs bg-secondary/30 px-2 py-1.5 rounded"
                     >
                       <span className="font-medium">{payment.method}</span>
-                      <div className="flex items-center gap-4">
-                        <span className="text-muted-foreground text-xs">
+                      <div className="flex items-center gap-3">
+                        <span className="text-muted-foreground text-[10px]">
                           {payment.count} {payment.count === 1 ? 'order' : 'orders'}
                         </span>
-                        <span className="font-medium w-24 text-right">
+                        <span className="font-medium w-20 text-right">
                           {formatCurrency(payment.amount)}
                         </span>
                       </div>
@@ -170,25 +173,32 @@ export const EndOfDayModal = ({ isOpen, onClose }: EndOfDayModalProps) => {
           ) : null}
         </div>
 
-        {/* Actions */}
-        <div className="px-6 py-4 bg-secondary/50 border-t border-border flex gap-3">
-          <Button variant="outline" onClick={onClose} className="flex-1" disabled={isPrinting}>
-            <XCircle className="mr-2 h-4 w-4" />
+        {/* Actions - Reduced padding and button size */}
+        <div className="px-4 py-3 bg-secondary/50 border-t border-border flex gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={onClose}
+            className="flex-1"
+            disabled={isPrinting}
+          >
+            <XCircle className="mr-2 h-3.5 w-3.5" />
             Cancel
           </Button>
           <Button
+            size="sm"
             onClick={handlePrintZReport}
             disabled={isLoading || !reportData || isPrinting}
             className="flex-1"
           >
             {isPrinting ? (
               <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" />
                 Printing...
               </>
             ) : (
               <>
-                <Printer className="mr-2 h-4 w-4" />
+                <Printer className="mr-2 h-3.5 w-3.5" />
                 Print Z-Report
               </>
             )}
