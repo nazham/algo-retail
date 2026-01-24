@@ -31,7 +31,7 @@ import { registerReportHandlers } from './handlers/report.handler';
 //ENV load - Determine the correct path based on environment
 const envPath = app.isPackaged
   ? path.join(process.resourcesPath, '.env') // Production: resources/.env
-  : path.join(__dirname, '../../.env'); // Dev: apps/desktop-pos/.env
+  : path.join(__dirname, '../.env'); // Dev: apps/desktop-pos/.env
 
 // 2. Load the config
 const result = dotenv.config({ path: envPath });
