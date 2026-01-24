@@ -16,7 +16,6 @@ import { registerUserHandlers } from './handlers/user.handler';
 import { registerPrintHandlers } from './handlers/print.handler';
 import { ReportService } from './services/report.service';
 import { registerReportHandlers } from './handlers/report.handler';
-dotenv.config();
 
 /**
  * ⚠️ ARCHITECTURE NOTE:
@@ -28,6 +27,20 @@ dotenv.config();
  * This allows the App to compile for Electron (ABI 140) while the CLI compiles
  * for System Node (ABI 127) without overwriting each other.
  */
+
+//ENV load - Determine the correct path based on environment
+const envPath = app.isPackaged
+  ? path.join(process.resourcesPath, '.env') // Production: resources/.env
+  : path.join(__dirname, '../../.env'); // Dev: apps/desktop-pos/.env
+
+// 2. Load the config
+const result = dotenv.config({ path: envPath });
+
+if (result.error) {
+  console.warn(`⚠️ Failed to load .env from ${envPath}`, result.error);
+} else {
+  console.log(`✅ Loaded env from: ${envPath}`);
+}
 
 // 1. Define where the DB lives
 const userDataPath = app.getPath('userData');
