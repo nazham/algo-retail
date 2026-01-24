@@ -5,22 +5,8 @@
     {
       "idx": 0,
       "version": "6",
-      "when": 1767188691203,
-      "tag": "0000_opposite_captain_cross",
-      "breakpoints": true
-    },
-    {
-      "idx": 1,
-      "version": "6",
-      "when": 1767990762791,
-      "tag": "0001_spooky_scarecrow",
-      "breakpoints": true
-    },
-    {
-      "idx": 2,
-      "version": "6",
-      "when": 1769010403874,
-      "tag": "0002_overrated_madame_web",
+      "when": 1769244089322,
+      "tag": "0000_pretty_skin",
       "breakpoints": true
     }
   ]
