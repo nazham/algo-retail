@@ -3,18 +3,6 @@ import { StatCard, FilterButton } from './ui';
 import { OrderTable } from './OrderTable';
 import type { OrderDto } from '@algo/types';
 import { formatCurrency } from '../../../../electron/utils/common.utils';
-/*import { DatePicker } from '@repo/ui/components/ui/datepicker';*/
-
-// 1. FORMATTER: Adds commas (e.g. 1250 -> "Rs. 1,250.00")
-// export const formatCurrency = (amountInCents: number) => {
-//   return (
-//     'Rs. ' +
-//     ((amountInCents || 0) / 100).toLocaleString('en-US', {
-//       minimumFractionDigits: 2,
-//       maximumFractionDigits: 2,
-//     })
-//   );
-// };
 
 type OrderPageLayoutProps = {
   orders: OrderDto[];
