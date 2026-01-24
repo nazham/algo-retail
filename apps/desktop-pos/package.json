@@ -2,7 +2,7 @@
   "name": "@algo/desktop-pos",
   "main": "dist-electron/main.js",
   "private": true,
-  "version": "0.0.0",
+  "version": "1.0.0",
   "scripts": {
     "dev": "node scripts/sync-migrations.js && vite",
     "build": "tsc -b && vite build",
@@ -50,7 +50,7 @@
   },
   "build": {
     "appId": "com.algoretail.pos",
-    "productName": "Algo Retail POS",
+    "productName": "Algo Retail",
     "directories": {
       "output": "release"
     },
