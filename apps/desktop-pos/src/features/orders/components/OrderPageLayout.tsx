@@ -2,18 +2,19 @@ import { Wallet, ArrowUpRight, CreditCard, RefreshCcw, Search, Filter } from 'lu
 import { StatCard, FilterButton } from './ui';
 import { OrderTable } from './OrderTable';
 import type { OrderDto } from '@algo/types';
+import { formatCurrency } from '../../../../electron/utils/common.utils';
 /*import { DatePicker } from '@repo/ui/components/ui/datepicker';*/
 
 // 1. FORMATTER: Adds commas (e.g. 1250 -> "Rs. 1,250.00")
-const formatCurrency = (amount: number) => {
-  return (
-    'Rs. ' +
-    (amount || 0).toLocaleString('en-US', {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    })
-  );
-};
+// export const formatCurrency = (amountInCents: number) => {
+//   return (
+//     'Rs. ' +
+//     ((amountInCents || 0) / 100).toLocaleString('en-US', {
+//       minimumFractionDigits: 2,
+//       maximumFractionDigits: 2,
+//     })
+//   );
+// };
 
 type OrderPageLayoutProps = {
   orders: OrderDto[];

@@ -1,7 +1,12 @@
-export const formatCurrency = (amount: number) => `Rs. ${(amount / 100).toFixed(2)}`;
+export { formatCurrency } from '../../../../electron/utils/common.utils';
 
-export const formatDate = (dateString: string) =>
-  new Date(dateString).toLocaleString('en-IN', {
-    dateStyle: 'medium',
-    timeStyle: 'short',
+export const formatDate = (date: Date | string) => {
+  return new Date(date).toLocaleString('en-US', {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+    hour12: true,
   });
+};

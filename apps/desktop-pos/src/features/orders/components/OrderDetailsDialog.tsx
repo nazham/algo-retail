@@ -1,8 +1,7 @@
 import { X, Printer } from 'lucide-react';
 import { Button } from '@repo/ui/components/ui/button';
 import type { OrderDto } from '@algo/types';
-// import { formatCurrency } from '../lib/utils';
-import { formatCurrency } from '../../../../electron/utils/common.utils';
+import { formatCurrency } from '../lib/utils';
 // TODO: centralize curruncy formattings & extend support
 import { useEffect } from 'react';
 import { usePrintReceipt } from '../hooks/use-print-receipt';
