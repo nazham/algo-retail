@@ -4,7 +4,7 @@ import { X } from 'lucide-react';
 import { useCartStore } from '../../../stores/cart.store';
 import { Button } from '@repo/ui/components/ui/button';
 import { toast } from 'sonner';
-import type { PaymentMethod, PrintReceiptDto } from '@algo/types';
+import type { CreateOrderDto, PaymentMethod, PrintReceiptDto } from '@algo/types';
 import { usePrintReceipt } from '../../orders/hooks/use-print-receipt';
 import { useCreateOrder } from '../../orders/hooks/use-create-order';
 
@@ -13,7 +13,7 @@ interface CheckoutModalProps {
   onClose: () => void;
   onComplete: () => void;
 }
-
+type LocalOrderPayload = Omit<CreateOrderDto, 'id' | 'orderNumber' | 'createdAt'>;
 // Sri Lankan cash denominations (in Rs)
 const SL_DENOMINATIONS = [5, 10, 20, 50, 100, 500, 1000, 2000, 5000];
 
@@ -134,7 +134,7 @@ export function CheckoutModal({ isOpen, onClose, onComplete }: CheckoutModalProp
 
     try {
       // 1. Construct Order Payload
-      const orderData = {
+      const orderData: LocalOrderPayload = {
         subtotal: totals.subtotal,
         taxTotal: totals.tax,
         discountTotal: 0,
@@ -149,6 +149,8 @@ export function CheckoutModal({ isOpen, onClose, onComplete }: CheckoutModalProp
       };
 
       // 2. Save to Database using hook
+      // Send to Electron
+      // @ts-ignore
       const orderResult = await createOrder(orderData);
 
       if (!orderResult.success || !orderResult.data) {

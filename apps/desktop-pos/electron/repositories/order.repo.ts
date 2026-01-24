@@ -8,15 +8,16 @@ export class OrderRepository {
 
   // The main function can remain async (to match the Promise interface of the Repository)
   async create(data: CreateOrderDto): Promise<OrderResultDto> {
-    const orderId = randomUUID();
-    const orderNumber = `INV-${Date.now().toString().slice(-6)}`;
-
     return this.db.transaction((tx) => {
       // A. Insert Main Order
       tx.insert(schema.orders)
         .values({
-          id: orderId,
-          orderNumber,
+          id: data.id, // Matches schema id (text)
+          orderNumber: data.orderNumber, // Matches schema orderNumber (text)
+          // Schema expects 'timestamp_ms' (Date or Integer), but DTO has ISO String.
+          // We convert it here so Drizzle handles the integer math.
+          createdAt: new Date(data.createdAt),
+
           status: 'COMPLETED',
           paymentMethod: data.paymentMethod,
           subtotal: data.subtotal,
@@ -33,7 +34,7 @@ export class OrderRepository {
         tx.insert(schema.orderItems)
           .values({
             id: randomUUID(),
-            orderId: orderId,
+            orderId: data.id,
             productId: item.productId,
             productName: item.productName,
             quantity: item.quantity,
@@ -50,7 +51,7 @@ export class OrderRepository {
           .run();
       }
 
-      return { orderId, orderNumber };
+      return { orderId: data.id, orderNumber: data.orderNumber };
     });
   }
 
