@@ -26,6 +26,8 @@ export function OrderPageLayout({
   // Avg Ticket also needs the division (implicitly handled since totalRevenue is divided)
   const avgTicket = orders.length > 0 ? totalRevenue / orders.length : 0;
 
+  // TODO: Fetch totalRevenue & other stat-info from a backend API instead of FE processing
+
   const handleClearFilters = () => {
     setSearchTerm('');
     setDate(undefined);
