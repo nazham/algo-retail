@@ -6,17 +6,30 @@ import { formatCurrency } from '../utils/common.utils';
  */
 function getReceiptCSS(): string {
   return `
-      @page { size: 78mm auto; margin: 0; }
+      @page { 
+        size: 78mm auto; 
+        margin: 0; 
+      }
+      
+      @media print {
+        body {
+          -webkit-print-color-adjust: exact;
+          print-color-adjust: exact;
+        }
+      }
+      
       body {
         font-family: 'Consolas', 'Courier New', monospace;
         width: 68mm;
-        margin: 0 2mm 0 2mm;
-        padding: 0;
+        margin: 0 auto;
+        padding: 5mm 2mm 5mm 2mm;
+        box-sizing: border-box;
         font-size: 12px;
         line-height: 1.5;
       }
       .header {
         text-align: center;
+        width: 100%;
         border-bottom: 2px solid #000;
         padding-bottom: 3mm;
         margin-bottom: 3mm;
@@ -27,17 +40,42 @@ function getReceiptCSS(): string {
         letter-spacing: 0.5px;
         margin-bottom: 2mm;
       }
-      .store-info { font-size: 10px; line-height: 1.4; }
-      .section-divider { border-top: 1px dashed #666; margin: 3mm 0; }
-      .meta-info { font-size: 11px; margin-bottom: 2mm; }
+      .store-info { 
+        font-size: 10px; 
+        line-height: 1.4; 
+      }
+      .section-divider { 
+        border-top: 1px dashed #666; 
+        margin: 3mm 0; 
+      }
+      .meta-info { 
+        font-size: 11px; 
+        margin-bottom: 2mm; 
+      }
       .meta-row {
-        display: flex;
-        justify-content: space-between;
+        display: table;
+        width: 100%;
         margin-bottom: 1mm;
       }
-      table { width: 100%; border-collapse: collapse; margin: 2mm 0; }
-      thead { border-bottom: 1px solid #000; }
-      .item-row { border-bottom: 1px dashed #eee; }
+      .meta-row > div,
+      .meta-row > span {
+        display: table-cell;
+      }
+      .meta-row > div:last-child,
+      .meta-row > span:last-child {
+        text-align: right;
+      }
+      table { 
+        width: 100%; 
+        border-collapse: collapse; 
+        margin: 2mm 0; 
+      }
+      thead { 
+        border-bottom: 1px solid #000; 
+      }
+      .item-row { 
+        border-bottom: 1px dashed #eee; 
+      }
       .item-name-row td { 
         padding: 1mm 0 0.5mm 0;
         font-size: 12px;
@@ -48,30 +86,75 @@ function getReceiptCSS(): string {
         font-size: 10px;
         color: #555;
       }
-      .item-details-row .qty { text-align: left; }
-      .item-details-row .price { text-align: center; }
-      .item-details-row .amt { text-align: right; }
-      .totals { margin-top: 2mm; padding-top: 2mm; border-top: 1px solid #000; }
+      .item-details-row .qty { 
+        text-align: left; 
+      }
+      .item-details-row .price { 
+        text-align: center; 
+      }
+      .item-details-row .amt { 
+        text-align: right; 
+      }
+      .totals { 
+        margin-top: 2mm; 
+        padding-top: 2mm; 
+        border-top: 1px solid #000; 
+      }
       .total-row {
-        display: flex;
-        justify-content: space-between;
+        display: table;
+        width: 100%;
         margin-bottom: 1mm;
         font-size: 11px;
       }
+      .total-row > span {
+        display: table-cell;
+      }
+      .total-row > span:last-child {
+        text-align: right;
+      }
       .grand-total {
-        display: flex;
-        justify-content: space-between;
+        display: table;
+        width: 100%;
         font-size: 14px;
         font-weight: bold;
         border-top: 2px double #000;
         padding-top: 2mm;
         margin-top: 2mm;
       }
-      .payment-info { font-size: 11px; text-align: right; margin-top: 2mm; }
-      .footer { text-align: center; margin-top: 3mm; padding-top: 2mm; border-top: 1px dashed #666; }
-      .thank-you { font-size: 13px; font-weight: bold; margin-bottom: 1.5mm; }
-      .return-policy { font-size: 9px; line-height: 1.4; color: #333; margin-bottom: 1.5mm; }
-      .software-credit { font-size: 9px; color: #666; margin-top: 1mm; }
+      .grand-total > span {
+        display: table-cell;
+      }
+      .grand-total > span:last-child {
+        text-align: right;
+      }
+      .payment-info { 
+        font-size: 11px; 
+        text-align: right; 
+        margin-top: 2mm; 
+      }
+      .footer { 
+        text-align: center; 
+        width: 100%;
+        margin-top: 3mm; 
+        padding-top: 2mm; 
+        border-top: 1px dashed #666; 
+      }
+      .thank-you { 
+        font-size: 13px; 
+        font-weight: bold; 
+        margin-bottom: 1.5mm; 
+      }
+      .return-policy { 
+        font-size: 9px; 
+        line-height: 1.4; 
+        color: #333; 
+        margin-bottom: 1.5mm; 
+      }
+      .software-credit { 
+        font-size: 9px; 
+        color: #666; 
+        margin-top: 1mm; 
+      }
     `;
 }
 

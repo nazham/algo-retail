@@ -6,6 +6,7 @@ import type { ReceiptTemplateData } from '../services/printer.types';
 import { getShopConfig } from '../config';
 
 export const registerPrintHandlers = () => {
+  // Print receipt handler
   ipcMain.handle('print-receipt', async (_, data: PrintReceiptDto) => {
     const { order, items, customerName, cashierName, paymentDetails } = data;
 
@@ -27,5 +28,18 @@ export const registerPrintHandlers = () => {
     };
 
     return await NativePrinterService.print(generateReceipt, templateData);
+  });
+
+  // Printer discovery handlers
+  ipcMain.handle('printer:get-printers', async () => {
+    return await NativePrinterService.getPrinters();
+  });
+
+  ipcMain.handle('printer:validate', async (_, printerName: string) => {
+    return await NativePrinterService.validatePrinter(printerName);
+  });
+
+  ipcMain.handle('printer:get-default', async () => {
+    return await NativePrinterService.getDefaultPrinter();
   });
 };
