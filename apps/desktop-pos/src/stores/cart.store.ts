@@ -6,6 +6,7 @@ export interface CartItem {
   price: number; // in cents
   quantity: number;
   taxRate: number;
+  discount?: number; // amount in cents
 }
 
 // New Interface for Held Orders
@@ -26,6 +27,7 @@ interface CartState {
   removeFromCart: (productId: string) => void;
   updateQuantity: (productId: string, delta: number) => void;
   setQuantity: (productId: string, quantity: number) => void;
+  setDiscount: (productId: string, discount: number) => void;
   clearCart: () => void;
 
   // New Hold/Retrieve Actions
@@ -34,7 +36,7 @@ interface CartState {
   discardHeldOrder: (id: string) => void;
 
   // Computed
-  getTotals: () => { subtotal: number; tax: number; total: number };
+  getTotals: () => { subtotal: number; tax: number; discount: number; total: number };
 }
 
 export const useCartStore = create<CartState>((set, get) => ({
@@ -134,10 +136,20 @@ export const useCartStore = create<CartState>((set, get) => ({
   },
   // --- NEW LOGIC END ---
 
+  setDiscount: (productId: string, discount: number) => {
+    const { items } = get();
+    set({
+      items: items.map((item) =>
+        item.productId === productId ? { ...item, discount: Math.max(0, discount) } : item,
+      ),
+    });
+  },
+
   getTotals: () => {
     const { items } = get();
     let subtotal = 0;
     let tax = 0;
+    let discountTotal = 0;
 
     items.forEach((item) => {
       const lineTotal = item.price * item.quantity;
@@ -146,12 +158,15 @@ export const useCartStore = create<CartState>((set, get) => ({
       // Note: In real world, handle inclusive/exclusive tax carefully here.
       // We assume EXCLUSIVE tax for this calculation example.
       tax += (lineTotal * item.taxRate) / 100;
+      // Discount Logic
+      discountTotal += item.discount || 0;
     });
 
     return {
       subtotal,
       tax,
-      total: subtotal + tax,
+      discount: discountTotal,
+      total: Math.max(0, subtotal + tax - discountTotal),
     };
   },
 }));

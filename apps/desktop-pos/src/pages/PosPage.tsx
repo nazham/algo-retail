@@ -17,6 +17,10 @@ export default function PosPage() {
   const [editingItemId, setEditingItemId] = useState<string | null>(null);
   const [tempQuantity, setTempQuantity] = useState<string>('');
 
+  // Editable Discount State
+  const [discountingItemId, setDiscountingItemId] = useState<string | null>(null);
+  const [tempDiscount, setTempDiscount] = useState<string>('');
+
   // New State for Held Orders Modal
   const [isRecallOpen, setIsRecallOpen] = useState(false);
 
@@ -31,6 +35,7 @@ export default function PosPage() {
     removeFromCart,
     updateQuantity,
     setQuantity,
+    setDiscount,
     getTotals,
     clearCart,
     holdOrder,
@@ -129,6 +134,41 @@ export default function PosPage() {
   const handleQuantityKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter') {
       handleQuantitySave();
+    }
+  };
+
+  // -------------- Let the discount be editable --------------------
+
+  const handleDiscountClick = (item: any) => {
+    setDiscountingItemId(item.productId);
+    // Show current discount or empty
+    setTempDiscount(item.discount ? (item.discount / 100).toString() : '');
+  };
+
+  const handleDiscountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    if (/^\d*\.?\d*$/.test(value)) {
+      setTempDiscount(value);
+    }
+  };
+
+  const handleDiscountSave = () => {
+    if (discountingItemId) {
+      const parsedDiscount = parseFloat(tempDiscount);
+      if (!isNaN(parsedDiscount)) {
+        // defined as cents in store
+        setDiscount(discountingItemId, parsedDiscount * 100);
+      } else {
+        setDiscount(discountingItemId, 0);
+      }
+      setDiscountingItemId(null);
+      setTempDiscount('');
+    }
+  };
+
+  const handleDiscountKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      handleDiscountSave();
     }
   };
 
@@ -259,61 +299,103 @@ export default function PosPage() {
             items.map((item) => (
               <div
                 key={item.productId}
-                className="flex justify-between items-center bg-card border border-border p-3 rounded-lg shadow-sm"
+                className="bg-card border border-border p-3 rounded-lg shadow-sm space-y-2"
               >
-                <div className="flex-1">
-                  <div className="font-medium text-card-foreground line-clamp-1">{item.name}</div>
-                  <div className="text-xs text-primary font-bold">
-                    Rs. {((item.price * item.quantity) / 100).toFixed(2)}
+                {/* ROW 1: Name & Total Price */}
+                <div className="flex justify-between items-start">
+                  <div className="font-medium text-card-foreground line-clamp-2 leading-tight">
+                    {item.name}
+                  </div>
+                  <div className="text-right">
+                    <div className="text-lg font-bold text-foreground">
+                      Rs. {((item.price * item.quantity - (item.discount || 0)) / 100).toFixed(2)}
+                    </div>
                   </div>
                 </div>
-                <div className="flex items-center gap-2">
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    className="h-8 w-8"
-                    onClick={() => updateQuantity(item.productId, -1)}
-                  >
-                    <Minus size={12} />
-                  </Button>
 
-                  {editingItemId === item.productId ? (
-                    <input
-                      autoFocus
-                      type="text"
-                      className="w-12 text-center text-sm font-bold border rounded p-1"
-                      value={tempQuantity}
-                      onChange={handleQuantityChange}
-                      onBlur={handleQuantitySave}
-                      onKeyDown={handleQuantityKeyDown}
-                      onClick={(e) => e.stopPropagation()} // Prevent click from bubbling if needed
-                    />
+                {/* ROW 2: Discount Button in the middle */}
+                <div className="pt-1 pb-1">
+                  {/* Discount Button */}
+                  {discountingItemId === item.productId ? (
+                    <div className="relative mr-2">
+                      <input
+                        autoFocus
+                        type="text"
+                        placeholder="0.00"
+                        className="w-20 text-left text-sm border rounded px-1 h-8"
+                        value={tempDiscount}
+                        onChange={handleDiscountChange}
+                        onBlur={handleDiscountSave}
+                        onKeyDown={handleDiscountKeyDown}
+                      />
+                    </div>
                   ) : (
-                    <span
-                      className="w-6 text-center text-sm font-bold cursor-pointer hover:bg-muted rounded px-1"
-                      onClick={() => handleQuantityClick(item)}
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className={`h-6 px-0 hover:bg-transparent justify-start ${item.discount ? 'text-green-600' : 'text-muted-foreground'}`}
+                      onClick={() => handleDiscountClick(item)}
                     >
-                      {item.quantity}
-                    </span>
+                      {item.discount ? `Rs. -${(item.discount / 100).toFixed(2)}` : 'Discount'}
+                    </Button>
                   )}
-
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    className="h-8 w-8"
-                    onClick={() => updateQuantity(item.productId, +1)}
-                  >
-                    <Plus size={12} />
-                  </Button>
                 </div>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="ml-2 text-muted-foreground hover:text-destructive"
-                  onClick={() => removeFromCart(item.productId)}
-                >
-                  <Trash2 size={12} />
-                </Button>
+
+                {/* ROW 3: Controls */}
+                <div className="flex justify-between items-center pt-1">
+                  {/* Quantity Controls Pill */}
+                  <div className="flex items-center bg-secondary rounded-md h-9">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-9 w-9 data-[state=open]:bg-transparent hover:bg-transparent"
+                      onClick={() => updateQuantity(item.productId, -1)}
+                    >
+                      <Minus size={16} />
+                    </Button>
+
+                    {editingItemId === item.productId ? (
+                      <input
+                        autoFocus
+                        type="text"
+                        className="w-12 text-center text-sm font-bold bg-transparent border-none focus:outline-none"
+                        value={tempQuantity}
+                        onChange={handleQuantityChange}
+                        onBlur={handleQuantitySave}
+                        onKeyDown={handleQuantityKeyDown}
+                        onClick={(e) => e.stopPropagation()}
+                      />
+                    ) : (
+                      <span
+                        className="w-10 text-center text-sm font-bold cursor-pointer"
+                        onClick={() => handleQuantityClick(item)}
+                      >
+                        {item.quantity}
+                      </span>
+                    )}
+
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-9 w-9 hover:bg-transparent"
+                      onClick={() => updateQuantity(item.productId, +1)}
+                    >
+                      <Plus size={16} />
+                    </Button>
+                  </div>
+
+                  {/* Action Buttons */}
+                  <div className="flex items-center gap-1">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-9 w-9 text-muted-foreground hover:text-destructive hover:bg-transparent"
+                      onClick={() => removeFromCart(item.productId)}
+                    >
+                      <Trash2 size={20} />
+                    </Button>
+                  </div>
+                </div>
               </div>
             ))
           )}
@@ -330,9 +412,9 @@ export default function PosPage() {
               <span>Subtotal</span>
               <span>Rs. {(totals.subtotal / 100).toFixed(2)}</span>
             </div>
-            <div className="flex justify-between">
+            <div className="flex justify-between text-green-600 font-medium">
               <span>Discount</span>
-              <span>Rs. 0.00</span>
+              <span>Rs. {(totals.discount / 100).toFixed(2)}</span>
             </div>
           </div>
 
