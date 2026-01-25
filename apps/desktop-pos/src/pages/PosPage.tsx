@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Search, Trash2, ShoppingCart, Plus, Minus, PauseCircle, RotateCcw } from 'lucide-react';
-import { useCartStore } from '../stores/cart.store';
+import { useCartStore, type CartItem } from '../stores/cart.store';
 import { Button } from '@repo/ui/components/ui/button';
 import { useProducts, useCategories } from '../features/pos/hooks/use-pos-data';
 import { toast } from 'sonner';
@@ -104,7 +104,7 @@ export default function PosPage() {
 
   // -------------- Let the quantity to editiable --------------------
 
-  const handleQuantityClick = (item: any) => {
+  const handleQuantityClick = (item: CartItem) => {
     setEditingItemId(item.productId);
     setTempQuantity(item.quantity.toString());
   };
@@ -120,7 +120,7 @@ export default function PosPage() {
   const handleQuantitySave = () => {
     if (editingItemId) {
       const parsedQty = parseFloat(tempQuantity);
-      if (!isNaN(parsedQty)) {
+      if (!isNaN(parsedQty) && parsedQty > 0) {
         setQuantity(editingItemId, parsedQty);
       }
       setEditingItemId(null);
@@ -261,33 +261,51 @@ export default function PosPage() {
             items.map((item) => (
               <div
                 key={item.productId}
-                className="bg-card border border-border p-3 rounded-lg shadow-sm space-y-1"
+                className="bg-card border border-border p-3 rounded-lg shadow-sm flex flex-col gap-2"
               >
-                {/* ROW 1: Name & Quantity */}
-                <div className="flex justify-between items-center gap-2">
+                {/* ROW 1: Name & Total Price */}
+                <div className="flex justify-between items-start gap-2">
                   <div
-                    className="font-medium text-card-foreground truncate flex-1"
+                    className="font-medium text-sm text-card-foreground truncate leading-tight flex-1"
                     title={item.name}
                   >
                     {item.name}
                   </div>
+                  <div className="font-bold text-base text-foreground whitespace-nowrap">
+                    Rs. {((item.price * item.quantity - (item.discount || 0)) / 100).toFixed(2)}
+                  </div>
+                </div>
 
-                  {/* Quantity Controls Pill - Compact */}
-                  <div className="flex items-center bg-secondary rounded-md h-6 shrink-0">
+                {/* ROW 2: Price Breakdown & Discount Value */}
+                <div className="flex items-center gap-2 text-xs">
+                  <span className="text-muted-foreground">
+                    Rs. {(item.price / 100).toFixed(2)} x {item.quantity}
+                  </span>
+                  {(item.discount || 0) > 0 && (
+                    <span className="text-green-600 font-medium">
+                      -Rs. {((item.discount || 0) / 100).toFixed(2)}
+                    </span>
+                  )}
+                </div>
+
+                {/* ROW 3: Quantity Controls & Actions */}
+                <div className="flex justify-between items-center mt-1">
+                  {/* Quantity Controls Pill */}
+                  <div className="flex items-center bg-secondary/50 rounded-md h-7 overflow-hidden">
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="h-6 w-6 data-[state=open]:bg-transparent hover:bg-transparent"
+                      className="h-7 w-7 hover:bg-transparent shrink-0"
                       onClick={() => updateQuantity(item.productId, -1)}
                     >
-                      <Minus size={12} />
+                      <Minus size={14} />
                     </Button>
 
                     {editingItemId === item.productId ? (
                       <input
                         autoFocus
                         type="text"
-                        className="w-8 text-center text-xs font-bold bg-transparent border-none focus:outline-none p-0"
+                        className="w-12 text-center text-sm font-bold bg-transparent border-none focus:outline-none p-0 mx-1"
                         value={tempQuantity}
                         onChange={handleQuantityChange}
                         onBlur={handleQuantitySave}
@@ -296,8 +314,9 @@ export default function PosPage() {
                       />
                     ) : (
                       <span
-                        className="w-6 text-center text-xs font-bold cursor-pointer"
+                        className="min-w-6 max-w-24 px-1 text-center text-sm font-bold cursor-pointer select-none truncate"
                         onClick={() => handleQuantityClick(item)}
+                        title={item.quantity.toString()}
                       >
                         {item.quantity}
                       </span>
@@ -306,22 +325,14 @@ export default function PosPage() {
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="h-6 w-6 hover:bg-transparent"
+                      className="h-7 w-7 hover:bg-transparent shrink-0"
                       onClick={() => updateQuantity(item.productId, +1)}
                     >
-                      <Plus size={12} />
+                      <Plus size={14} />
                     </Button>
                   </div>
-                </div>
 
-                {/* ROW 2: Price & Actions */}
-                <div className="flex justify-between items-end">
-                  {/* Total Price (Under Name) */}
-                  <div className="text-lg font-bold text-foreground">
-                    Rs. {((item.price * item.quantity - (item.discount || 0)) / 100).toFixed(2)}
-                  </div>
-
-                  {/* Actions (Discount % & Trash) */}
+                  {/* Actions (Discount & Trash) */}
                   <div className="flex items-center gap-1">
                     <CartItemDiscount
                       currentDiscount={item.discount || 0}
@@ -334,7 +345,7 @@ export default function PosPage() {
                       className="h-8 w-8 text-muted-foreground hover:text-destructive hover:bg-transparent"
                       onClick={() => removeFromCart(item.productId)}
                     >
-                      <Trash2 size={18} />
+                      <Trash2 size={16} />
                     </Button>
                   </div>
                 </div>

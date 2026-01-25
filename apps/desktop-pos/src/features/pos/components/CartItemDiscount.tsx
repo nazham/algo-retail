@@ -65,18 +65,16 @@ export function CartItemDiscount({ currentDiscount, onUpdate }: CartItemDiscount
   return (
     <Button
       variant="ghost"
-      size={currentDiscount ? 'default' : 'icon'}
-      className={`h-8 hover:bg-secondary ${
-        currentDiscount ? 'text-green-600 px-2 text-xs font-bold' : 'w-8 text-muted-foreground'
+      size="icon"
+      className={`h-8 w-8 hover:bg-secondary ${
+        currentDiscount ? 'text-green-600 font-bold' : 'text-muted-foreground'
       }`}
       onClick={handleClick}
-      title="Discount"
+      title={
+        currentDiscount ? `Discount: Rs. ${(currentDiscount / 100).toFixed(2)}` : 'Add Discount'
+      }
     >
-      {currentDiscount ? (
-        <span>Rs. -{(currentDiscount / 100).toFixed(2)}</span>
-      ) : (
-        <span className="text-lg font-mono">%</span>
-      )}
+      <span className="text-lg font-mono">%</span>
     </Button>
   );
 }
