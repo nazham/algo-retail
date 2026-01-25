@@ -25,6 +25,7 @@ interface CartState {
   addToCart: (product: any) => void;
   removeFromCart: (productId: string) => void;
   updateQuantity: (productId: string, delta: number) => void;
+  setQuantity: (productId: string, quantity: number) => void;
   clearCart: () => void;
 
   // New Hold/Retrieve Actions
@@ -80,6 +81,15 @@ export const useCartStore = create<CartState>((set, get) => ({
         }
         return item;
       }),
+    });
+  },
+
+  setQuantity: (productId: string, quantity: number) => {
+    const { items } = get();
+    set({
+      items: items.map((item) =>
+        item.productId === productId ? { ...item, quantity: Math.max(0, quantity) } : item,
+      ),
     });
   },
 

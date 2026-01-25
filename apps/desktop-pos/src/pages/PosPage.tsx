@@ -13,6 +13,10 @@ export default function PosPage() {
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
   const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(null);
 
+  // Editable Quantity State
+  const [editingItemId, setEditingItemId] = useState<string | null>(null);
+  const [tempQuantity, setTempQuantity] = useState<string>('');
+
   // New State for Held Orders Modal
   const [isRecallOpen, setIsRecallOpen] = useState(false);
 
@@ -26,6 +30,7 @@ export default function PosPage() {
     addToCart,
     removeFromCart,
     updateQuantity,
+    setQuantity,
     getTotals,
     clearCart,
     holdOrder,
@@ -93,6 +98,38 @@ export default function PosPage() {
     restoreOrder(orderId);
     setIsRecallOpen(false);
     toast.success('Order restored!');
+  };
+
+  // -------------- Let the quantity to editiable --------------------
+
+  const handleQuantityClick = (item: any) => {
+    setEditingItemId(item.productId);
+    setTempQuantity(item.quantity.toString());
+  };
+
+  const handleQuantityChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    // Allow digits and only one decimal point
+    if (/^\d*\.?\d*$/.test(value)) {
+      setTempQuantity(value);
+    }
+  };
+
+  const handleQuantitySave = () => {
+    if (editingItemId) {
+      const parsedQty = parseFloat(tempQuantity);
+      if (!isNaN(parsedQty)) {
+        setQuantity(editingItemId, parsedQty);
+      }
+      setEditingItemId(null);
+      setTempQuantity('');
+    }
+  };
+
+  const handleQuantityKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      handleQuantitySave();
+    }
   };
 
   if (isLoading)
@@ -239,7 +276,27 @@ export default function PosPage() {
                   >
                     <Minus size={12} />
                   </Button>
-                  <span className="w-6 text-center text-sm font-bold">{item.quantity}</span>
+
+                  {editingItemId === item.productId ? (
+                    <input
+                      autoFocus
+                      type="text"
+                      className="w-12 text-center text-sm font-bold border rounded p-1"
+                      value={tempQuantity}
+                      onChange={handleQuantityChange}
+                      onBlur={handleQuantitySave}
+                      onKeyDown={handleQuantityKeyDown}
+                      onClick={(e) => e.stopPropagation()} // Prevent click from bubbling if needed
+                    />
+                  ) : (
+                    <span
+                      className="w-6 text-center text-sm font-bold cursor-pointer hover:bg-muted rounded px-1"
+                      onClick={() => handleQuantityClick(item)}
+                    >
+                      {item.quantity}
+                    </span>
+                  )}
+
                   <Button
                     variant="outline"
                     size="icon"
