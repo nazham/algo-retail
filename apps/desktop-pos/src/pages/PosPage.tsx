@@ -7,6 +7,7 @@ import { toast } from 'sonner';
 import { useBarcodeScanner } from '../hooks/use-barcode-scanner';
 import { CheckoutModal } from '../features/pos/components/CheckoutModal';
 import RecallOrderModal from '../features/pos/components/RecallOrderModal';
+import { CartItemDiscount } from '../features/pos/components/CartItemDiscount';
 
 export default function PosPage() {
   const [searchQuery, setSearchQuery] = useState('');
@@ -16,10 +17,6 @@ export default function PosPage() {
   // Editable Quantity State
   const [editingItemId, setEditingItemId] = useState<string | null>(null);
   const [tempQuantity, setTempQuantity] = useState<string>('');
-
-  // Editable Discount State
-  const [discountingItemId, setDiscountingItemId] = useState<string | null>(null);
-  const [tempDiscount, setTempDiscount] = useState<string>('');
 
   // New State for Held Orders Modal
   const [isRecallOpen, setIsRecallOpen] = useState(false);
@@ -134,41 +131,6 @@ export default function PosPage() {
   const handleQuantityKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter') {
       handleQuantitySave();
-    }
-  };
-
-  // -------------- Let the discount be editable --------------------
-
-  const handleDiscountClick = (item: any) => {
-    setDiscountingItemId(item.productId);
-    // Show current discount or empty
-    setTempDiscount(item.discount ? (item.discount / 100).toString() : '');
-  };
-
-  const handleDiscountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
-    if (/^\d*\.?\d*$/.test(value)) {
-      setTempDiscount(value);
-    }
-  };
-
-  const handleDiscountSave = () => {
-    if (discountingItemId) {
-      const parsedDiscount = parseFloat(tempDiscount);
-      if (!isNaN(parsedDiscount)) {
-        // defined as cents in store
-        setDiscount(discountingItemId, parsedDiscount * 100);
-      } else {
-        setDiscount(discountingItemId, 0);
-      }
-      setDiscountingItemId(null);
-      setTempDiscount('');
-    }
-  };
-
-  const handleDiscountKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter') {
-      handleDiscountSave();
     }
   };
 
@@ -299,66 +261,33 @@ export default function PosPage() {
             items.map((item) => (
               <div
                 key={item.productId}
-                className="bg-card border border-border p-3 rounded-lg shadow-sm space-y-2"
+                className="bg-card border border-border p-3 rounded-lg shadow-sm space-y-1"
               >
-                {/* ROW 1: Name & Total Price */}
-                <div className="flex justify-between items-start">
-                  <div className="font-medium text-card-foreground line-clamp-2 leading-tight">
+                {/* ROW 1: Name & Quantity */}
+                <div className="flex justify-between items-center gap-2">
+                  <div
+                    className="font-medium text-card-foreground truncate flex-1"
+                    title={item.name}
+                  >
                     {item.name}
                   </div>
-                  <div className="text-right">
-                    <div className="text-lg font-bold text-foreground">
-                      Rs. {((item.price * item.quantity - (item.discount || 0)) / 100).toFixed(2)}
-                    </div>
-                  </div>
-                </div>
 
-                {/* ROW 2: Discount Button in the middle */}
-                <div className="pt-1 pb-1">
-                  {/* Discount Button */}
-                  {discountingItemId === item.productId ? (
-                    <div className="relative mr-2">
-                      <input
-                        autoFocus
-                        type="text"
-                        placeholder="0.00"
-                        className="w-20 text-left text-sm border rounded px-1 h-8"
-                        value={tempDiscount}
-                        onChange={handleDiscountChange}
-                        onBlur={handleDiscountSave}
-                        onKeyDown={handleDiscountKeyDown}
-                      />
-                    </div>
-                  ) : (
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className={`h-6 px-0 hover:bg-transparent justify-start ${item.discount ? 'text-green-600' : 'text-muted-foreground'}`}
-                      onClick={() => handleDiscountClick(item)}
-                    >
-                      {item.discount ? `Rs. -${(item.discount / 100).toFixed(2)}` : 'Discount'}
-                    </Button>
-                  )}
-                </div>
-
-                {/* ROW 3: Controls */}
-                <div className="flex justify-between items-center pt-1">
-                  {/* Quantity Controls Pill */}
-                  <div className="flex items-center bg-secondary rounded-md h-9">
+                  {/* Quantity Controls Pill - Compact */}
+                  <div className="flex items-center bg-secondary rounded-md h-6 shrink-0">
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="h-9 w-9 data-[state=open]:bg-transparent hover:bg-transparent"
+                      className="h-6 w-6 data-[state=open]:bg-transparent hover:bg-transparent"
                       onClick={() => updateQuantity(item.productId, -1)}
                     >
-                      <Minus size={16} />
+                      <Minus size={12} />
                     </Button>
 
                     {editingItemId === item.productId ? (
                       <input
                         autoFocus
                         type="text"
-                        className="w-12 text-center text-sm font-bold bg-transparent border-none focus:outline-none"
+                        className="w-8 text-center text-xs font-bold bg-transparent border-none focus:outline-none p-0"
                         value={tempQuantity}
                         onChange={handleQuantityChange}
                         onBlur={handleQuantitySave}
@@ -367,7 +296,7 @@ export default function PosPage() {
                       />
                     ) : (
                       <span
-                        className="w-10 text-center text-sm font-bold cursor-pointer"
+                        className="w-6 text-center text-xs font-bold cursor-pointer"
                         onClick={() => handleQuantityClick(item)}
                       >
                         {item.quantity}
@@ -377,22 +306,35 @@ export default function PosPage() {
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="h-9 w-9 hover:bg-transparent"
+                      className="h-6 w-6 hover:bg-transparent"
                       onClick={() => updateQuantity(item.productId, +1)}
                     >
-                      <Plus size={16} />
+                      <Plus size={12} />
                     </Button>
                   </div>
+                </div>
 
-                  {/* Action Buttons */}
+                {/* ROW 2: Price & Actions */}
+                <div className="flex justify-between items-end">
+                  {/* Total Price (Under Name) */}
+                  <div className="text-lg font-bold text-foreground">
+                    Rs. {((item.price * item.quantity - (item.discount || 0)) / 100).toFixed(2)}
+                  </div>
+
+                  {/* Actions (Discount % & Trash) */}
                   <div className="flex items-center gap-1">
+                    <CartItemDiscount
+                      currentDiscount={item.discount || 0}
+                      onUpdate={(val) => setDiscount(item.productId, val)}
+                    />
+
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="h-9 w-9 text-muted-foreground hover:text-destructive hover:bg-transparent"
+                      className="h-8 w-8 text-muted-foreground hover:text-destructive hover:bg-transparent"
                       onClick={() => removeFromCart(item.productId)}
                     >
-                      <Trash2 size={20} />
+                      <Trash2 size={18} />
                     </Button>
                   </div>
                 </div>

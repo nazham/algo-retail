@@ -9,6 +9,13 @@ export interface CartItem {
   discount?: number; // amount in cents
 }
 
+export interface ProductInput {
+  id: string;
+  name: string;
+  price: number;
+  taxRate?: number;
+}
+
 // New Interface for Held Orders
 export interface HeldOrder {
   id: string;
