@@ -111,8 +111,8 @@ export default function PosPage() {
 
   const handleQuantityChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
-    // Allow digits and only one decimal point
-    if (/^\d*\.?\d*$/.test(value)) {
+    // Allow digits and only one decimal point, max 2 decimal places
+    if (/^\d*\.?\d{0,2}$/.test(value)) {
       setTempQuantity(value);
     }
   };
