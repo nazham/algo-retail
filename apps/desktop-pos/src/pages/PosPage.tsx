@@ -193,7 +193,7 @@ export default function PosPage() {
                     {product.sku}
                   </span>
                 </div>
-                <div className="font-bold text-primary">Rs. {(product.price / 100).toFixed(2)}</div>
+                <div className="font-bold text-primary">{formatCurrency(product.price)}</div>
               </Button>
             ))}
           </div>
@@ -273,18 +273,18 @@ export default function PosPage() {
                     {item.name}
                   </div>
                   <div className="font-bold text-base text-foreground whitespace-nowrap">
-                    Rs. {((item.price * item.quantity - (item.discount || 0)) / 100).toFixed(2)}
+                    {formatCurrency(item.price * item.quantity - (item.discount || 0))}
                   </div>
                 </div>
 
                 {/* ROW 2: Price Breakdown & Discount Value */}
                 <div className="flex items-center gap-2 text-xs">
                   <span className="text-muted-foreground">
-                    Rs. {(item.price / 100).toFixed(2)} x {item.quantity}
+                    {formatCurrency(item.price)} x {item.quantity}
                   </span>
                   {(item.discount || 0) > 0 && (
                     <span className="text-green-600 font-medium">
-                      -Rs. {((item.discount || 0) / 100).toFixed(2)}
+                      -{formatCurrency(item.discount || 0)}
                     </span>
                   )}
                 </div>
@@ -364,7 +364,7 @@ export default function PosPage() {
             </div>
             <div className="flex justify-between">
               <span>Subtotal</span>
-              <span>Rs. {(totals.subtotal / 100).toFixed(2)}</span>
+              <span>{formatCurrency(totals.subtotal)}</span>
             </div>
             <div className="flex justify-between text-green-600 font-medium">
               <span>Discount</span>
@@ -375,7 +375,7 @@ export default function PosPage() {
 
           <div className="flex justify-between font-bold text-xl text-foreground pt-2 pb-1 border-t border-input">
             <span>Total</span>
-            <span className="text-primary">Rs. {(totals.total / 100).toFixed(2)}</span>
+            <span className="text-primary">{formatCurrency(totals.total)}</span>
           </div>
 
           <Button
