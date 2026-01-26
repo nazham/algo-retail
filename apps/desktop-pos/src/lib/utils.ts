@@ -1,4 +1,4 @@
-export { formatCurrency } from '../../../../electron/utils/common.utils';
+export { formatCurrency } from '../../electron/utils/common.utils';
 
 export const formatDate = (date: Date | string) => {
   return new Date(date).toLocaleString('en-US', {

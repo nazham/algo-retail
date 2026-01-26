@@ -2,7 +2,7 @@ import { Wallet, ArrowUpRight, CreditCard, RefreshCcw, Search, Filter } from 'lu
 import { StatCard, FilterButton } from './ui';
 import { OrderTable } from './OrderTable';
 import type { OrderDto } from '@algo/types';
-import { formatCurrency } from '../lib/utils';
+import { formatCurrency } from '../../../lib/utils';
 
 type OrderPageLayoutProps = {
   orders: OrderDto[];
