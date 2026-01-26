@@ -21,8 +21,8 @@ function getReceiptCSS(): string {
       body {
         font-family: 'Consolas', 'Courier New', monospace;
         width: 68mm;
-        margin: 0 auto;
-        padding: 5mm 2mm 5mm 2mm;
+        margin: 0 2mm 0 2mm;
+        padding: 0;
         box-sizing: border-box;
         font-size: 12px;
         line-height: 1.5;
@@ -145,7 +145,7 @@ function getReceiptCSS(): string {
         margin-bottom: 1.5mm; 
       }
       .return-policy { 
-        font-size: 9px; 
+        font-size: 8px; 
         line-height: 1.4; 
         color: #333; 
         margin-bottom: 1.5mm; 
