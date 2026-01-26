@@ -21,7 +21,7 @@ function getReceiptCSS(): string {
       body {
         font-family: 'Consolas', 'Courier New', monospace;
         width: 68mm;
-        margin: 0 2mm 0 2mm;
+        margin: 0 0mm 0 0mm;
         padding: 0;
         box-sizing: border-box;
         font-size: 12px;

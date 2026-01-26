@@ -50,6 +50,16 @@ export interface OrderDto {
   items: OrderItemDto[];
 }
 
+// Shop Configuration
+export interface ShopConfig {
+  name: string;
+  addressLine1: string;
+  addressLine2: string;
+  phone1: string;
+  phone2: string;
+  email: string;
+}
+
 export interface PrintReceiptDto {
   order: {
     orderNumber: string;
