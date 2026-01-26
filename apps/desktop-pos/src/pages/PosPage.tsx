@@ -8,6 +8,7 @@ import { useBarcodeScanner } from '../hooks/use-barcode-scanner';
 import { CheckoutModal } from '../features/pos/components/CheckoutModal';
 import RecallOrderModal from '../features/pos/components/RecallOrderModal';
 import { CartItemDiscount } from '../features/pos/components/CartItemDiscount';
+import { formatCurrency } from '../../electron/utils/common.utils';
 
 export default function PosPage() {
   const [searchQuery, setSearchQuery] = useState('');
@@ -367,7 +368,8 @@ export default function PosPage() {
             </div>
             <div className="flex justify-between text-green-600 font-medium">
               <span>Discount</span>
-              <span>Rs. {(totals.discount / 100).toFixed(2)}</span>
+              {/*<span>Rs. {(totals.discount / 100).toFixed(2)}</span>*/}
+              <span> {formatCurrency(totals.discount)}</span>
             </div>
           </div>
 
