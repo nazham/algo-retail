@@ -273,7 +273,9 @@ export default function PosPage() {
                     {item.name}
                   </div>
                   <div className="font-bold text-base text-foreground whitespace-nowrap">
-                    {formatCurrency(item.price * item.quantity - (item.discount || 0))}
+                    <span className="text-primary">
+                      {formatCurrency(item.price * item.quantity - (item.discount || 0))}
+                    </span>
                   </div>
                 </div>
 
