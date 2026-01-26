@@ -30,7 +30,7 @@ interface CartState {
   heldOrders: HeldOrder[]; // <--- New State for storing held orders
 
   // Actions
-  addToCart: (product: any) => void;
+  addToCart: (product: ProductInput) => void;
   removeFromCart: (productId: string) => void;
   updateQuantity: (productId: string, delta: number) => void;
   setQuantity: (productId: string, quantity: number) => void;
@@ -50,7 +50,7 @@ export const useCartStore = create<CartState>((set, get) => ({
   items: [],
   heldOrders: [], // Initialize empty list
 
-  addToCart: (product) => {
+  addToCart: (product: ProductInput) => {
     const { items } = get();
     const existingItem = items.find((i) => i.productId === product.id);
 
@@ -86,7 +86,13 @@ export const useCartStore = create<CartState>((set, get) => ({
       items: items.map((item) => {
         if (item.productId === productId) {
           const newQty = item.quantity + delta;
-          return newQty > 0 ? { ...item, quantity: newQty } : item;
+          if (newQty > 0) {
+            const lineTotal = item.price * newQty;
+            // Ensure existing discount doesn't exceed new line total
+            const validDiscount = item.discount ? Math.min(item.discount, lineTotal) : 0;
+            return { ...item, quantity: newQty, discount: validDiscount };
+          }
+          return item;
         }
         return item;
       }),
@@ -95,10 +101,17 @@ export const useCartStore = create<CartState>((set, get) => ({
 
   setQuantity: (productId: string, quantity: number) => {
     const { items } = get();
+    const newQty = Math.max(0, quantity);
     set({
-      items: items.map((item) =>
-        item.productId === productId ? { ...item, quantity: Math.max(0, quantity) } : item,
-      ),
+      items: items.map((item) => {
+        if (item.productId === productId) {
+          const lineTotal = item.price * newQty;
+          // Ensure existing discount doesn't exceed new line total
+          const validDiscount = item.discount ? Math.min(item.discount, lineTotal) : 0;
+          return { ...item, quantity: newQty, discount: validDiscount };
+        }
+        return item;
+      }),
     });
   },
 
@@ -146,9 +159,15 @@ export const useCartStore = create<CartState>((set, get) => ({
   setDiscount: (productId: string, discount: number) => {
     const { items } = get();
     set({
-      items: items.map((item) =>
-        item.productId === productId ? { ...item, discount: Math.max(0, discount) } : item,
-      ),
+      items: items.map((item) => {
+        if (item.productId === productId) {
+          const lineTotal = item.price * item.quantity;
+          const maxDiscount = lineTotal; // Discount cannot exceed line total
+          const validDiscount = Math.max(0, Math.min(discount, maxDiscount));
+          return { ...item, discount: validDiscount };
+        }
+        return item;
+      }),
     });
   },
 
