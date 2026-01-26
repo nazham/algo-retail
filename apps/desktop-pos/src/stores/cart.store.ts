@@ -85,7 +85,8 @@ export const useCartStore = create<CartState>((set, get) => ({
     set({
       items: items.map((item) => {
         if (item.productId === productId) {
-          const newQty = item.quantity + delta;
+          // Fix precision: round to 2 decimal places
+          const newQty = Number((item.quantity + delta).toFixed(2));
           if (newQty > 0) {
             const lineTotal = item.price * newQty;
             // Ensure existing discount doesn't exceed new line total
@@ -101,7 +102,8 @@ export const useCartStore = create<CartState>((set, get) => ({
 
   setQuantity: (productId: string, quantity: number) => {
     const { items } = get();
-    const newQty = Math.max(0, quantity);
+    // Fix precision: round to 2 decimal places
+    const newQty = Math.max(0, Number(quantity.toFixed(2)));
     set({
       items: items.map((item) => {
         if (item.productId === productId) {
