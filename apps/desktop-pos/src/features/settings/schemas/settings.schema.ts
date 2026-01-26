@@ -6,7 +6,7 @@ export const shopConfigSchema = z.object({
   addressLine2: z.string().min(1, 'Address line 2 is required').max(100, 'Address too long'),
   phone1: z.string().min(1, 'Phone number is required').max(20, 'Phone too long'),
   phone2: z.string().max(20, 'Phone too long'),
-  email: z.string().email('Invalid email format').or(z.literal('')),
+  email: z.string().email('Invalid email format').optional().or(z.literal('')),
 });
 
 export const printerConfigSchema = z.object({
