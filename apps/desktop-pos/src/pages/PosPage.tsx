@@ -8,7 +8,7 @@ import { useBarcodeScanner } from '../hooks/use-barcode-scanner';
 import { CheckoutModal } from '../features/pos/components/CheckoutModal';
 import RecallOrderModal from '../features/pos/components/RecallOrderModal';
 import { CartItemDiscount } from '../features/pos/components/CartItemDiscount';
-import { formatCurrency } from '../../electron/utils/common.utils';
+import { formatCurrency } from '../lib/utils';
 
 export default function PosPage() {
   const [searchQuery, setSearchQuery] = useState('');
