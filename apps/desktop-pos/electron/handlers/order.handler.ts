@@ -1,6 +1,6 @@
 import { ipcMain } from 'electron';
 import { OrderRepository } from '../repositories/order.repo';
-import { CreateOrderDto } from '@algo/types';
+import { CreateOrderDto, OrderFilters } from '@algo/types';
 import { randomUUID } from 'crypto';
 
 export const registerOrderHandlers = (repo: OrderRepository) => {
@@ -22,8 +22,8 @@ export const registerOrderHandlers = (repo: OrderRepository) => {
     },
   );
 
-  ipcMain.handle('orders:get-all', async () => {
-    console.log('Fetching all orders...');
-    return await repo.findAll();
+  ipcMain.handle('orders:get-all', async (_, filters?: OrderFilters) => {
+    console.log('Fetching orders with filters:', filters);
+    return await repo.findAll(filters);
   });
 };
