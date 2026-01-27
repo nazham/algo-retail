@@ -85,15 +85,15 @@ export const useCartStore = create<CartState>((set, get) => ({
     set({
       items: items.map((item) => {
         if (item.productId === productId) {
-          // Fix precision: round to 2 decimal places
-          const newQty = Math.min(Number((item.quantity + delta).toFixed(2)), 100000);
-          if (newQty > 0) {
-            const lineTotal = item.price * newQty;
-            // Ensure existing discount doesn't exceed new line total
-            const validDiscount = item.discount ? Math.min(item.discount, lineTotal) : 0;
-            return { ...item, quantity: newQty, discount: validDiscount };
-          }
-          return item;
+          const newQty = Number((item.quantity + delta).toFixed(2));
+
+          // Basic sanity check - UI should prevent negative values
+          if (newQty <= 0) return item;
+
+          const lineTotal = item.price * newQty;
+          // Ensure existing discount doesn't exceed new line total
+          const validDiscount = item.discount ? Math.min(item.discount, lineTotal) : 0;
+          return { ...item, quantity: newQty, discount: validDiscount };
         }
         return item;
       }),
@@ -102,15 +102,15 @@ export const useCartStore = create<CartState>((set, get) => ({
 
   setQuantity: (productId: string, quantity: number) => {
     const { items } = get();
-    // Fix precision: round to 2 decimal places
-    const newQty = Math.min(Math.max(0, Number(quantity.toFixed(2))), 100000);
+    const roundedQty = Number(quantity.toFixed(2));
+
     set({
       items: items.map((item) => {
         if (item.productId === productId) {
-          const lineTotal = item.price * newQty;
+          const lineTotal = item.price * roundedQty;
           // Ensure existing discount doesn't exceed new line total
           const validDiscount = item.discount ? Math.min(item.discount, lineTotal) : 0;
-          return { ...item, quantity: newQty, discount: validDiscount };
+          return { ...item, quantity: roundedQty, discount: validDiscount };
         }
         return item;
       }),
