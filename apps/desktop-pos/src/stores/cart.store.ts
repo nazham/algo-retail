@@ -6,6 +6,14 @@ export interface CartItem {
   price: number; // in cents
   quantity: number;
   taxRate: number;
+  discount?: number; // amount in cents
+}
+
+export interface ProductInput {
+  id: string;
+  name: string;
+  price: number;
+  taxRate?: number;
 }
 
 // New Interface for Held Orders
@@ -22,9 +30,11 @@ interface CartState {
   heldOrders: HeldOrder[]; // <--- New State for storing held orders
 
   // Actions
-  addToCart: (product: any) => void;
+  addToCart: (product: ProductInput) => void;
   removeFromCart: (productId: string) => void;
   updateQuantity: (productId: string, delta: number) => void;
+  setQuantity: (productId: string, quantity: number) => void;
+  setDiscount: (productId: string, discount: number) => void;
   clearCart: () => void;
 
   // New Hold/Retrieve Actions
@@ -33,14 +43,14 @@ interface CartState {
   discardHeldOrder: (id: string) => void;
 
   // Computed
-  getTotals: () => { subtotal: number; tax: number; total: number };
+  getTotals: () => { subtotal: number; tax: number; discount: number; total: number };
 }
 
 export const useCartStore = create<CartState>((set, get) => ({
   items: [],
   heldOrders: [], // Initialize empty list
 
-  addToCart: (product) => {
+  addToCart: (product: ProductInput) => {
     const { items } = get();
     const existingItem = items.find((i) => i.productId === product.id);
 
@@ -75,8 +85,32 @@ export const useCartStore = create<CartState>((set, get) => ({
     set({
       items: items.map((item) => {
         if (item.productId === productId) {
-          const newQty = item.quantity + delta;
-          return newQty > 0 ? { ...item, quantity: newQty } : item;
+          // Fix precision: round to 2 decimal places
+          const newQty = Number((item.quantity + delta).toFixed(2));
+          if (newQty > 0) {
+            const lineTotal = item.price * newQty;
+            // Ensure existing discount doesn't exceed new line total
+            const validDiscount = item.discount ? Math.min(item.discount, lineTotal) : 0;
+            return { ...item, quantity: newQty, discount: validDiscount };
+          }
+          return item;
+        }
+        return item;
+      }),
+    });
+  },
+
+  setQuantity: (productId: string, quantity: number) => {
+    const { items } = get();
+    // Fix precision: round to 2 decimal places
+    const newQty = Math.max(0, Number(quantity.toFixed(2)));
+    set({
+      items: items.map((item) => {
+        if (item.productId === productId) {
+          const lineTotal = item.price * newQty;
+          // Ensure existing discount doesn't exceed new line total
+          const validDiscount = item.discount ? Math.min(item.discount, lineTotal) : 0;
+          return { ...item, quantity: newQty, discount: validDiscount };
         }
         return item;
       }),
@@ -124,10 +158,26 @@ export const useCartStore = create<CartState>((set, get) => ({
   },
   // --- NEW LOGIC END ---
 
+  setDiscount: (productId: string, discount: number) => {
+    const { items } = get();
+    set({
+      items: items.map((item) => {
+        if (item.productId === productId) {
+          const lineTotal = item.price * item.quantity;
+          const maxDiscount = lineTotal; // Discount cannot exceed line total
+          const validDiscount = Math.max(0, Math.min(discount, maxDiscount));
+          return { ...item, discount: validDiscount };
+        }
+        return item;
+      }),
+    });
+  },
+
   getTotals: () => {
     const { items } = get();
     let subtotal = 0;
     let tax = 0;
+    let discountTotal = 0;
 
     items.forEach((item) => {
       const lineTotal = item.price * item.quantity;
@@ -136,12 +186,15 @@ export const useCartStore = create<CartState>((set, get) => ({
       // Note: In real world, handle inclusive/exclusive tax carefully here.
       // We assume EXCLUSIVE tax for this calculation example.
       tax += (lineTotal * item.taxRate) / 100;
+      // Discount Logic
+      discountTotal += item.discount || 0;
     });
 
     return {
       subtotal,
       tax,
-      total: subtotal + tax,
+      discount: discountTotal,
+      total: Math.max(0, subtotal + tax - discountTotal),
     };
   },
 }));

@@ -156,32 +156,32 @@ export function generateReceipt(data: ReceiptTemplateData): string {
         <div class="totals">
           <div class="total-row">
             <span>Subtotal:</span>
-            <span>Rs. ${fmt(subtotal)}</span>
+            <span>${fmt(subtotal)}</span>
           </div>
           ${
             discount > 0
               ? `
           <div class="total-row">
             <span>Discount:</span>
-            <span>- Rs. ${fmt(discount)}</span>
+            <span>- ${fmt(discount)}</span>
           </div>
           `
               : ''
           }
           <div class="grand-total">
             <span>TOTAL:</span>
-            <span>Rs. ${fmt(total)}</span>
+            <span>${fmt(total)}</span>
           </div>
           <div class="payment-info">
             Payment: ${paymentDetails?.method || receiptData.paymentMethod}
             ${
               paymentDetails?.tenderedAmount !== undefined
-                ? `<br>Received: Rs. ${fmt(paymentDetails.tenderedAmount)}`
+                ? `<br>Received: ${fmt(paymentDetails.tenderedAmount)}`
                 : ''
             }
             ${
               paymentDetails?.changeDue !== undefined && paymentDetails.changeDue > 0
-                ? `<br>Change: Rs. ${fmt(paymentDetails.changeDue)}`
+                ? `<br>Change: ${fmt(paymentDetails.changeDue)}`
                 : ''
             }
           </div>

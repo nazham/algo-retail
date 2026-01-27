@@ -1,8 +1,12 @@
 /**
  * Format currency (cents to rupees with comma separators)
  */
-export function formatCurrency(cents: number): string {
-  const rupees = (cents / 100).toFixed(2);
-  // Add comma separators for thousands
-  return rupees.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
-}
+export const formatCurrency = (amountInCents: number) => {
+  return (
+    'Rs. ' +
+    ((amountInCents || 0) / 100).toLocaleString('en-US', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    })
+  );
+};
