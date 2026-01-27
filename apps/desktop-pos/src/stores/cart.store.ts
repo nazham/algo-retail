@@ -57,7 +57,7 @@ export const useCartStore = create<CartState>((set, get) => ({
     if (existingItem) {
       set({
         items: items.map((i) =>
-          i.productId === product.id ? { ...i, quantity: i.quantity + 1 } : i,
+          i.productId === product.id ? { ...i, quantity: Math.min(i.quantity + 1, 100000) } : i,
         ),
       });
     } else {
@@ -86,7 +86,7 @@ export const useCartStore = create<CartState>((set, get) => ({
       items: items.map((item) => {
         if (item.productId === productId) {
           // Fix precision: round to 2 decimal places
-          const newQty = Number((item.quantity + delta).toFixed(2));
+          const newQty = Math.min(Number((item.quantity + delta).toFixed(2)), 100000);
           if (newQty > 0) {
             const lineTotal = item.price * newQty;
             // Ensure existing discount doesn't exceed new line total
@@ -103,7 +103,7 @@ export const useCartStore = create<CartState>((set, get) => ({
   setQuantity: (productId: string, quantity: number) => {
     const { items } = get();
     // Fix precision: round to 2 decimal places
-    const newQty = Math.max(0, Number(quantity.toFixed(2)));
+    const newQty = Math.min(Math.max(0, Number(quantity.toFixed(2))), 100000);
     set({
       items: items.map((item) => {
         if (item.productId === productId) {
