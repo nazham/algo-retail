@@ -137,7 +137,7 @@ export function CheckoutModal({ isOpen, onClose, onComplete }: CheckoutModalProp
       const orderData: LocalOrderPayload = {
         subtotal: totals.subtotal,
         taxTotal: totals.tax,
-        discountTotal: 0,
+        discountTotal: totals.discount,
         grandTotal: totals.total,
         paymentMethod,
         items: items.map((item) => ({
@@ -164,7 +164,7 @@ export function CheckoutModal({ isOpen, onClose, onComplete }: CheckoutModalProp
             orderNumber: orderResult.data.orderNumber,
             grandTotal: totals.total,
             subtotal: totals.subtotal,
-            discountTotal: 0,
+            discountTotal: totals.discount,
             paymentMethod,
           },
           items: items.map((item) => ({

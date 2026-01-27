@@ -3,7 +3,7 @@ import type { OrderDto } from '@algo/types';
 import { Wallet, ChevronLeft, ChevronRight } from 'lucide-react';
 import { TableHeader, PaymentBadge, StatusBadge, OrderActionsMenu } from './ui';
 import { OrderDetailsDialog } from './OrderDetailsDialog';
-import { formatCurrency, formatDate } from '../lib/utils';
+import { formatCurrency, formatDate } from '../../../lib/utils';
 import { Button } from '@repo/ui/components/ui/button';
 
 type OrderTableProps = {

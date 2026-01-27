@@ -2,18 +2,7 @@ import { Wallet, ArrowUpRight, CreditCard, RefreshCcw, Search, Filter } from 'lu
 import { StatCard, FilterButton } from './ui';
 import { OrderTable } from './OrderTable';
 import type { OrderDto } from '@algo/types';
-/*import { DatePicker } from '@repo/ui/components/ui/datepicker';*/
-
-// 1. FORMATTER: Adds commas (e.g. 1250 -> "Rs. 1,250.00")
-const formatCurrency = (amount: number) => {
-  return (
-    'Rs. ' +
-    (amount || 0).toLocaleString('en-US', {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    })
-  );
-};
+import { formatCurrency } from '../../../lib/utils';
 
 type OrderPageLayoutProps = {
   orders: OrderDto[];
@@ -32,10 +21,12 @@ export function OrderPageLayout({
 }: OrderPageLayoutProps) {
   // 2. THE FIX: Divide by 100 because your DB sends "cents" (integers)
   // Example: 125000 becomes 1250.00
-  const totalRevenue = orders.reduce((acc, o) => acc + (Number(o.grandTotal) || 0), 0) / 100;
+  const totalRevenue = orders.reduce((acc, o) => acc + (Number(o.grandTotal) || 0), 0);
 
   // Avg Ticket also needs the division (implicitly handled since totalRevenue is divided)
   const avgTicket = orders.length > 0 ? totalRevenue / orders.length : 0;
+
+  // TODO: Fetch totalRevenue & other stat-info from a backend API instead of FE processing
 
   const handleClearFilters = () => {
     setSearchTerm('');
