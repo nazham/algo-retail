@@ -77,7 +77,7 @@ const syncRepo = new SyncRepository(db);
 const userRepo = new UserRepository(db);
 const reportRepo = new ReportRepository(db);
 
-const syncService = new SyncService(syncRepo);
+const syncService = new SyncService(syncRepo, productRepo);
 const reportService = new ReportService(reportRepo);
 
 // 4. Define API Handlers

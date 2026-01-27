@@ -1,4 +1,5 @@
 import { DB, schema } from '@algo/db-local';
+import { sql } from 'drizzle-orm';
 
 // HARDCODED UUIDs (The "Golden Keys")
 // These must match exactly what we send to the Cloud.
@@ -69,5 +70,39 @@ export class ProductRepository {
         ])
         .run();
     }
+  }
+
+  async bulkUpsert(products: any[]) {
+    if (products.length === 0) return;
+
+    return this.db.transaction((tx) => {
+      for (const p of products) {
+        tx.insert(schema.products)
+          .values({
+            id: p.id,
+            name: p.name,
+            sku: p.sku,
+            price: p.price,
+            stock: p.stock, // Be careful: Cloud stock might overwrite local stock!
+            // ⚠️ DECISION: usually you only sync Price/Name down, not Stock
+            // if the Desktop is the stock master.
+            // For now, we sync everything.
+            categoryId: p.categoryId || p.category || null,
+            updatedAt: new Date(p.updatedAt),
+          })
+          .onConflictDoUpdate({
+            target: schema.products.id,
+            set: {
+              name: sql`excluded.name` as any,
+              sku: sql`excluded.sku` as any,
+              price: sql`excluded.price` as any,
+              stock: sql`excluded.stock` as any,
+              categoryId: sql`excluded.category_id` as any,
+              updatedAt: sql`excluded.updated_at` as any,
+            },
+          })
+          .run();
+      }
+    });
   }
 }

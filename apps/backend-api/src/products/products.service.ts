@@ -2,7 +2,7 @@ import { Inject, Injectable } from '@nestjs/common';
 import { DB_CONNECTION } from '../db/database.module';
 import * as schema from '../db/schema';
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
-import { sql } from 'drizzle-orm';
+import { and, eq, gt, sql } from 'drizzle-orm';
 
 @Injectable()
 export class ProductsService {
@@ -40,5 +40,16 @@ export class ProductsService {
 
   findAll() {
     return this.db.select().from(schema.products);
+  }
+
+  async getChangedProducts(tenantId: string, lastSync?: string) {
+    const whereClause = lastSync
+      ? and(
+          eq(schema.products.tenantId, tenantId),
+          gt(schema.products.updatedAt, new Date(lastSync)), // Get changes AFTER this time
+        )
+      : eq(schema.products.tenantId, tenantId); // Or get EVERYTHING if first sync
+
+    return await this.db.select().from(schema.products).where(whereClause);
   }
 }

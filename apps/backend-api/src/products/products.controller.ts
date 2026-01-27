@@ -1,4 +1,12 @@
-import { Controller, Post, Body, Get, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Body,
+  Get,
+  UseGuards,
+  Headers,
+  Query,
+} from '@nestjs/common';
 import { ProductsService } from './products.service';
 import { ApiKeyGuard } from 'src/auth/api-key.guard';
 
@@ -15,5 +23,13 @@ export class ProductsController {
   @Get()
   findAll() {
     return this.productsService.findAll();
+  }
+
+  @Get('sync')
+  async syncProducts(
+    @Headers('x-tenant-id') tenantId: string,
+    @Query('lastSync') lastSync?: string,
+  ) {
+    return await this.productsService.getChangedProducts(tenantId, lastSync);
   }
 }
