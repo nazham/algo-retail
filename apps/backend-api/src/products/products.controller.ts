@@ -30,6 +30,28 @@ export class ProductsController {
     @Headers('x-tenant-id') tenantId: string,
     @Query('lastSync') lastSync?: string,
   ) {
-    return await this.productsService.getChangedProducts(tenantId, lastSync);
+    const items = await this.productsService.getChangedProducts(
+      tenantId,
+      lastSync,
+    );
+    return {
+      items,
+      serverTime: new Date().toISOString(),
+    };
+  }
+
+  @Get('categories/sync')
+  async syncCategories(
+    @Headers('x-tenant-id') tenantId: string,
+    @Query('lastSync') lastSync?: string,
+  ) {
+    const items = await this.productsService.getChangedCategories(
+      tenantId,
+      lastSync,
+    );
+    return {
+      items,
+      serverTime: new Date().toISOString(),
+    };
   }
 }

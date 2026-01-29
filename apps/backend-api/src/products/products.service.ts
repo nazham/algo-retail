@@ -50,6 +50,21 @@ export class ProductsService {
         )
       : eq(schema.products.tenantId, tenantId); // Or get EVERYTHING if first sync
 
-    return await this.db.select().from(schema.products).where(whereClause);
+    return await this.db
+      .select()
+      .from(schema.products)
+      .where(whereClause)
+      .orderBy(schema.products.updatedAt);
+  }
+
+  async getChangedCategories(tenantId: string, lastSync?: string) {
+    const whereClause = lastSync
+      ? and(
+          eq(schema.categories.tenantId, tenantId),
+          gt(schema.categories.updatedAt, new Date(lastSync)),
+        )
+      : eq(schema.categories.tenantId, tenantId);
+
+    return await this.db.select().from(schema.categories).where(whereClause);
   }
 }
