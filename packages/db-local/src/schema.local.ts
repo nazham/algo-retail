@@ -37,6 +37,7 @@ export const products = sqliteTable('products', {
   mfgDate: text('mfg_date'),
   supplier: text('supplier'),
   brand: text('brand'),
+  isActive: integer('is_active', { mode: 'boolean' }).default(true),
 
   updatedAt: integer('updated_at', { mode: 'timestamp_ms' })
     .notNull()
