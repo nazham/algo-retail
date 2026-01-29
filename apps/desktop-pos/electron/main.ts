@@ -77,7 +77,12 @@ const syncRepo = new SyncRepository(db);
 const userRepo = new UserRepository(db);
 const reportRepo = new ReportRepository(db);
 
-const syncService = new SyncService(syncRepo, productRepo);
+const syncService = new SyncService(syncRepo, productRepo, categoryRepo);
+syncService.onStateChange = (state, message) => {
+  if (win) {
+    win.webContents.send('sync:status', { state, message });
+  }
+};
 const reportService = new ReportService(reportRepo);
 
 // 4. Define API Handlers
@@ -142,8 +147,6 @@ if (!gotTheLock) {
 
   // 2. Launch the App (Only ONCE)
   app.whenReady().then(async () => {
-    await categoryRepo.seedIfEmpty();
-    await productRepo.seedIfEmpty();
     await userRepo.seedIfEmpty();
     createWindow();
   });

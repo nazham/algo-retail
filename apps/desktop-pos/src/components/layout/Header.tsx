@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { ModeToggle } from '@repo/ui/components/mode-toggle';
 import { Button } from '@repo/ui/components/ui/button';
 import { EndOfDayModal } from '../../features/pos/components/EndOfDayModal';
+import { SyncStatus } from '../SyncStatus';
 
 export default function Header() {
   const navigate = useNavigate();
@@ -27,7 +28,10 @@ export default function Header() {
     <>
       <header className="flex h-16 items-center justify-between bg-card px-6 shadow-sm">
         {/* Left: Brand */}
-        <div className="text-xl font-bold text-primary">Algo Retail</div>
+        <div className="flex items-center gap-4">
+          <div className="text-xl font-bold text-primary">Algo Retail</div>
+          <SyncStatus />
+        </div>
 
         {/* Right: User Info */}
         <div className="flex items-center gap-4">

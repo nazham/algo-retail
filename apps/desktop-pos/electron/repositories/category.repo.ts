@@ -1,13 +1,5 @@
 import { DB, schema } from '@algo/db-local';
-
-// Predefined category IDs (consistent across all installations)
-const CATEGORY_IDS = {
-  GROCERIES: 'cat-groceries',
-  BEVERAGES: 'cat-beverages',
-  SNACKS: 'cat-snacks',
-  PERSONAL_CARE: 'cat-personal-care',
-  HOUSEHOLD: 'cat-household',
-};
+import { sql } from 'drizzle-orm';
 
 export class CategoryRepository {
   constructor(private db: DB) {}
@@ -16,26 +8,26 @@ export class CategoryRepository {
     return this.db.select().from(schema.categories).all();
   }
 
-  // Seed default categories if empty
-  async seedIfEmpty() {
-    const count = await this.db
-      .select({ count: schema.categories.id })
-      .from(schema.categories)
-      .limit(1);
+  async bulkUpsert(categories: any[]) {
+    if (categories.length === 0) return;
 
-    if (count.length === 0) {
-      console.log('Seeding Categories...');
-
-      this.db
-        .insert(schema.categories)
-        .values([
-          { id: CATEGORY_IDS.GROCERIES, name: 'Groceries' },
-          { id: CATEGORY_IDS.BEVERAGES, name: 'Beverages' },
-          { id: CATEGORY_IDS.SNACKS, name: 'Snacks' },
-          { id: CATEGORY_IDS.PERSONAL_CARE, name: 'Personal Care' },
-          { id: CATEGORY_IDS.HOUSEHOLD, name: 'Household' },
-        ])
-        .run();
-    }
+    return this.db.transaction((tx) => {
+      for (const c of categories) {
+        tx.insert(schema.categories)
+          .values({
+            id: c.id,
+            name: c.name,
+            tenantId: c.tenantId,
+          })
+          .onConflictDoUpdate({
+            target: schema.categories.id,
+            set: {
+              name: sql`excluded.name` as any,
+              tenantId: sql`excluded.tenant_id` as any,
+            },
+          })
+          .run();
+      }
+    });
   }
 }
