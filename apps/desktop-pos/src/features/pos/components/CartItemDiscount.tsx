@@ -1,5 +1,6 @@
-import { useState, useRef, useEffect } from 'react';
+import { useRef, useEffect } from 'react';
 import { Button } from '@repo/ui/components/ui/button';
+import { useNumericInput } from '../../../hooks/use-numeric-input';
 
 interface CartItemDiscountProps {
   currentDiscount: number;
@@ -7,9 +8,15 @@ interface CartItemDiscountProps {
 }
 
 export function CartItemDiscount({ currentDiscount, onUpdate }: CartItemDiscountProps) {
-  const [isEditing, setIsEditing] = useState(false);
-  const [tempValue, setTempValue] = useState('');
   const inputRef = useRef<HTMLInputElement>(null);
+
+  const { displayValue, isEditing, handleChange, handleBlur, startEditing, cancelEditing } =
+    useNumericInput({
+      min: 0,
+      max: 1000000,
+      decimalPlaces: 2,
+      onValidChange: (val) => onUpdate(val * 100), // Convert back to cents
+    });
 
   useEffect(() => {
     if (isEditing && inputRef.current) {
@@ -18,30 +25,15 @@ export function CartItemDiscount({ currentDiscount, onUpdate }: CartItemDiscount
   }, [isEditing]);
 
   const handleClick = () => {
-    setIsEditing(true);
-    setTempValue(currentDiscount ? (currentDiscount / 100).toString() : '');
-  };
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
-    if (/^\d*\.?\d*$/.test(value)) {
-      setTempValue(value);
-    }
-  };
-
-  const handleSave = () => {
-    const parsed = parseFloat(tempValue);
-    if (!isNaN(parsed)) {
-      onUpdate(parsed * 100); // Convert to cents
-    } else {
-      onUpdate(0);
-    }
-    setIsEditing(false);
+    // Initialize with current discount (converted from cents to currency units)
+    startEditing(currentDiscount ? currentDiscount / 100 : 0);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter') {
-      handleSave();
+      handleBlur();
+    } else if (e.key === 'Escape') {
+      cancelEditing();
     }
   };
 
@@ -53,9 +45,9 @@ export function CartItemDiscount({ currentDiscount, onUpdate }: CartItemDiscount
           type="text"
           placeholder="0.00"
           className="w-16 text-right text-xs border rounded px-1 h-7"
-          value={tempValue}
+          value={displayValue}
           onChange={handleChange}
-          onBlur={handleSave}
+          onBlur={handleBlur}
           onKeyDown={handleKeyDown}
         />
       </div>
