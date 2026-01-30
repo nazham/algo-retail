@@ -1,4 +1,6 @@
 import type { OrderDto, PrintReceiptDto } from '@algo/types';
+import { usePrinterSettingsStore } from '../../../stores/printer-settings.store';
+import { useStoreSettingsStore } from '../../../stores/store-settings.store';
 
 /**
  * Hook for printing receipts
@@ -44,7 +46,25 @@ export function usePrintReceipt() {
    */
   const printReceipt = async (data: PrintReceiptDto) => {
     try {
-      const result = await window.api.invoke('print-receipt', data);
+      // Get printer config from Zustand store
+      const printerConfig = usePrinterSettingsStore.getState().config;
+
+      // Get store config from Zustand store
+      const storeConfig = useStoreSettingsStore.getState().storeConfig;
+
+      // Prepare print options
+      const printOptions =
+        printerConfig.mode === 'manual' && printerConfig.printerName
+          ? { deviceName: printerConfig.printerName }
+          : undefined;
+
+      // Invoke print with all configs
+      const result = await window.api.invoke('print-receipt', {
+        ...data,
+        shopConfig: storeConfig || undefined,
+        printOptions,
+      });
+
       if (!result.success) {
         console.error('Printing failed:', result.error);
       }
