@@ -13,6 +13,7 @@ export function CartItemDiscount({ currentDiscount, onUpdate }: CartItemDiscount
   const { displayValue, isEditing, handleChange, handleBlur, startEditing, cancelEditing } =
     useNumericInput({
       min: 0,
+      max: 1000000,
       decimalPlaces: 2,
       onValidChange: (val) => onUpdate(val * 100), // Convert back to cents
     });

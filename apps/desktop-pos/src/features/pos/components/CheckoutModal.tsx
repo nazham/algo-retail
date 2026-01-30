@@ -80,7 +80,7 @@ export function CheckoutModal({ isOpen, onClose, onComplete }: CheckoutModalProp
   // Numeric Input Hook for Amount Received
   const { displayValue, handleChange, handleBlur, startEditing, validate } = useNumericInput({
     min: 0,
-    max: 1000000,
+    max: 10000000,
     decimalPlaces: 2,
   });
 
