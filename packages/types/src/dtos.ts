@@ -50,6 +50,16 @@ export interface OrderDto {
   items: OrderItemDto[];
 }
 
+// Shop Configuration
+export interface ShopConfig {
+  name: string;
+  addressLine1: string;
+  addressLine2: string;
+  phone1: string;
+  phone2: string;
+  email: string;
+}
+
 export interface PrintReceiptDto {
   order: {
     orderNumber: string;
@@ -86,4 +96,22 @@ export interface ProductWithCategoryDto {
   stock: number;
   categoryId: string | null;
   category: CategoryDto | null;
+}
+
+// Order Filtering & Pagination
+export interface OrderFilters {
+  page?: number;
+  limit?: number;
+  startDate?: string; // ISO date string
+  endDate?: string; // ISO date string
+  status?: string;
+  searchTerm?: string; // For order number search
+}
+
+export interface PaginatedOrderResponse {
+  data: OrderDto[];
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
 }

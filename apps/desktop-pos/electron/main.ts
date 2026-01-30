@@ -14,6 +14,7 @@ import { SyncService } from './services/sync.service';
 import { UserRepository } from './repositories/user.repo';
 import { registerUserHandlers } from './handlers/user.handler';
 import { registerPrintHandlers } from './handlers/print.handler';
+import { registerConfigHandlers } from './handlers/config.handler';
 import { ReportService } from './services/report.service';
 import { registerReportHandlers } from './handlers/report.handler';
 
@@ -91,6 +92,7 @@ registerCategoryHandlers(categoryRepo);
 registerOrderHandlers(orderRepo);
 registerUserHandlers(userRepo);
 registerPrintHandlers();
+registerConfigHandlers();
 registerReportHandlers(reportService);
 
 // 5. Start the Sync Loop (Every 60 Seconds)
@@ -104,13 +106,16 @@ setTimeout(() => syncService.sync(), 5000);
 let win: BrowserWindow | null = null;
 import { Menu } from 'electron';
 
-Menu.setApplicationMenu(null);
+// Disable menu bar in production only (keep it in dev for debugging)
+if (app.isPackaged) {
+  Menu.setApplicationMenu(null);
+}
 
 const createWindow = () => {
   win = new BrowserWindow({
     width: 1024,
     height: 768,
-    autoHideMenuBar: true, // important for Windows/Linux
+    autoHideMenuBar: app.isPackaged, // Hide menu in production, show in dev for debugging
     webPreferences: {
       nodeIntegration: false,
       contextIsolation: true,

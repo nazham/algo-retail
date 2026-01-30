@@ -9,15 +9,25 @@ import { CheckoutModal } from '../features/pos/components/CheckoutModal';
 import RecallOrderModal from '../features/pos/components/RecallOrderModal';
 import { CartItemDiscount } from '../features/pos/components/CartItemDiscount';
 import { formatCurrency } from '../lib/utils';
+import { useNumericInput } from '../hooks/use-numeric-input';
 
 export default function PosPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
   const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(null);
 
-  // Editable Quantity State
+  // Editable Quantity - using generic numeric input hook
   const [editingItemId, setEditingItemId] = useState<string | null>(null);
-  const [tempQuantity, setTempQuantity] = useState<string>('');
+  const quantityInput = useNumericInput({
+    min: 0.01,
+    max: 100000,
+    decimalPlaces: 2,
+    onValidChange: (value) => {
+      if (editingItemId) {
+        setQuantity(editingItemId, value);
+      }
+    },
+  });
 
   // New State for Held Orders Modal
   const [isRecallOpen, setIsRecallOpen] = useState(false);
@@ -103,35 +113,24 @@ export default function PosPage() {
     toast.success('Order restored!');
   };
 
-  // -------------- Let the quantity to editiable --------------------
+  // -------------- Quantity Editing Handlers --------------------
 
   const handleQuantityClick = (item: CartItem) => {
     setEditingItemId(item.productId);
-    setTempQuantity(item.quantity.toString());
+    quantityInput.startEditing(item.quantity);
   };
 
-  const handleQuantityChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
-    // Allow digits and only one decimal point, max 2 decimal places
-    if (/^\d*\.?\d{0,2}$/.test(value)) {
-      setTempQuantity(value);
-    }
-  };
-
-  const handleQuantitySave = () => {
-    if (editingItemId) {
-      const parsedQty = parseFloat(tempQuantity);
-      if (!isNaN(parsedQty) && parsedQty > 0) {
-        setQuantity(editingItemId, parsedQty);
-      }
-      setEditingItemId(null);
-      setTempQuantity('');
-    }
+  const handleQuantityBlur = () => {
+    quantityInput.handleBlur();
+    setEditingItemId(null);
   };
 
   const handleQuantityKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter') {
-      handleQuantitySave();
+      handleQuantityBlur();
+    } else if (e.key === 'Escape') {
+      quantityInput.cancelEditing();
+      setEditingItemId(null);
     }
   };
 
@@ -305,9 +304,9 @@ export default function PosPage() {
                         autoFocus
                         type="text"
                         className="w-12 text-center text-sm font-bold bg-transparent border-none focus:outline-none p-0 mx-1"
-                        value={tempQuantity}
-                        onChange={handleQuantityChange}
-                        onBlur={handleQuantitySave}
+                        value={quantityInput.displayValue}
+                        onChange={quantityInput.handleChange}
+                        onBlur={handleQuantityBlur}
                         onKeyDown={handleQuantityKeyDown}
                         onClick={(e) => e.stopPropagation()}
                       />
