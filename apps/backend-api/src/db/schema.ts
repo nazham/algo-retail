@@ -6,6 +6,7 @@ import {
   real,
   timestamp,
   boolean,
+  uniqueIndex,
 } from 'drizzle-orm/pg-core';
 import { relations } from 'drizzle-orm';
 
@@ -21,40 +22,46 @@ export const categories = pgTable('categories', {
 });
 
 // 2. PRODUCTS
-export const products = pgTable('products', {
-  id: uuid('id').primaryKey().defaultRandom(),
-  tenantId: tenantId,
+export const products = pgTable(
+  'products',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    tenantId: tenantId,
 
-  // Core
-  name: text('name').notNull(),
-  sku: text('sku'), // Not unique here (Multi-tenant)
-  parentId: uuid('parent_id'), // Links "Rice 1kg" to "Rice 25kg"
+    // Core
+    name: text('name').notNull(),
+    sku: text('sku'), // Not unique here (Multi-tenant)
+    parentId: uuid('parent_id'), // Links "Rice 1kg" to "Rice 25kg"
 
-  // Pricing
-  price: integer('price').notNull(),
-  costPrice: integer('cost_price').default(0),
-  wholesalePrice: integer('wholesale_price').default(0),
-  taxRate: real('tax_rate').default(0),
+    // Pricing
+    price: integer('price').notNull(),
+    costPrice: integer('cost_price').default(0),
+    wholesalePrice: integer('wholesale_price').default(0),
+    taxRate: real('tax_rate').default(0),
 
-  // Stock (aggregated from batches)
-  stock: real('current_stock').default(0),
-  uom: text('uom').default('pc'),
-  reorderPoint: real('reorder_point').default(0),
-  safetyStock: real('safety_stock').default(0),
-  location: text('location'),
+    // Stock (aggregated from batches)
+    stock: real('current_stock').default(0),
+    uom: text('uom').default('pc'),
+    reorderPoint: real('reorder_point').default(0),
+    safetyStock: real('safety_stock').default(0),
+    location: text('location'),
 
-  // ERP / Batch Info (MVP: treat different batches as different products)
-  batchNo: text('batch_no'),
-  expiryDate: text('expiry_date'), // ISO Date string
-  mfgDate: text('mfg_date'),
-  supplier: text('supplier'),
-  brand: text('brand'),
+    // ERP / Batch Info (MVP: treat different batches as different products)
+    batchNo: text('batch_no'),
+    expiryDate: text('expiry_date'), // ISO Date string
+    mfgDate: text('mfg_date'),
+    supplier: text('supplier'),
+    brand: text('brand'),
 
-  isActive: boolean('is_active').default(true),
-  createdAt: timestamp('created_at').defaultNow(),
-  updatedAt: timestamp('updated_at').defaultNow(),
-  categoryId: uuid('category_id').references(() => categories.id),
-});
+    isActive: boolean('is_active').default(true),
+    createdAt: timestamp('created_at').defaultNow(),
+    updatedAt: timestamp('updated_at').defaultNow(),
+    categoryId: uuid('category_id').references(() => categories.id),
+  },
+  (table) => ({
+    tenantSkuIdx: uniqueIndex('tenant_sku_idx').on(table.tenantId, table.sku),
+  }),
+);
 
 // 3. ORDERS (For Analytics)
 // Note: Product batches handled via parent_id field in products table for MVP

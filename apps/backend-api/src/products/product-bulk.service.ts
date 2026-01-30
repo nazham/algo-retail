@@ -3,7 +3,7 @@ import { DB_CONNECTION } from '../db/database.module';
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import * as schema from '../db/schema';
 import * as Papa from 'papaparse';
-import { BulkUploadResultDto, CsvProductRow } from './dto/bulk-upload.dto';
+import { BulkUploadResultDto } from './dto/bulk-upload.dto';
 import { eq, and, sql } from 'drizzle-orm';
 
 @Injectable()
@@ -14,11 +14,36 @@ export class ProductBulkService {
   ) {}
 
   /**
+   * 🏗️ Pre-fetch Cache
+   * Fetches all Categories and SKUs for the tenant to avoid N+1 queries.
+   */
+  private async loadTenantCache(tenantId: string) {
+    // 1. Fetch Categories (Name -> ID)
+    const categories = await this.db
+      .select({ name: schema.categories.name, id: schema.categories.id })
+      .from(schema.categories)
+      .where(eq(schema.categories.tenantId, tenantId));
+
+    const categoryMap = new Map<string, string>();
+    categories.forEach((c) => categoryMap.set(c.name.toLowerCase(), c.id));
+
+    // 2. Fetch SKUs (Set of existing SKUs)
+    const products = await this.db
+      .select({ sku: schema.products.sku })
+      .from(schema.products)
+      .where(eq(schema.products.tenantId, tenantId));
+
+    const skuSet = new Set<string>();
+    products.forEach((p) => {
+      if (p.sku) skuSet.add(p.sku);
+    });
+
+    return { categoryMap, skuSet };
+  }
+
+  /**
    * Generate EAN-13 compatible SKU
    * Format: 99YYMMDDSSSSS
-   * - 99: Internal products prefix
-   * - YYMMDD: Date (e.g., 260129 for Jan 29, 2026)
-   * - SSSSS: 5-digit sequence (padded with zeros)
    */
   private async generateSKU(): Promise<string> {
     // Get next sequence number atomically
@@ -27,12 +52,10 @@ export class ProductBulkService {
     );
     const sequence = result.rows[0].seq as number;
 
-    // Format date as YYMMDD
     const now = new Date();
     const yy = now.getFullYear().toString().slice(-2);
     const mm = (now.getMonth() + 1).toString().padStart(2, '0');
     const dd = now.getDate().toString().padStart(2, '0');
-
     // Format sequence as 5 digits
     const seqStr = sequence.toString().padStart(5, '0');
 
@@ -50,47 +73,7 @@ export class ProductBulkService {
 
   /**
    * Parse and import CSV file with products
-   */
-  /**
-   * Get or create category by name
-   */
-  private async getOrCreateCategory(
-    tenantId: string,
-    categoryName: string,
-  ): Promise<string | null> {
-    const name = this.sanitizeInput(categoryName);
-    if (!name) return null;
-
-    // Check if exists
-    const existing = await this.db
-      .select()
-      .from(schema.categories)
-      .where(
-        and(
-          eq(schema.categories.tenantId, tenantId),
-          eq(schema.categories.name, name),
-        ),
-      )
-      .limit(1);
-
-    if (existing.length > 0) {
-      return existing[0].id;
-    }
-
-    // Create new
-    const [newCategory] = await this.db
-      .insert(schema.categories)
-      .values({
-        tenantId,
-        name,
-      })
-      .returning({ id: schema.categories.id });
-
-    return newCategory.id;
-  }
-
-  /**
-   * Parse and import CSV file with products
+   * 🚀 Optimized: Uses Set/Map to avoid DB Hits per row.
    */
   async bulkImport(
     csvBuffer: Buffer,
@@ -122,13 +105,13 @@ export class ProductBulkService {
       );
     }
 
-    // Cache categories to avoid repeated DB calls in the same request
-    const categoryCache = new Map<string, string>();
+    // ⚡ Load Cache
+    const { categoryMap, skuSet } = await this.loadTenantCache(tenantId);
 
     // Process each row
     for (let i = 0; i < parsed.data.length; i++) {
       const row = parsed.data[i];
-      const rowNumber = i + 2;
+      const rowNumber = i + 2; // +2 for Header and 0-index
 
       try {
         const name = this.sanitizeInput(row['Product Name'] || row['name']);
@@ -164,55 +147,58 @@ export class ProductBulkService {
           continue;
         }
 
-        // Handle Category
+        // 🏷️ Resolved Category
         let categoryId: string | null = null;
         const categoryName = row['Category'] || row['category'];
         if (categoryName) {
-          if (categoryCache.has(categoryName)) {
-            categoryId = categoryCache.get(categoryName)!;
+          const sanitizedCat = this.sanitizeInput(categoryName);
+          const cacheKey = sanitizedCat.toLowerCase();
+
+          if (categoryMap.has(cacheKey)) {
+            categoryId = categoryMap.get(cacheKey)!;
           } else {
-            categoryId = await this.getOrCreateCategory(tenantId, categoryName);
-            if (categoryId) {
-              categoryCache.set(categoryName, categoryId);
-            }
+            // Create New Category (Rare operation, acceptable to await)
+            const [newCategory] = await this.db
+              .insert(schema.categories)
+              .values({ tenantId, name: sanitizedCat })
+              .returning({ id: schema.categories.id });
+
+            categoryId = newCategory.id;
+            categoryMap.set(cacheKey, categoryId); // Update Cache
           }
         }
 
+        // 📦 Resolve SKU
         let sku = this.sanitizeInput(
           row['Barcode/SKU'] || row['sku'] || row['SKU'],
         );
-        let isAutoSku = false;
 
         if (!sku) {
-          sku = await this.generateSKU();
-          isAutoSku = true;
+          // Auto-Generate Unique SKU
+          let isUnique = false;
+          while (!isUnique) {
+            // Safe guard against highly unlikely collision
+            sku = await this.generateSKU();
+            if (!skuSet.has(sku)) isUnique = true;
+          }
+
           result.autoGeneratedSkus++;
-          result.details.autoSkus.push({
-            name,
-            generatedSku: sku,
-          });
+          result.details.autoSkus.push({ name, generatedSku: sku });
         }
 
-        const existing = await this.db
-          .select()
-          .from(schema.products)
-          .where(
-            and(
-              eq(schema.products.tenantId, tenantId),
-              eq(schema.products.sku, sku),
-            ),
-          )
-          .limit(1);
-
-        if (existing.length > 0) {
+        // 🚫 Check Duplicate in Cache (O(1))
+        if (skuSet.has(sku)) {
           result.skipped++;
           result.details.skippedItems.push({
             sku,
             name,
-            reason: 'Duplicate SKU',
+            reason: 'Duplicate SKU (Existing)',
           });
           continue;
         }
+
+        // Add to Set immediately to prevent duplicates WITHIN the CSV
+        skuSet.add(sku);
 
         const stock = parseFloat(row['Stock Quantity'] || row['stock'] || '0');
         const wholesalePrice = row['Wholesale Price']

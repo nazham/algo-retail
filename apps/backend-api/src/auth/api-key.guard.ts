@@ -5,6 +5,7 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import * as crypto from 'crypto';
 
 @Injectable()
 export class ApiKeyGuard implements CanActivate {
@@ -19,9 +20,18 @@ export class ApiKeyGuard implements CanActivate {
     // 2. Get the valid key from .env
     const validKey = this.configService.get<string>('API_SECRET_KEY');
 
-    // 3. Compare (Safe string comparison recommended, but strict equality is fine for MVP)
-    if (apiKey && apiKey === validKey) {
-      return true; // Door opens
+    if (!validKey) {
+      console.error('API_SECRET_KEY is not set');
+      throw new UnauthorizedException('Internal Server Error: Config missing');
+    }
+
+    // 3. Compare (Constant time comparison to prevent timing attacks)
+    if (apiKey && apiKey.length === validKey.length) {
+      const isMatch = crypto.timingSafeEqual(
+        Buffer.from(apiKey),
+        Buffer.from(validKey),
+      );
+      if (isMatch) return true;
     }
 
     // 4. Reject if missing or wrong
