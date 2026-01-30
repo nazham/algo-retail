@@ -99,13 +99,13 @@ setTimeout(() => syncService.sync(), 5000);
 let win: BrowserWindow | null = null;
 import { Menu } from 'electron';
 
-Menu.setApplicationMenu(null);
+// Menu.setApplicationMenu(null);
 
 const createWindow = () => {
   win = new BrowserWindow({
     width: 1024,
     height: 768,
-    autoHideMenuBar: true, // important for Windows/Linux
+    // autoHideMenuBar: true, // important for Windows/Linux
     webPreferences: {
       nodeIntegration: false,
       contextIsolation: true,

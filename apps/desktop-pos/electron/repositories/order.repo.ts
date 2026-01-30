@@ -1,7 +1,7 @@
 import { DB, schema } from '@algo/db-local';
 import { CreateOrderDto, OrderResultDto } from '@algo/types';
 import { randomUUID } from 'crypto';
-import { desc, eq, sql } from 'drizzle-orm';
+import { desc, eq, sql, and, gte, lte, like, or } from 'drizzle-orm';
 
 export class OrderRepository {
   constructor(private db: DB) {}
@@ -55,13 +55,89 @@ export class OrderRepository {
     });
   }
 
-  async findAll() {
-    return this.db.query.orders.findMany({
+  async findAll(filters?: {
+    page?: number;
+    limit?: number;
+    startDate?: string;
+    endDate?: string;
+    status?: string;
+    searchTerm?: string;
+  }) {
+    const page = filters?.page || 1;
+    const limit = filters?.limit || 10;
+    const offset = (page - 1) * limit;
+
+    // Build where conditions array
+    const conditions = [];
+
+    if (filters?.startDate) {
+      const startTimestamp = new Date(filters.startDate).getTime();
+      conditions.push(gte(schema.orders.createdAt, new Date(startTimestamp)));
+    }
+
+    if (filters?.endDate) {
+      // Don't add extra day - frontend already sends end of day timestamp
+      const endTimestamp = new Date(filters.endDate).getTime();
+      conditions.push(lte(schema.orders.createdAt, new Date(endTimestamp)));
+    }
+
+    if (filters?.status) {
+      conditions.push(eq(schema.orders.status, filters.status));
+    }
+
+    if (filters?.searchTerm) {
+      // Search across order number AND product names in order items
+      const searchPattern = `%${filters.searchTerm}%`;
+
+      conditions.push(
+        or(
+          like(schema.orders.orderNumber, searchPattern),
+          sql`EXISTS (
+            SELECT 1 FROM order_items
+            WHERE order_items.order_id = orders.id
+            AND order_items.product_name LIKE ${searchPattern}
+          )`,
+        )!,
+      );
+    }
+
+    // Combine conditions with AND, or use undefined if no conditions
+    const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
+
+    // Get total count for pagination
+    const countQuery = this.db
+      .select({ count: sql<number>`cast(count(*) as integer)` })
+      .from(schema.orders);
+
+    if (whereClause) {
+      countQuery.where(whereClause);
+    }
+
+    const countResult = countQuery.get();
+    const total = countResult?.count || 0;
+
+    // Get paginated data using query API
+    const query: any = {
       orderBy: [desc(schema.orders.createdAt)],
-      limit: 100, // Safety limit
+      limit,
+      offset,
       with: {
-        items: true, // Auto-join items
+        items: true,
       },
-    });
+    };
+
+    if (whereClause) {
+      query.where = whereClause;
+    }
+
+    const data = await this.db.query.orders.findMany(query);
+
+    return {
+      data,
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit),
+    };
   }
 }

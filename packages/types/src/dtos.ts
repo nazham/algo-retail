@@ -87,3 +87,21 @@ export interface ProductWithCategoryDto {
   categoryId: string | null;
   category: CategoryDto | null;
 }
+
+// Order Filtering & Pagination
+export interface OrderFilters {
+  page?: number;
+  limit?: number;
+  startDate?: string; // ISO date string
+  endDate?: string; // ISO date string
+  status?: string;
+  searchTerm?: string; // For order number search
+}
+
+export interface PaginatedOrderResponse {
+  data: OrderDto[];
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+}

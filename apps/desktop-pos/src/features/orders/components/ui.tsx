@@ -1,7 +1,7 @@
 import { type ElementType } from 'react';
 import { clsx } from 'clsx';
 import { Eye, Printer, RefreshCcw, MoreHorizontal } from 'lucide-react';
-import type { OrderDto } from '@algo/types';
+import type { OrderDto, PaymentMethod } from '@algo/types';
 import { usePrintReceipt } from '../hooks/use-print-receipt';
 
 // --- 1. Original Components (Restored) ---
@@ -53,30 +53,11 @@ export function StatCard({ title, value, icon: Icon, trend, variant }: StatCardP
   );
 }
 
-type FilterButtonProps = {
-  icon: ElementType;
-  label: string;
-  // Added onClick support just in case, though not strictly required for this task
-  onClick?: () => void;
-};
-
-export function FilterButton({ icon: Icon, label, onClick }: FilterButtonProps) {
-  return (
-    <button
-      onClick={onClick}
-      className="flex items-center gap-2 px-3 py-2 bg-card border text-muted-foreground rounded-lg text-sm font-medium hover:bg-muted/50 hover:border-input transition-all"
-    >
-      <Icon size={16} />
-      <span>{label}</span>
-    </button>
-  );
-}
-
-export function PaymentBadge({ type }: { type: string }) {
+export function PaymentBadge({ type }: { type: PaymentMethod }) {
   const styles: Record<string, string> = {
-    Card: 'bg-blue-100 text-blue-700 border-blue-200',
-    Cash: 'bg-green-100 text-green-700 border-green-200',
-    Qr: 'bg-purple-100 text-purple-700 border-purple-200',
+    BANK_TRANSFER: 'bg-blue-100 text-blue-700 border-blue-200',
+    CASH: 'bg-green-100 text-green-700 border-green-200',
+    CARD: 'bg-purple-100 text-purple-700 border-purple-200',
   };
   const activeStyle = styles[type] || styles['Cash']; // Fallback
 
