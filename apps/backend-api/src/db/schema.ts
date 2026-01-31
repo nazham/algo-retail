@@ -13,6 +13,13 @@ import { relations } from 'drizzle-orm';
 // Reusable column definition
 const tenantId = uuid('tenant_id').notNull();
 
+// 0. SYSTEM SEQUENCES
+export const skuSequence = pgTable('sku_sequence', {
+  id: integer('id').primaryKey(), // Singleton Row (ID=1)
+  currentValue: integer('current_value').notNull().default(0),
+  updatedAt: timestamp('updated_at').defaultNow(),
+});
+
 // 1. CATEGORIES
 export const categories = pgTable('categories', {
   id: uuid('id').primaryKey().defaultRandom(),

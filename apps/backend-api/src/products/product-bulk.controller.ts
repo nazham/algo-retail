@@ -6,17 +6,40 @@ import {
   BadRequestException,
   HttpCode,
   HttpStatus,
+  UseGuards,
+  Body,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ProductBulkService } from './product-bulk.service';
 import { BulkUploadResultDto } from './dto/bulk-upload.dto';
+import { UniversalAuthGuard } from 'src/auth/universal-auth.guard';
+import { CurrentTenant } from 'src/auth/current-tenant.decorator';
 
 @Controller('products')
+@UseGuards(UniversalAuthGuard)
 export class ProductBulkController {
-  // MVP: Hardcoded tenant ID (will be extracted from JWT in production)
-  private MVP_TENANT_ID = '00000000-0000-0000-0000-000000000001';
-
   constructor(private readonly bulkService: ProductBulkService) {}
+
+  @Post('bulk-batch')
+  @HttpCode(HttpStatus.OK)
+  async bulkUploadBatch(
+    @Body() body: { items: any[] },
+    @CurrentTenant() tenantId: string,
+  ): Promise<BulkUploadResultDto> {
+    if (!body.items || !Array.isArray(body.items)) {
+      throw new BadRequestException(
+        'Invalid batch format. Expected { items: [] }',
+      );
+    }
+
+    try {
+      return await this.bulkService.processBatch(body.items, tenantId);
+    } catch (error) {
+      throw new BadRequestException(
+        `Batch processing failed: ${error.message}`,
+      );
+    }
+  }
 
   @Post('bulk')
   @HttpCode(HttpStatus.OK)
@@ -38,16 +61,14 @@ export class ProductBulkController {
   )
   async bulkUpload(
     @UploadedFile() file: Express.Multer.File,
+    @CurrentTenant() tenantId: string,
   ): Promise<BulkUploadResultDto> {
     if (!file) {
       throw new BadRequestException('No file uploaded');
     }
 
     try {
-      const result = await this.bulkService.bulkImport(
-        file.buffer,
-        this.MVP_TENANT_ID,
-      );
+      const result = await this.bulkService.bulkImport(file.buffer, tenantId);
       return result;
     } catch (error) {
       throw new BadRequestException(`CSV upload failed: ${error.message}`);

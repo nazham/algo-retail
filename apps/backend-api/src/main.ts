@@ -1,4 +1,6 @@
+import 'reflect-metadata';
 import { NestFactory } from '@nestjs/core';
+import { ValidationPipe } from '@nestjs/common';
 import { AppModule } from './app.module';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 
@@ -10,6 +12,15 @@ async function bootstrap() {
     origin: process.env.WEB_ADMIN_URL || 'http://localhost:3000',
     credentials: true,
   });
+
+  // Enable Global Validation Pipe (Critical for DTO transformation)
+  app.useGlobalPipes(
+    new ValidationPipe({
+      transform: true, // Auto-transform payloads to DTO instances
+      whitelist: true, // Strip properties not in DTO
+      forbidNonWhitelisted: true, // Throw error on extra props
+    }),
+  );
 
   // Swagger Setup
   const config = new DocumentBuilder()

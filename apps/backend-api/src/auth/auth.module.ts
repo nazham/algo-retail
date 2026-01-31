@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, NestModule, MiddlewareConsumer } from '@nestjs/common';
 import { AuthController } from './auth.controller';
 import { TenantContextMiddleware } from './tenant-context.middleware';
 
@@ -7,4 +7,8 @@ import { TenantContextMiddleware } from './tenant-context.middleware';
   providers: [TenantContextMiddleware],
   exports: [TenantContextMiddleware],
 })
-export class AuthModule {}
+export class AuthModule implements NestModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer.apply(TenantContextMiddleware).forRoutes('*'); // Apply to all routes
+  }
+}

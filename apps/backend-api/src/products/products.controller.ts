@@ -1,33 +1,42 @@
-import {
-  Controller,
-  Post,
-  Body,
-  Get,
-  UseGuards,
-  Headers,
-  Query,
-} from '@nestjs/common';
+import { Controller, Post, Body, Get, UseGuards, Query } from '@nestjs/common';
 import { ProductsService } from './products.service';
-import { ApiKeyGuard } from 'src/auth/api-key.guard';
+import { UniversalAuthGuard } from 'src/auth/universal-auth.guard';
+import { CurrentTenant } from 'src/auth/current-tenant.decorator';
+import { ProductQueryDto, UpdateProductDto } from './dto/product.dto';
+import { Param, Patch } from '@nestjs/common';
 
 @Controller('products')
-@UseGuards(ApiKeyGuard)
+@UseGuards(UniversalAuthGuard)
 export class ProductsController {
   constructor(private readonly productsService: ProductsService) {}
 
   @Post('seed')
-  seed(@Body() body: { products: any[] }) {
-    return this.productsService.seed(body.products);
+  seed(@CurrentTenant() tenantId: string, @Body() body: { products: any[] }) {
+    return this.productsService.seed(tenantId, body.products);
   }
 
   @Get()
-  findAll() {
-    return this.productsService.findAll();
+  findAll(@CurrentTenant() tenantId: string, @Query() query: ProductQueryDto) {
+    return this.productsService.findAllPaginated(tenantId, query);
+  }
+
+  @Get(':id/batches')
+  findBatches(@CurrentTenant() tenantId: string, @Param('id') id: string) {
+    return this.productsService.findBatches(tenantId, id);
+  }
+
+  @Patch(':id')
+  update(
+    @CurrentTenant() tenantId: string,
+    @Param('id') id: string,
+    @Body() body: UpdateProductDto,
+  ) {
+    return this.productsService.updateProduct(id, tenantId, body);
   }
 
   @Get('sync')
   async syncProducts(
-    @Headers('x-tenant-id') tenantId: string,
+    @CurrentTenant() tenantId: string,
     @Query('lastSync') lastSync?: string,
   ) {
     const items = await this.productsService.getChangedProducts(
@@ -42,7 +51,7 @@ export class ProductsController {
 
   @Get('categories/sync')
   async syncCategories(
-    @Headers('x-tenant-id') tenantId: string,
+    @CurrentTenant() tenantId: string,
     @Query('lastSync') lastSync?: string,
   ) {
     const items = await this.productsService.getChangedCategories(

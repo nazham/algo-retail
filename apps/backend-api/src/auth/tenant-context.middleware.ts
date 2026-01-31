@@ -20,14 +20,26 @@ export class TenantContextMiddleware implements NestMiddleware {
         // Inject user and tenant context into request
         req['user'] = session.user;
 
-        // For MVP: Use first tenant ID or default
-        // In production multi-tenant: tenant switching logic here
-        const tenantIds = (session.user as any).tenantIds || [];
-        req['tenantId'] = tenantIds[0] || process.env.DEFAULT_TENANT_ID;
+        // Extract tenant ID (support both singular and plural from schema)
+        // MVP Fallback: Use a hardcoded ID if absolutely everything else fails
+        const user = session.user as any;
+        const tenantId =
+          user.tenantId ||
+          (user.tenantIds && user.tenantIds[0]) ||
+          process.env.DEFAULT_TENANT_ID ||
+          '00000000-0000-0000-0000-000000000001';
+
+        req['tenantId'] = tenantId;
+      } else {
+        // No session user, but might be API Key access
       }
     } catch (error) {
-      // No session or invalid session - continue without tenant context
-      // Protected routes should check for req['user'] existence
+      console.error('[Middleware] Error fetching session:', error);
+    }
+
+    // Fallback: If no tenant from session, check headers (For Desktop POS / API Key)
+    if (!req['tenantId'] && req.headers['x-tenant-id']) {
+      req['tenantId'] = req.headers['x-tenant-id'];
     }
 
     next();
