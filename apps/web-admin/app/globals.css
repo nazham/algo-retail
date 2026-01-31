@@ -1,26 +1,16 @@
-@import "tailwindcss";
+@import 'tailwindcss';
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+/* 1. Point to the shared Tailwind config (Crucial for v4) */
+@config "../../../packages/ui/tailwind.config.js";
 
+/* 2. Source the files for content scanning in the UI package */
+@source "../../../packages/ui";
+
+/* 3. Import the globals (Variables & Base Styles) */
+@import '@repo/ui/globals.css';
+
+/* 4. Local Font Configuration (Next.js Geist) */
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
 }

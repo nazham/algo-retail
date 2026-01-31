@@ -37,7 +37,15 @@ export class ProductsService {
   }
 
   async findAllPaginated(tenantId: string, query: ProductQueryDto) {
-    let { page = 1, limit = 50, search, categoryId } = query;
+    let {
+      page = 1,
+      limit = 50,
+      search,
+      categoryId,
+      isActive,
+      sortBy,
+      sortOrder = 'desc',
+    } = query;
     // Defensive parsing in case pipe fails or is disabled
     page = Number(page) || 1;
     limit = Number(limit) || 50;
@@ -59,6 +67,10 @@ export class ProductsService {
       filters.push(eq(schema.products.categoryId, categoryId));
     }
 
+    if (isActive !== undefined) {
+      filters.push(eq(schema.products.isActive, isActive));
+    }
+
     const whereClause = and(...filters);
 
     const [items, totalCount] = await Promise.all([
@@ -69,7 +81,26 @@ export class ProductsService {
         with: {
           category: true,
         },
-        orderBy: (products, { desc }) => [desc(products.updatedAt)],
+        orderBy: (products, { asc, desc }) => {
+          const order = sortOrder === 'asc' ? asc : desc;
+          const sortField = sortBy || 'updatedAt';
+
+          // Robust mapping to schema fields
+          switch (sortField) {
+            case 'name':
+              return [order(products.name)];
+            case 'price':
+              return [order(products.price)];
+            case 'costPrice':
+              return [order(products.costPrice)];
+            case 'stock':
+              return [order(products.stock)];
+            case 'expiryDate':
+              return [order(products.expiryDate)];
+            default:
+              return [desc(products.updatedAt)];
+          }
+        },
       }),
       this.db
         .select({ value: count() })

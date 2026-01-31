@@ -14,6 +14,7 @@ export default function UploadPage() {
       'Stock Quantity',
       'Batch NO',
       'Wholesale Price',
+      'Cost Price',
       'Tax rate',
       'UOM',
       'Reorder Point',
@@ -33,6 +34,7 @@ export default function UploadPage() {
       '50', // Stock
       'BATCH001', // Batch
       '120.00', // Wholesale
+      '100.00', // Cost Price
       '0', // Tax
       'pcs', // UOM
       '10', // Reorder

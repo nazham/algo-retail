@@ -90,12 +90,47 @@ export interface CategoryDto {
 
 export interface ProductWithCategoryDto {
   id: string;
+  tenantId: string;
   name: string;
-  sku: string;
+  sku: string | null;
   price: number;
+  costPrice?: number;
   stock: number;
+  uom?: string;
+  isActive: boolean;
+  expiryDate?: string | null;
   categoryId: string | null;
   category: CategoryDto | null;
+  parentId?: string | null;
+  updatedAt: string;
+}
+
+export interface ProductQueryFilters {
+  page?: number;
+  limit?: number;
+  search?: string;
+  categoryId?: string;
+  isActive?: boolean;
+  sortBy?: string;
+  sortOrder?: 'asc' | 'desc';
+}
+
+export interface PaginatedProductResponse {
+  items: ProductWithCategoryDto[];
+  total: number;
+  page: number;
+  limit: number;
+}
+
+export interface UpdateProductRequest {
+  name?: string;
+  sku?: string;
+  price?: number;
+  costPrice?: number;
+  stock?: number;
+  isActive?: boolean;
+  expiryDate?: string | null;
+  categoryId?: string;
 }
 
 // Order Filtering & Pagination
