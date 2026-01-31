@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Search, Trash2, ShoppingCart, Plus, Minus, PauseCircle, RotateCcw } from 'lucide-react';
 import { useCartStore, type CartItem } from '../stores/cart.store';
 import { Button } from '@repo/ui/components/ui/button';
@@ -54,17 +54,19 @@ export default function PosPage() {
   const totals = getTotals();
 
   // Combined filtering: category + search
-  const filteredProducts = products.filter((p) => {
-    // Category filter (if a category is selected)
-    const matchesCategory = selectedCategoryId === null || p.categoryId === selectedCategoryId;
+  const filteredProducts = useMemo(() => {
+    return products.filter((p) => {
+      // Category filter (if a category is selected)
+      const matchesCategory = selectedCategoryId === null || p.categoryId === selectedCategoryId;
 
-    // Search filter
-    const matchesSearch =
-      p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      p.sku.toLowerCase().includes(searchQuery.toLowerCase());
+      // Search filter
+      const matchesSearch =
+        p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        p.sku.toLowerCase().includes(searchQuery.toLowerCase());
 
-    return matchesCategory && matchesSearch;
-  });
+      return matchesCategory && matchesSearch;
+    });
+  }, [products, selectedCategoryId, searchQuery]);
 
   // Barcode Scanner
   useBarcodeScanner((scannedSku) => {

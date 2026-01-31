@@ -78,7 +78,23 @@ const syncRepo = new SyncRepository(db);
 const userRepo = new UserRepository(db);
 const reportRepo = new ReportRepository(db);
 
-const syncService = new SyncService(syncRepo);
+const syncService = new SyncService(syncRepo, productRepo, categoryRepo);
+syncService.onStateChange = (state, message) => {
+  if (win) {
+    win.webContents.send('sync:status', { state, message });
+  }
+};
+syncService.onUpdates = (stats) => {
+  if (win && (stats.products > 0 || stats.categories > 0)) {
+    win.webContents.send('sync:updates-available', stats);
+  }
+};
+
+// Handler for Manual Trigger
+ipcMain.handle('sync:trigger-manual', async () => {
+  await syncService.sync();
+  return true;
+});
 const reportService = new ReportService(reportRepo);
 
 // 4. Define API Handlers
@@ -147,8 +163,6 @@ if (!gotTheLock) {
 
   // 2. Launch the App (Only ONCE)
   app.whenReady().then(async () => {
-    await categoryRepo.seedIfEmpty();
-    await productRepo.seedIfEmpty();
     await userRepo.seedIfEmpty();
     createWindow();
   });
