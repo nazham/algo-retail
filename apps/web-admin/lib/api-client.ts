@@ -7,8 +7,6 @@ type ApiClientOptions = RequestInit & {
 
 // MVP: Hardcoded tenant ID until auth is fully multi-tenant
 // In production this will be extracted from the user's session
-// MVP: Hardcoded tenant ID until auth is fully multi-tenant
-// In production this will be extracted from the user's session
 
 export async function apiClient<T>(endpoint: string, options: ApiClientOptions = {}): Promise<T> {
   const { headers, ...rest } = options;
@@ -45,6 +43,7 @@ export async function apiClient<T>(endpoint: string, options: ApiClientOptions =
   try {
     const response = await fetch(url, {
       headers: defaultHeaders,
+      credentials: 'include', // Ensure cookies are sent (Critical for Better-Auth)
       ...rest,
     });
 
@@ -60,6 +59,7 @@ export async function apiClient<T>(endpoint: string, options: ApiClientOptions =
 
       // Handle auth errors
       if (response.status === 401) {
+        console.error(`[API] 401 Unauthorized at ${response.url}`);
         // Redirect to login or show toast
         if (typeof window !== 'undefined') {
           window.location.href = '/login';

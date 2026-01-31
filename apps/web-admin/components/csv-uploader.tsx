@@ -7,7 +7,8 @@ import { ImportReport } from './import-report';
 import { cn } from '@repo/ui/lib/utils'; // Assuming utils exists
 
 export function CSVUploader() {
-  const { upload, isLoading, progress, data, error, reset } = useBulkUpload();
+  const { upload, isLoading, progress, processedCount, totalCount, data, error, reset } =
+    useBulkUpload();
   const [fileError, setFileError] = useState<string | null>(null);
 
   const onDrop = useCallback(
@@ -71,7 +72,11 @@ export function CSVUploader() {
                 </div>
                 <div className="text-center space-y-1">
                   <p className="text-lg font-medium text-foreground">Importing Products...</p>
-                  <p className="text-sm text-muted-foreground">This may take a few moments</p>
+                  <p className="text-sm text-muted-foreground">
+                    {totalCount > 0
+                      ? `Processing ${processedCount} of ${totalCount} rows`
+                      : 'Parsing and preparing...'}
+                  </p>
                 </div>
                 {/* Progress Bar */}
                 <div className="w-64 h-2 bg-muted rounded-full overflow-hidden">

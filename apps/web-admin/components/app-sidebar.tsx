@@ -7,6 +7,7 @@ import { cn } from '@repo/ui/lib/utils';
 import { Button } from '@repo/ui/components/ui/button';
 import { authClient } from '@/lib/auth-client';
 import { useRouter } from 'next/navigation';
+import { ModeToggle } from '@repo/ui/components/mode-toggle';
 
 const sidebarItems = [
   {
@@ -86,15 +87,16 @@ export function AppSidebar() {
           ))}
         </nav>
       </div>
-      <div className="border-t p-4">
+      <div className="border-t p-4 flex items-center justify-between gap-2">
         <Button
           variant="ghost"
-          className="w-full justify-start gap-3 text-muted-foreground hover:text-red-500"
+          className="flex-1 justify-start gap-3 text-muted-foreground hover:text-red-500"
           onClick={handleSignOut}
         >
           <LogOut className="h-4 w-4" />
           Sign Out
         </Button>
+        <ModeToggle />
       </div>
     </div>
   );
