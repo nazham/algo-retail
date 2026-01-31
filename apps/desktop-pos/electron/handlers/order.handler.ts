@@ -8,10 +8,14 @@ export const registerOrderHandlers = (repo: OrderRepository) => {
     'orders:create',
     async (_, payload: Omit<CreateOrderDto, 'id' | 'orderNumber' | 'createdAt'>) => {
       // 1. Generate Identity locally (Source of Truth)
+      const tenantId = process.env.TENANT_ID || '00000000-0000-0000-0000-000000000001';
+      const tenantSuffix = tenantId.slice(-2);
+      const timeSuffix = Date.now().toString().slice(-8); // Last 8 digits of timestamp (~27 hours uniqueness)
+
       const fullOrder: CreateOrderDto = {
         ...payload,
         id: randomUUID(),
-        orderNumber: `INV-${Date.now().toString().slice(-6)}`, // Simple Invoice # (You can make this fancier later)
+        orderNumber: `${tenantSuffix}-${timeSuffix}`,
         createdAt: new Date().toISOString(),
       };
 

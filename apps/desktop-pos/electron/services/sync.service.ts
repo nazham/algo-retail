@@ -56,19 +56,42 @@ export class SyncService {
     return this.hasRecentActivity ? 10 * 1000 : 120 * 1000;
   }
 
+  public onUpdates?: (stats: {
+    products: number;
+    categories: number;
+    orders: number;
+    changedProducts?: any[];
+  }) => void;
+
   async sync() {
     if (this.isRunning) return;
     this.isRunning = true;
     this.notify('SYNCING');
     this.hasRecentActivity = false; // Reset
 
+    const stats: Parameters<Required<SyncService>['onUpdates']>[0] = {
+      products: 0,
+      categories: 0,
+      orders: 0,
+      changedProducts: [],
+    };
+
     try {
       const orders = await this.pushOrders();
-      const cats = await this.pullCategories();
-      const prods = await this.pullProducts();
+      if (orders) stats.orders++;
 
-      if (orders || cats || prods) {
+      const cats = await this.pullCategories(); // Categories usually small, no need to optimise yet
+      if (cats) stats.categories++;
+
+      const changedItems = await this.pullProducts(); // Modified to return items
+      if (changedItems.length > 0) {
+        stats.products = changedItems.length;
+        stats.changedProducts = changedItems;
+      }
+
+      if (stats.orders > 0 || stats.categories > 0 || stats.products > 0) {
         this.hasRecentActivity = true;
+        if (this.onUpdates) this.onUpdates(stats);
       }
 
       this.notify('IDLE', 'Last sync: ' + new Date().toLocaleTimeString());
@@ -134,7 +157,17 @@ export class SyncService {
       });
 
       if (!response.ok) {
-        throw new Error(`Request Failed: ${response.status} ${response.statusText}`);
+        let errorDetails = '';
+        try {
+          const errorJson = await response.json();
+          errorDetails = JSON.stringify(errorJson);
+        } catch (e) {
+          errorDetails = await response.text();
+        }
+        console.error(`❌ Sync Request Failed [${endpoint}]:`, errorDetails);
+        throw new Error(
+          `Request Failed: ${response.status} ${response.statusText} - ${errorDetails}`,
+        );
       }
 
       if (response.status === 204) {
@@ -198,9 +231,8 @@ export class SyncService {
         successfulIds.push(order.id);
         console.log(`   -> Uploaded Order ${order.orderNumber}`);
       } catch (err) {
-        console.error(`Failed to upload order ${order.orderNumber}`, err);
-        throw err; // Stop syncing if one fails, or continue?
-        // For now, let's stop to be safe and report error
+        console.error(`❌ Failed to sync order ${order.orderNumber}:`, err);
+        // Continue with next order instead of blocking the whole loop
       }
     }
 
@@ -230,7 +262,7 @@ export class SyncService {
     return false;
   }
 
-  private async pullProducts(): Promise<boolean> {
+  private async pullProducts(): Promise<any[]> {
     console.log(`🔄 Sync Worker: Checking for product updates...`);
 
     const endpoint = this.lastPulse
@@ -248,7 +280,7 @@ export class SyncService {
         await this.productRepo.bulkUpsert(items);
 
         if (serverTime) this.lastPulse = serverTime;
-        return true;
+        return items;
       }
 
       // 2. Update Cursor even if empty (prevent re-scan loop)
@@ -256,6 +288,6 @@ export class SyncService {
         this.lastPulse = serverTime;
       }
     }
-    return false;
+    return [];
   }
 }

@@ -84,6 +84,17 @@ syncService.onStateChange = (state, message) => {
     win.webContents.send('sync:status', { state, message });
   }
 };
+syncService.onUpdates = (stats) => {
+  if (win && (stats.products > 0 || stats.categories > 0)) {
+    win.webContents.send('sync:updates-available', stats);
+  }
+};
+
+// Handler for Manual Trigger
+ipcMain.handle('sync:trigger-manual', async () => {
+  await syncService.sync();
+  return true;
+});
 const reportService = new ReportService(reportRepo);
 
 // 4. Define API Handlers

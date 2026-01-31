@@ -1,4 +1,4 @@
-import { sqliteTable, text, integer, real } from 'drizzle-orm/sqlite-core';
+import { sqliteTable, text, integer, real, index } from 'drizzle-orm/sqlite-core';
 import { relations, sql } from 'drizzle-orm';
 
 // 1. CATEGORIES
@@ -46,41 +46,53 @@ export const products = sqliteTable('products', {
 });
 
 // 3. ORDERS
-export const orders = sqliteTable('orders', {
-  id: text('id').primaryKey(),
-  tenantId: text('tenant_id'), // Useful for "Offline Backup" verification
-  orderNumber: text('order_number').notNull(),
-  status: text('status').default('COMPLETED'),
-  paymentMethod: text('payment_method').notNull().default('CASH'),
+export const orders = sqliteTable(
+  'orders',
+  {
+    id: text('id').primaryKey(),
+    tenantId: text('tenant_id'), // Useful for "Offline Backup" verification
+    orderNumber: text('order_number').notNull(),
+    status: text('status').default('COMPLETED'),
+    paymentMethod: text('payment_method').notNull().default('CASH'),
 
-  // Totals (Cents)
-  subtotal: integer('subtotal').notNull(),
-  taxTotal: integer('tax_total').default(0),
-  discountTotal: integer('discount_total').default(0),
-  grandTotal: integer('grand_total').notNull(),
+    // Totals (Cents)
+    subtotal: integer('subtotal').notNull(),
+    taxTotal: integer('tax_total').default(0),
+    discountTotal: integer('discount_total').default(0),
+    grandTotal: integer('grand_total').notNull(),
 
-  createdAt: integer('created_at', { mode: 'timestamp_ms' })
-    .notNull()
-    .default(sql`(unixepoch() * 1000)`),
-  isSynced: integer('is_synced', { mode: 'boolean' }).default(false),
-});
+    createdAt: integer('created_at', { mode: 'timestamp_ms' })
+      .notNull()
+      .default(sql`(unixepoch() * 1000)`),
+    isSynced: integer('is_synced', { mode: 'boolean' }).default(false),
+  },
+  (table) => ({
+    isSyncedIdx: index('idx_orders_is_synced').on(table.isSynced),
+  }),
+);
 
 // 4. ORDER ITEMS
-export const orderItems = sqliteTable('order_items', {
-  id: text('id').primaryKey(),
-  orderId: text('order_id')
-    .notNull()
-    .references(() => orders.id),
-  productId: text('product_id')
-    .notNull()
-    .references(() => products.id),
+export const orderItems = sqliteTable(
+  'order_items',
+  {
+    id: text('id').primaryKey(),
+    orderId: text('order_id')
+      .notNull()
+      .references(() => orders.id),
+    productId: text('product_id')
+      .notNull()
+      .references(() => products.id),
 
-  // Snapshots
-  productName: text('product_name').notNull(),
-  quantity: real('quantity').notNull(),
-  unitPrice: integer('unit_price').notNull(),
-  subtotal: integer('subtotal').notNull(),
-});
+    // Snapshots
+    productName: text('product_name').notNull(),
+    quantity: real('quantity').notNull(),
+    unitPrice: integer('unit_price').notNull(),
+    subtotal: integer('subtotal').notNull(),
+  },
+  (table) => ({
+    productIdIdx: index('idx_order_items_product_id').on(table.productId),
+  }),
+);
 
 // 4. CUSTOMERS & LEDGER (Pothe System)
 export const customers = sqliteTable('customers', {

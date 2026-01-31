@@ -38,7 +38,16 @@ export class ProductRepository {
                 name: sql`excluded.name` as any,
                 sku: sql`excluded.sku` as any,
                 price: sql`excluded.price` as any,
-                stock: sql`excluded.current_stock` as any,
+                // ✅ SMART STOCK SYNC:
+                // Local Stock = Cloud Stock (Source of Truth) - Pending Local Sales (Reality)
+                // This allows Web Admin stocktakes to propagate WITHOUT wiping out offline sales.
+                stock: sql`excluded.current_stock - (
+                  SELECT COALESCE(SUM(oi.quantity), 0)
+                  FROM order_items oi
+                  JOIN orders o ON o.id = oi.order_id
+                  WHERE oi.product_id = products.id
+                  AND o.is_synced = 0
+                )` as any,
                 categoryId: sql`excluded.category_id` as any,
                 isActive: sql`excluded.is_active` as any,
                 updatedAt: sql`excluded.updated_at` as any,
@@ -71,6 +80,14 @@ export class ProductRepository {
                 name: sql`excluded.name` as any,
                 sku: sql`excluded.sku` as any,
                 price: sql`excluded.price` as any,
+                // ✅ SMART STOCK SYNC (Fallback):
+                stock: sql`excluded.current_stock - (
+                  SELECT COALESCE(SUM(oi.quantity), 0)
+                  FROM order_items oi
+                  JOIN orders o ON o.id = oi.order_id
+                  WHERE oi.product_id = products.id
+                  AND o.is_synced = 0
+                )` as any,
                 categoryId: sql`excluded.category_id` as any,
                 isActive: sql`excluded.is_active` as any,
                 updatedAt: sql`excluded.updated_at` as any,
