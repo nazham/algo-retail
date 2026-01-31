@@ -98,6 +98,7 @@ export interface ProductWithCategoryDto {
   stock: number;
   uom?: string;
   isActive: boolean;
+  expiryDate?: string | null;
   categoryId: string | null;
   category: CategoryDto | null;
   parentId?: string | null;
@@ -109,6 +110,9 @@ export interface ProductQueryFilters {
   limit?: number;
   search?: string;
   categoryId?: string;
+  isActive?: boolean;
+  sortBy?: string;
+  sortOrder?: 'asc' | 'desc';
 }
 
 export interface PaginatedProductResponse {
@@ -124,6 +128,8 @@ export interface UpdateProductRequest {
   price?: number;
   costPrice?: number;
   stock?: number;
+  isActive?: boolean;
+  expiryDate?: string | null;
   categoryId?: string;
 }
 

@@ -185,7 +185,10 @@ export class ProductBulkService {
         const priceStr = row['MRP'] || row['price'];
         if (!priceStr) throw new Error('Missing price');
         const price = Math.round(parseFloat(priceStr) * 100);
-        if (isNaN(price) || price <= 0) throw new Error('Invalid price');
+        if (isNaN(price)) throw new Error('Invalid price format');
+
+        // Rule: if MRP <= 0, set as inactive item
+        const isActive = price > 0;
 
         // Category
         let categoryId: string | null = null;
@@ -261,7 +264,7 @@ export class ProductBulkService {
           supplier: this.sanitizeInput(row['Supplier'] || row['supplier']),
           brand: this.sanitizeInput(row['Brand'] || row['brand']),
           categoryId: categoryId,
-          isActive: true,
+          isActive,
         });
       } catch (error) {
         result.errors++;

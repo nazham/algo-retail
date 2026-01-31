@@ -20,6 +20,10 @@ export function useProducts(filters: ProductQueryFilters) {
       if (filters.limit) searchParams.append('limit', filters.limit.toString());
       if (filters.search) searchParams.append('search', filters.search);
       if (filters.categoryId) searchParams.append('categoryId', filters.categoryId);
+      if (filters.isActive !== undefined)
+        searchParams.append('isActive', filters.isActive.toString());
+      if (filters.sortBy) searchParams.append('sortBy', filters.sortBy);
+      if (filters.sortOrder) searchParams.append('sortOrder', filters.sortOrder);
 
       return apiClient<PaginatedProductResponse>(`/products?${searchParams.toString()}`);
     },
