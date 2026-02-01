@@ -8,6 +8,7 @@ import type { CreateOrderDto, PaymentMethod, PrintReceiptDto } from '@algo/types
 import { usePrintReceipt } from '../../orders/hooks/use-print-receipt';
 import { useCreateOrder } from '../../orders/hooks/use-create-order';
 import { useNumericInput } from '../../../hooks/use-numeric-input';
+import { formatCurrency } from '../../../lib/utils';
 
 interface CheckoutModalProps {
   isOpen: boolean;
@@ -271,9 +272,7 @@ export function CheckoutModal({ isOpen, onClose, onComplete }: CheckoutModalProp
           <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1 font-bold">
             Total Amount
           </p>
-          <p className="text-3xl font-extrabold text-primary">
-            Rs. {(grandTotal / 100).toFixed(2)}
-          </p>
+          <p className="text-3xl font-extrabold text-primary">{formatCurrency(grandTotal)}</p>
         </div>
 
         {/* Payment Method - Compact buttons (h-10) */}
