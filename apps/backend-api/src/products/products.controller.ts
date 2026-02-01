@@ -2,7 +2,11 @@ import { Controller, Post, Body, Get, UseGuards, Query } from '@nestjs/common';
 import { ProductsService } from './products.service';
 import { UniversalAuthGuard } from 'src/auth/universal-auth.guard';
 import { CurrentTenant } from 'src/auth/current-tenant.decorator';
-import { ProductQueryDto, UpdateProductDto } from './dto/product.dto';
+import {
+  ProductQueryDto,
+  UpdateProductDto,
+  ExportProductsDto,
+} from './dto/product.dto';
 import { Param, Patch } from '@nestjs/common';
 
 @Controller('products')
@@ -18,6 +22,11 @@ export class ProductsController {
   @Get()
   findAll(@CurrentTenant() tenantId: string, @Query() query: ProductQueryDto) {
     return this.productsService.findAllPaginated(tenantId, query);
+  }
+
+  @Get('export')
+  export(@CurrentTenant() tenantId: string, @Query() query: ExportProductsDto) {
+    return this.productsService.getExportData(tenantId, query);
   }
 
   @Get(':id/batches')

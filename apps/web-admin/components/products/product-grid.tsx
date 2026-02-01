@@ -54,6 +54,7 @@ import { ProductWithCategoryDto, CategoryDto } from '@algo/types';
 import { EditableCell } from './editable-cell';
 import { cn } from '@repo/ui/lib/utils';
 import { Combobox } from '../ui/combobox';
+import { ExportDialog } from './export-dialog';
 
 // Helper for sortable headers
 function SortableHeader({
@@ -435,6 +436,8 @@ export function ProductGrid() {
           >
             Reset
           </Button>
+
+          <ExportDialog />
         </div>
       </div>
 
