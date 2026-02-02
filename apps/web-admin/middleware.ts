@@ -14,14 +14,25 @@ export async function middleware(request: NextRequest) {
       'session_token',
     ];
 
+    console.log('Middleware: Checking cookies for path:', pathname);
+    console.log(
+      'Middleware: Available cookies:',
+      request.cookies
+        .getAll()
+        .map((c) => c.name)
+        .join(', '),
+    );
+
     const sessionToken = cookieNames.find((name) => request.cookies.get(name));
 
     if (!sessionToken) {
+      console.log('Middleware: No session token found. Redirecting to login.');
       const loginUrl = new URL('/login', request.url);
       // Pass the current path as a callback
       loginUrl.searchParams.set('callbackUrl', pathname);
       return NextResponse.redirect(loginUrl);
     }
+    console.log('Middleware: Session token found. Proceeding.');
   }
 
   return NextResponse.next();

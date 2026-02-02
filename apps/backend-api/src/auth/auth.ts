@@ -44,8 +44,8 @@ export const auth = betterAuth({
     // When proxying, the browser sees the request as coming from the frontend domain.
     // We want the cookie to be set on the frontend domain (or have no specific domain set, defaulting to Host).
     defaultCookieAttributes: {
-      sameSite: 'lax',
-      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'none',
+      secure: true,
     },
   },
   user: {

@@ -9,7 +9,12 @@ async function bootstrap() {
 
   // Enable CORS for frontend
   app.enableCors({
-    origin: process.env.WEB_ADMIN_URL || 'http://localhost:3000',
+    origin: [
+      process.env.WEB_ADMIN_URL || 'http://localhost:3000',
+      'http://localhost:3000',
+      'http://localhost:3001',
+      'https://algoretail.vercel.app', // Explicitly allow production domain
+    ],
     credentials: true,
   });
 
