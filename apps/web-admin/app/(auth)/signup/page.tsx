@@ -4,9 +4,10 @@ import { authClient } from '@/lib/auth-client';
 import { Button } from '@repo/ui/components/ui/button';
 import { Input } from '@repo/ui/components/ui/input';
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { Loader2 } from 'lucide-react';
+import { redirectByRole } from '@/lib/auth-utils';
 
 export default function SignupPage() {
   const [email, setEmail] = useState('');
@@ -15,6 +16,8 @@ export default function SignupPage() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const callbackUrl = searchParams.get('callbackUrl');
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -32,7 +35,8 @@ export default function SignupPage() {
         throw res.error;
       }
 
-      router.push('/dashboard');
+      // Redirect based on role (new users go to waitlist, but respects callbackUrl if approved)
+      await redirectByRole(router, callbackUrl);
     } catch (err: any) {
       setError(err.message || 'Registration failed');
     } finally {

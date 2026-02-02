@@ -3,7 +3,7 @@
 import { useSession } from '@/lib/auth-client';
 import { Button } from '@repo/ui/components/ui/button';
 import { useRouter } from 'next/navigation';
-import { authClient } from '@/lib/auth-client';
+import { signOutAndRedirect } from '@/lib/auth-utils';
 import { useEffect } from 'react';
 import { DashboardContainer } from '@/components/dashboard-container';
 
@@ -18,9 +18,8 @@ export default function DashboardPage() {
     }
   }, [isPending, session, router]);
 
-  const handleSignOut = async () => {
-    await authClient.signOut();
-    router.push('/login');
+  const handleSignOut = () => {
+    signOutAndRedirect('/login');
   };
 
   if (isPending) {

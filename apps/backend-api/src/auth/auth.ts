@@ -1,5 +1,6 @@
 import { betterAuth } from 'better-auth';
 import { drizzleAdapter } from 'better-auth/adapters/drizzle';
+import { createAuthMiddleware } from 'better-auth/api';
 import { drizzle } from 'drizzle-orm/node-postgres';
 import { Pool } from 'pg';
 import * as schema from '../db/schema'; // Import your updated schema
@@ -45,6 +46,26 @@ export const auth = betterAuth({
       sameSite: 'none',
       secure: true,
     },
+  },
+  hooks: {
+    after: createAuthMiddleware(async (ctx) => {
+      // Only run for sign-in and sign-up paths
+      if (ctx.path.includes('/sign-in') || ctx.path.includes('/sign-up')) {
+        // Access the response body to get user data
+        const body = ctx.body as any;
+        const user = body?.user;
+        if (user) {
+          const role = user.role || 'waitlist';
+          ctx.setCookie('auth-role', role, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'lax',
+            path: '/',
+            maxAge: 60 * 60 * 24 * 7, // 7 days
+          });
+        }
+      }
+    }),
   },
   user: {
     additionalFields: {

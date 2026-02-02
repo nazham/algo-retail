@@ -9,7 +9,12 @@ type ApiClientOptions = RequestInit & {
 // In production this will be extracted from the user's session
 
 function getBaseUrl() {
-  // Get the base URL from env
+  // 🟢 Client-side: Proxy through Next.js to attach cookies
+  if (typeof window !== 'undefined') {
+    return '/api';
+  }
+
+  // Server-side: Direct connection to backend
   const baseUrl = process.env.NEXT_PUBLIC_API_URL;
 
   if (!baseUrl) {
@@ -80,11 +85,20 @@ export async function apiClient<T>(endpoint: string, options: ApiClientOptions =
       // Handle auth errors
       if (response.status === 401) {
         console.error(`[API] 401 Unauthorized at ${response.url}`);
-        // Redirect to login or show toast
+        // Session expired - redirect to login
         if (typeof window !== 'undefined') {
           window.location.href = '/login';
         }
         toast.error('Session expired. Please login again.');
+      }
+
+      if (response.status === 403) {
+        console.error(`[API] 403 Forbidden at ${response.url}`);
+        toast.error('Access Denied: Your account is on the waitlist.');
+        // Redirect to waitlist page
+        if (typeof window !== 'undefined' && !window.location.pathname.includes('/waitlist')) {
+          window.location.href = '/waitlist';
+        }
       }
 
       throw new Error(errorMessage);

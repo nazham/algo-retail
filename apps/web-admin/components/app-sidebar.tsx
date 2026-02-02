@@ -5,8 +5,7 @@ import { usePathname } from 'next/navigation';
 import { LayoutDashboard, Package, Upload, Settings, LogOut, FileText } from 'lucide-react';
 import { cn } from '@repo/ui/lib/utils';
 import { Button } from '@repo/ui/components/ui/button';
-import { authClient } from '@/lib/auth-client';
-import { useRouter } from 'next/navigation';
+import { signOutAndRedirect } from '@/lib/auth-utils';
 import { ModeToggle } from '@repo/ui/components/mode-toggle';
 
 const sidebarItems = [
@@ -36,11 +35,9 @@ const sidebarItems = [
 
 export function AppSidebar() {
   const pathname = usePathname();
-  const router = useRouter();
 
-  const handleSignOut = async () => {
-    await authClient.signOut();
-    router.push('/login');
+  const handleSignOut = () => {
+    signOutAndRedirect('/login');
   };
 
   return (

@@ -4,9 +4,10 @@ import { authClient } from '@/lib/auth-client';
 import { Button } from '@repo/ui/components/ui/button';
 import { Input } from '@repo/ui/components/ui/input';
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { Loader2 } from 'lucide-react';
+import { redirectByRole } from '@/lib/auth-utils';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -14,6 +15,8 @@ export default function LoginPage() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const callbackUrl = searchParams.get('callbackUrl');
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -30,7 +33,8 @@ export default function LoginPage() {
         throw res.error;
       }
 
-      router.push('/dashboard');
+      // Redirect based on role (respects callbackUrl)
+      await redirectByRole(router, callbackUrl);
     } catch (err: any) {
       setError(err.message || 'Authentication failed');
     } finally {

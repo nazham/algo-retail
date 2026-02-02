@@ -4,40 +4,44 @@ import type { NextRequest } from 'next/server';
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // Protect /dashboard routes
+  // Check for session token in cookies
+  const sessionTokenNames = [
+    'better-auth.session_token',
+    '__Secure-better-auth.session_token',
+    'session_token',
+  ];
+  const hasSession = sessionTokenNames.some((name) => request.cookies.get(name));
+
+  // Get role from our auth-role cookie
+  const authRole = request.cookies.get('auth-role')?.value;
+
+  // --- Route Protection Logic ---
+
+  // 1. Protect /dashboard routes
   if (pathname.startsWith('/dashboard')) {
-    // Check for session token in cookies
-    // Better-auth uses 'better-auth.session_token' or '__Secure-better-auth.session_token' in prod
-    const cookieNames = [
-      'better-auth.session_token',
-      '__Secure-better-auth.session_token',
-      'session_token',
-    ];
-
-    console.log('Middleware: Checking cookies for path:', pathname);
-    console.log(
-      'Middleware: Available cookies:',
-      request.cookies
-        .getAll()
-        .map((c) => c.name)
-        .join(', '),
-    );
-
-    const sessionToken = cookieNames.find((name) => request.cookies.get(name));
-
-    if (!sessionToken) {
-      console.log('Middleware: No session token found. Redirecting to login.');
+    // No session -> redirect to login
+    if (!hasSession) {
       const loginUrl = new URL('/login', request.url);
-      // Pass the current path as a callback
       loginUrl.searchParams.set('callbackUrl', pathname);
       return NextResponse.redirect(loginUrl);
     }
-    console.log('Middleware: Session token found. Proceeding.');
+
+    // Has session but waitlisted -> redirect to /waitlist
+    if (authRole === 'waitlist') {
+      return NextResponse.redirect(new URL('/waitlist', request.url));
+    }
+  }
+
+  // 2. /waitlist page: If user is NOT waitlisted (e.g., admin), redirect to dashboard
+  if (pathname === '/waitlist') {
+    if (hasSession && authRole && authRole !== 'waitlist') {
+      return NextResponse.redirect(new URL('/dashboard', request.url));
+    }
   }
 
   return NextResponse.next();
 }
 
 export const config = {
-  matcher: ['/dashboard/:path*'],
+  matcher: ['/dashboard/:path*', '/waitlist'],
 };
