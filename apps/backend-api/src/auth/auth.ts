@@ -36,8 +36,18 @@ export const auth = betterAuth({
   // 🟢 Allow cookies from your Next.js frontend
   trustedOrigins: [
     process.env.WEB_ADMIN_URL || 'http://localhost:3000',
+    'http://localhost:3000', // Explicitly trust localhost:3000 for local dev against remote backend
     'http://localhost:3001',
   ],
+  advanced: {
+    // 🟢 Ensure cookies are set correctly for our Proxy/Rewrite setup
+    // When proxying, the browser sees the request as coming from the frontend domain.
+    // We want the cookie to be set on the frontend domain (or have no specific domain set, defaulting to Host).
+    defaultCookieAttributes: {
+      sameSite: 'lax',
+      secure: process.env.NODE_ENV === 'production',
+    },
+  },
   user: {
     additionalFields: {
       role: {
