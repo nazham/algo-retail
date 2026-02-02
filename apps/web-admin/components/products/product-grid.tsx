@@ -239,7 +239,7 @@ export function ProductGrid() {
             onSave={(value) => {
               const result = z.string().min(1, 'Name cannot be empty').safeParse(value);
               if (!result.success) {
-                toast.error(result.error.errors[0].message);
+                toast.error(result.error.issues[0]?.message ?? 'Invalid input');
                 return;
               }
               updateProduct({ id: row.original.id, data: { name: result.data } });
@@ -275,7 +275,7 @@ export function ProductGrid() {
             onSave={(value) => {
               const result = z.coerce.number().min(0, 'Price must be positive').safeParse(value);
               if (!result.success) {
-                toast.error(result.error.errors[0].message);
+                toast.error(result.error.issues[0]?.message ?? 'Invalid input');
                 return;
               }
               updateProduct({ id: row.original.id, data: { price: result.data } });
@@ -302,7 +302,7 @@ export function ProductGrid() {
             onSave={(value) => {
               const result = z.coerce.number().min(0, 'Cost must be positive').safeParse(value);
               if (!result.success) {
-                toast.error(result.error.errors[0].message);
+                toast.error(result.error.issues[0]?.message ?? 'Invalid input');
                 return;
               }
               updateProduct({ id: row.original.id, data: { costPrice: result.data } });
@@ -337,7 +337,7 @@ export function ProductGrid() {
                   .min(0, 'Stock must be 0 or more')
                   .safeParse(value);
                 if (!result.success) {
-                  toast.error(result.error.errors[0].message);
+                  toast.error(result.error.issues[0]?.message ?? 'Invalid input');
                   return;
                 }
                 updateProduct({ id: row.original.id, data: { stock: result.data } });
