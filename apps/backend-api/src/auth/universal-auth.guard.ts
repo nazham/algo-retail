@@ -3,6 +3,7 @@ import {
   ExecutionContext,
   Injectable,
   UnauthorizedException,
+  ForbiddenException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import * as crypto from 'crypto';
@@ -17,6 +18,11 @@ export class UniversalAuthGuard implements CanActivate {
     // 1. Session Authentication (High Priority for Web Admin)
     // TenantContextMiddleware runs before this and attaches 'user' if session is valid
     if (request['user']) {
+      const user = request['user'];
+      // 🛑 Block Waitlist Users
+      if (user.role === 'waitlist') {
+        throw new ForbiddenException('Your account is on the waitlist.');
+      }
       return true;
     }
 

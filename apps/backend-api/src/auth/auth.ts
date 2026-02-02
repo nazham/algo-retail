@@ -30,9 +30,7 @@ export const auth = betterAuth({
     enabled: true,
   },
   baseURL: process.env.API_BASE_URL || 'http://localhost:8080',
-  secret:
-    process.env.BETTER_AUTH_SECRET ||
-    'your-secret-key-change-in-production-MUST-BE-AT-LEAST-32-CHARS',
+  secret: process.env.BETTER_AUTH_SECRET as string, // 🟢 Enforce secret via env var
   // 🟢 Allow cookies from your Next.js frontend
   trustedOrigins: [
     process.env.WEB_ADMIN_URL || 'http://localhost:3000',
@@ -52,7 +50,7 @@ export const auth = betterAuth({
     additionalFields: {
       role: {
         type: 'string',
-        defaultValue: 'admin',
+        defaultValue: 'waitlist',
       },
       pin: {
         type: 'string',
