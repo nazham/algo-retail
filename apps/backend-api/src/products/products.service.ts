@@ -2,8 +2,12 @@ import { Inject, Injectable } from '@nestjs/common';
 import { DB_CONNECTION } from '../db/database.module';
 import * as schema from '../db/schema';
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
-import { and, eq, gt, sql, ilike, or, count } from 'drizzle-orm';
-import { ProductQueryDto, UpdateProductDto } from './dto/product.dto';
+import { and, eq, gt, gte, sql, ilike, or, count } from 'drizzle-orm';
+import {
+  ProductQueryDto,
+  UpdateProductDto,
+  ExportProductsDto,
+} from './dto/product.dto';
 
 @Injectable()
 export class ProductsService {
@@ -158,6 +162,39 @@ export class ProductsService {
       .from(schema.products)
       .where(whereClause)
       .orderBy(schema.products.updatedAt);
+  }
+
+  async getExportData(tenantId: string, filters: ExportProductsDto) {
+    const { minStock, minPrice, onlyAutoSkus, categoryId, isActive } = filters;
+    const queryFilters = [eq(schema.products.tenantId, tenantId)];
+
+    if (minStock !== undefined) {
+      queryFilters.push(gte(schema.products.stock, minStock));
+    }
+    if (minPrice !== undefined) {
+      queryFilters.push(gte(schema.products.price, minPrice));
+    }
+    if (onlyAutoSkus) {
+      queryFilters.push(ilike(schema.products.sku, '99%'));
+    }
+    if (categoryId) {
+      queryFilters.push(eq(schema.products.categoryId, categoryId));
+    }
+    if (isActive !== undefined) {
+      queryFilters.push(eq(schema.products.isActive, isActive));
+    }
+
+    return await this.db.query.products.findMany({
+      where: and(...queryFilters),
+      limit: 10000,
+      columns: {
+        name: true,
+        price: true,
+        sku: true,
+        stock: true,
+      },
+      orderBy: (products, { asc }) => [asc(products.sku)],
+    });
   }
 
   async getChangedCategories(tenantId: string, lastSync?: string) {

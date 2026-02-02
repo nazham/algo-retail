@@ -5,6 +5,7 @@ import { Button } from '@repo/ui/components/ui/button';
 import { useRouter } from 'next/navigation';
 import { authClient } from '@/lib/auth-client';
 import { useEffect } from 'react';
+import { DashboardContainer } from '@/components/dashboard-container';
 
 export default function DashboardPage() {
   const { data: session, isPending } = useSession();
@@ -39,8 +40,8 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background p-8">
-      <div className="max-w-4xl mx-auto space-y-6">
+    <DashboardContainer size="narrow">
+      <div className="space-y-6">
         <div className="bg-card border border-border rounded-lg shadow-sm">
           <div className="p-6 border-b border-border">
             <h1 className="text-2xl font-bold">Welcome, {session.user.name}!</h1>
@@ -54,11 +55,15 @@ export default function DashboardPage() {
               <p className="text-sm text-muted-foreground">User ID</p>
               <p className="font-mono text-sm">{session.user.id}</p>
             </div>
-            <div className="space-y-2">
-              <p className="text-sm text-muted-foreground">Session</p>
-              <pre className="bg-muted p-4 rounded-md overflow-auto text-xs">
-                {JSON.stringify(session, null, 2)}
-              </pre>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4">
+              <div className="bg-muted p-4 rounded-md">
+                <p className="text-sm text-muted-foreground">Active Products</p>
+                <p className="text-2xl font-bold">---</p>
+              </div>
+              <div className="bg-muted p-4 rounded-md">
+                <p className="text-sm text-muted-foreground">Today's Orders</p>
+                <p className="text-2xl font-bold">---</p>
+              </div>
             </div>
             <Button onClick={handleSignOut} variant="destructive">
               Sign Out
@@ -66,6 +71,6 @@ export default function DashboardPage() {
           </div>
         </div>
       </div>
-    </div>
+    </DashboardContainer>
   );
 }

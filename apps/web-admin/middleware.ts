@@ -7,14 +7,19 @@ export async function middleware(request: NextRequest) {
   // Protect /dashboard routes
   if (pathname.startsWith('/dashboard')) {
     // Check for session token in cookies
-    // better-auth uses 'better-auth.session_token' by default, or similar.
-    // We check for the likely cookie names.
-    const sessionToken =
-      request.cookies.get('better-auth.session_token') || request.cookies.get('session_token');
+    // Better-auth uses 'better-auth.session_token' or '__Secure-better-auth.session_token' in prod
+    const cookieNames = [
+      'better-auth.session_token',
+      '__Secure-better-auth.session_token',
+      'session_token',
+    ];
+
+    const sessionToken = cookieNames.find((name) => request.cookies.get(name));
 
     if (!sessionToken) {
       const loginUrl = new URL('/login', request.url);
-      // Optional: Add ?callbackUrl=... if needed
+      // Pass the current path as a callback
+      loginUrl.searchParams.set('callbackUrl', pathname);
       return NextResponse.redirect(loginUrl);
     }
   }

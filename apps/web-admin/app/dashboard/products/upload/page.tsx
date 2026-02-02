@@ -4,6 +4,8 @@ import { CSVUploader } from '@/components/csv-uploader';
 import { Button } from '@repo/ui/components/ui/button';
 import { Download, Info } from 'lucide-react';
 
+import { DashboardContainer } from '@/components/dashboard-container';
+
 export default function UploadPage() {
   const handleDownloadTemplate = () => {
     // Create a CSV template
@@ -62,7 +64,7 @@ export default function UploadPage() {
   };
 
   return (
-    <div className="container mx-auto py-8 max-w-5xl space-y-8 animate-in fade-in duration-500">
+    <DashboardContainer>
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b pb-6">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Bulk Upload Products</h1>
@@ -76,7 +78,7 @@ export default function UploadPage() {
         </Button>
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-[2fr_1fr]">
+      <div className="grid gap-6 lg:grid-cols-[2fr_1fr] mt-8">
         {/* Main Upload Area */}
         <div className="space-y-6">
           <CSVUploader />
@@ -126,6 +128,6 @@ export default function UploadPage() {
           </div>
         </div>
       </div>
-    </div>
+    </DashboardContainer>
   );
 }
