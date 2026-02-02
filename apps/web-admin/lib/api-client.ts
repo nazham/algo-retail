@@ -8,11 +8,31 @@ type ApiClientOptions = RequestInit & {
 // MVP: Hardcoded tenant ID until auth is fully multi-tenant
 // In production this will be extracted from the user's session
 
+function getBaseUrl() {
+  // Get the base URL from env
+  const baseUrl = process.env.NEXT_PUBLIC_API_URL;
+
+  if (!baseUrl) {
+    if (process.env.NODE_ENV === 'production') {
+      throw new Error('NEXT_PUBLIC_API_URL is not defined in production environment');
+    }
+    // Fallback for local development only
+    return 'http://localhost:8080';
+  }
+  return baseUrl;
+}
+
+// Define the session user type based on Better-Auth and our extensions
+interface SessionUser {
+  id: string;
+  email: string;
+  name: string;
+  tenantId?: string;
+}
+
 export async function apiClient<T>(endpoint: string, options: ApiClientOptions = {}): Promise<T> {
   const { headers, ...rest } = options;
-
-  // Get the base URL from env or default
-  const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
+  const baseUrl = getBaseUrl();
 
   // Normalize endpoint to ensuring leading slash or not matching base
   const url = endpoint.startsWith('http')
@@ -22,8 +42,8 @@ export async function apiClient<T>(endpoint: string, options: ApiClientOptions =
   // Get session token and user info if available
   const session = await authClient.getSession();
   const token = session?.data?.session?.token;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const tenantId = (session?.data?.user as any)?.tenantId;
+  const user = session?.data?.user as SessionUser | undefined;
+  const tenantId = user?.tenantId;
 
   // Prepare headers
   const defaultHeaders: HeadersInit = {
