@@ -1,8 +1,9 @@
 'use client';
 
 import { ProductGrid } from '@/components/products/product-grid';
+import { ProductFormDialog } from '@/components/products/product-form-dialog';
 import { Button } from '@repo/ui/components/ui/button';
-import { Download, Upload, Plus } from 'lucide-react';
+import { Upload } from 'lucide-react';
 import Link from 'next/link';
 
 import { DashboardContainer } from '@/components/dashboard-container';
@@ -24,10 +25,7 @@ export default function ProductsPage() {
               Bulk Upload
             </Link>
           </Button>
-          <Button className="gap-2">
-            <Plus className="h-4 w-4" />
-            New Product
-          </Button>
+          <ProductFormDialog />
         </div>
       </div>
 

@@ -1,4 +1,5 @@
 import { authClient } from './auth-client';
+import { invalidateSessionCache } from './api-client';
 
 export interface SessionUser {
   id: string;
@@ -21,6 +22,8 @@ export interface SessionUser {
  */
 export async function signOutAndRedirect(redirectTo = '/login') {
   try {
+    // Clear cached session immediately for security
+    invalidateSessionCache();
     await authClient.signOut();
   } catch (e) {
     // Ignore signout errors

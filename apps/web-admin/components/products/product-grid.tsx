@@ -55,6 +55,8 @@ import { EditableCell } from './editable-cell';
 import { cn } from '@repo/ui/lib/utils';
 import { Combobox } from '../ui/combobox';
 import { ExportDialog } from './export-dialog';
+import { ProductFormDialog } from './product-form-dialog';
+import { Pencil } from 'lucide-react';
 
 // Helper for sortable headers
 function SortableHeader({
@@ -169,6 +171,9 @@ export function ProductGrid() {
   const [sortBy, setSortBy] = React.useState<string>('updatedAt');
   const [sortOrder, setSortOrder] = React.useState<'asc' | 'desc'>('desc');
   const [expanded, setExpanded] = React.useState<ExpandedState>({});
+  const [editingProduct, setEditingProduct] = React.useState<ProductWithCategoryDto | undefined>(
+    undefined,
+  );
 
   const { categories } = useCategories();
 
@@ -216,6 +221,21 @@ export function ProductGrid() {
             </button>
           );
         },
+      },
+      {
+        id: 'actions',
+        cell: ({ row }) => (
+          <div className="flex items-center gap-1">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-6 w-6"
+              onClick={() => setEditingProduct(row.original)}
+            >
+              <Pencil className="h-3 w-3 text-muted-foreground" />
+            </Button>
+          </div>
+        ),
       },
       {
         accessorKey: 'sku',
@@ -388,6 +408,11 @@ export function ProductGrid() {
 
   return (
     <div className="space-y-4">
+      <ProductFormDialog
+        open={!!editingProduct}
+        onOpenChange={(open) => !open && setEditingProduct(undefined)}
+        product={editingProduct}
+      />
       {/* Toolbar */}
       <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 bg-muted/30 p-4 rounded-lg border">
         <div className="relative flex-1 max-w-sm">

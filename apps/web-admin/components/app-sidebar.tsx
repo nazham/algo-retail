@@ -2,7 +2,15 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, Package, Upload, Settings, LogOut, FileText } from 'lucide-react';
+import {
+  LayoutDashboard,
+  Package,
+  Upload,
+  Settings,
+  LogOut,
+  FileText,
+  FolderOpen,
+} from 'lucide-react';
 import { cn } from '@repo/ui/lib/utils';
 import { Button } from '@repo/ui/components/ui/button';
 import { signOutAndRedirect } from '@/lib/auth-utils';
@@ -18,13 +26,11 @@ const sidebarItems = [
     title: 'Products',
     href: '/dashboard/products',
     icon: Package,
-    subItems: [
-      {
-        title: 'Bulk Upload',
-        href: '/dashboard/products/upload',
-        icon: Upload,
-      },
-    ],
+  },
+  {
+    title: 'Categories',
+    href: '/dashboard/categories',
+    icon: FolderOpen,
   },
   {
     title: 'Orders',
@@ -63,23 +69,6 @@ export function AppSidebar() {
                 <item.icon className="h-4 w-4" />
                 {item.title}
               </Link>
-              {item.subItems && (
-                <div className="ml-6 mt-1 space-y-1 border-l pl-3">
-                  {item.subItems.map((subItem, subIndex) => (
-                    <Link
-                      key={subIndex}
-                      href={subItem.href}
-                      className={cn(
-                        'flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary',
-                        pathname === subItem.href && 'bg-muted text-primary',
-                      )}
-                    >
-                      <subItem.icon className="h-4 w-4" />
-                      {subItem.title}
-                    </Link>
-                  ))}
-                </div>
-              )}
             </div>
           ))}
         </nav>
