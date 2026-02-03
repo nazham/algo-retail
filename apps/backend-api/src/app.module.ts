@@ -6,6 +6,7 @@ import { DatabaseModule } from './db/database.module';
 import { OrdersModule } from './orders/orders.module';
 import { ProductsModule } from './products/products.module';
 import { AuthModule } from './auth/auth.module';
+import { CategoriesModule } from './categories/categories.module';
 
 @Module({
   imports: [
@@ -14,6 +15,7 @@ import { AuthModule } from './auth/auth.module';
     AuthModule, // Better-Auth on NestJS
     OrdersModule,
     ProductsModule,
+    CategoriesModule,
   ],
   controllers: [AppController],
   providers: [AppService],

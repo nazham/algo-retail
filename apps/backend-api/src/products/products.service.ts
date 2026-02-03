@@ -7,6 +7,7 @@ import {
   ProductQueryDto,
   UpdateProductDto,
   ExportProductsDto,
+  CreateProductDto,
 } from './dto/product.dto';
 
 @Injectable()
@@ -14,6 +15,90 @@ export class ProductsService {
   constructor(
     @Inject(DB_CONNECTION) private db: NodePgDatabase<typeof schema>,
   ) {}
+
+  /**
+   * 🏗️ Batch SKU Reservation
+   * Atomically reserves a block of SKUs from the database.
+   * Handles empty table case (Self-Healing).
+   */
+  async reserveSkuBatch(count: number): Promise<number> {
+    if (count <= 0) return 0;
+
+    return await this.db.transaction(async (tx) => {
+      // 1. Try to lock/get existing row
+      let row = await tx
+        .select()
+        .from(schema.skuSequence)
+        .where(eq(schema.skuSequence.id, 1))
+        .then((rows) => rows[0]);
+
+      let startValue = 0;
+
+      if (!row) {
+        // 2. Self-Healing: Insert if missing
+        // Note: We insert count as current_value because we are reserving [1..count]
+        await tx.insert(schema.skuSequence).values({
+          id: 1,
+          currentValue: count,
+        });
+        startValue = 0; // The first one will be 0+1 = 1
+      } else {
+        // 3. Increment
+        startValue = row.currentValue;
+        const [updated] = await tx
+          .update(schema.skuSequence)
+          .set({
+            currentValue: row.currentValue + count,
+            updatedAt: new Date(),
+          })
+          .where(eq(schema.skuSequence.id, 1))
+          .returning();
+      }
+
+      return startValue;
+    });
+  }
+
+  formatSku(sequence: number): string {
+    const now = new Date();
+    const yy = now.getFullYear().toString().slice(-2);
+    const mm = (now.getMonth() + 1).toString().padStart(2, '0');
+    const dd = now.getDate().toString().padStart(2, '0');
+    const seqStr = sequence.toString().padStart(5, '0');
+    return `99${yy}${mm}${dd}${seqStr}`;
+  }
+
+  async createProduct(tenantId: string, data: CreateProductDto) {
+    let sku = data.sku;
+
+    // Auto-generate SKU if not provided (format: 99YYMMDDSSSSS)
+    if (!sku) {
+      const sequenceStart = await this.reserveSkuBatch(1);
+      sku = this.formatSku(sequenceStart + 1);
+    }
+
+    // Determine if product should be active (price > 0)
+    const isActive =
+      data.isActive !== undefined ? data.isActive : data.price > 0;
+
+    const [product] = await this.db
+      .insert(schema.products)
+      .values({
+        tenantId,
+        name: data.name,
+        sku,
+        price: data.price,
+        costPrice: data.costPrice || 0,
+        stock: data.stock || 0,
+        categoryId: data.categoryId || null,
+        isActive,
+        batchNo: data.batchNo || null,
+        expiryDate: data.expiryDate || null,
+      })
+      .returning();
+
+    return product;
+  }
 
   async seed(tenantId: string, productsData: any[]) {
     // We use "ON CONFLICT DO UPDATE" so we can run this multiple times safely
@@ -145,6 +230,22 @@ export class ProductsService {
       .returning();
   }
 
+  async softDeleteProduct(id: string, tenantId: string) {
+    // Soft delete - set isActive to false
+    const [product] = await this.db
+      .update(schema.products)
+      .set({
+        isActive: false,
+        updatedAt: new Date(),
+      })
+      .where(
+        and(eq(schema.products.id, id), eq(schema.products.tenantId, tenantId)),
+      )
+      .returning();
+
+    return product;
+  }
+
   findAll() {
     return this.db.select().from(schema.products);
   }
@@ -196,7 +297,9 @@ export class ProductsService {
       orderBy: (products, { asc }) => [asc(products.sku)],
     });
   }
-
+  /**
+   * @deprecated Legacy support for desktop-pos v0.1. Use CategoriesService instead.
+   */
   async getChangedCategories(tenantId: string, lastSync?: string) {
     const whereClause = lastSync
       ? and(
