@@ -1,14 +1,31 @@
 'use client';
 
+import { useState } from 'react';
 import { ProductGrid } from '@/components/products/product-grid';
 import { ProductFormDialog } from '@/components/products/product-form-dialog';
 import { Button } from '@repo/ui/components/ui/button';
-import { Upload } from 'lucide-react';
+import { Upload, Plus } from 'lucide-react';
 import Link from 'next/link';
 
 import { DashboardContainer } from '@/components/dashboard-container';
+import { ProductWithCategoryDto } from '@algo/types';
 
 export default function ProductsPage() {
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [selectedProduct, setSelectedProduct] = useState<ProductWithCategoryDto | undefined>(
+    undefined,
+  );
+
+  const handleCreate = () => {
+    setSelectedProduct(undefined);
+    setIsDialogOpen(true);
+  };
+
+  const handleEdit = (product: ProductWithCategoryDto) => {
+    setSelectedProduct(product);
+    setIsDialogOpen(true);
+  };
+
   return (
     <DashboardContainer size="wide">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b pb-6">
@@ -25,14 +42,24 @@ export default function ProductsPage() {
               Bulk Upload
             </Link>
           </Button>
-          <ProductFormDialog />
+          <Button className="gap-2" onClick={handleCreate}>
+            <Plus className="h-4 w-4" />
+            New Product
+          </Button>
         </div>
       </div>
 
       <div className="mt-8 space-y-6">
         {/* The Excel-Like Product Grid */}
-        <ProductGrid />
+        <ProductGrid onEdit={handleEdit} />
       </div>
+
+      {/* Shared Create/Edit Dialog */}
+      <ProductFormDialog
+        open={isDialogOpen}
+        onOpenChange={setIsDialogOpen}
+        product={selectedProduct}
+      />
     </DashboardContainer>
   );
 }

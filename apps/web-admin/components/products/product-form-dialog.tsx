@@ -341,14 +341,7 @@ export function ProductFormDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
-      <DialogTrigger asChild>
-        {trigger || (
-          <Button className="gap-2">
-            <Plus className="h-4 w-4" />
-            New Product
-          </Button>
-        )}
-      </DialogTrigger>
+      {trigger && <DialogTrigger asChild>{trigger}</DialogTrigger>}
 
       <DialogContent className="sm:max-w-[700px] h-[90vh] flex flex-col p-0">
         <DialogHeader className="flex flex-row justify-between items-start px-6 pt-6 gap-4">

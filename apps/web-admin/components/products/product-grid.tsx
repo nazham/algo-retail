@@ -162,7 +162,11 @@ function BatchRows({ parentId }: { parentId: string }) {
   );
 }
 
-export function ProductGrid() {
+interface ProductGridProps {
+  onEdit?: (product: ProductWithCategoryDto) => void;
+}
+
+export function ProductGrid({ onEdit }: ProductGridProps) {
   const [page, setPage] = React.useState(1);
   const [search, setSearch] = React.useState('');
   const [debouncedSearch, setDebouncedSearch] = React.useState('');
@@ -171,9 +175,6 @@ export function ProductGrid() {
   const [sortBy, setSortBy] = React.useState<string>('updatedAt');
   const [sortOrder, setSortOrder] = React.useState<'asc' | 'desc'>('desc');
   const [expanded, setExpanded] = React.useState<ExpandedState>({});
-  const [editingProduct, setEditingProduct] = React.useState<ProductWithCategoryDto | undefined>(
-    undefined,
-  );
 
   const { categories } = useCategories();
 
@@ -230,7 +231,7 @@ export function ProductGrid() {
               variant="ghost"
               size="icon"
               className="h-6 w-6"
-              onClick={() => setEditingProduct(row.original)}
+              onClick={() => onEdit?.(row.original)}
             >
               <Pencil className="h-3 w-3 text-muted-foreground" />
             </Button>
@@ -391,7 +392,7 @@ export function ProductGrid() {
         ),
       },
     ],
-    [updateProduct, sortBy, sortOrder],
+    [updateProduct, sortBy, sortOrder, onEdit],
   );
 
   const table = useReactTable({
@@ -408,61 +409,68 @@ export function ProductGrid() {
 
   return (
     <div className="space-y-4">
-      <ProductFormDialog
-        open={!!editingProduct}
-        onOpenChange={(open) => !open && setEditingProduct(undefined)}
-        product={editingProduct}
-      />
       {/* Toolbar */}
-      <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 bg-muted/30 p-4 rounded-lg border">
-        <div className="relative flex-1 max-w-sm">
+      {/* Toolbar */}
+      <div className="flex flex-col lg:flex-row items-center justify-between gap-4 bg-muted/30 p-4 rounded-lg border">
+        {/* Search - Full width on mobile/tablet, fixed on desktop */}
+        <div className="relative w-full lg:w-auto lg:flex-1 lg:max-w-sm">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
             placeholder="Search name or SKU..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="pl-10 bg-background"
+            className="pl-10 bg-background w-full"
           />
         </div>
 
-        <div className="flex flex-wrap items-center gap-3">
-          <div className="flex items-center gap-2">
-            <Filter className="h-4 w-4 text-muted-foreground" />
-            <Combobox
-              placeholder="All Categories"
-              options={categories.map((c) => ({ label: c.name, value: c.id }))}
-              value={categoryId}
-              onValueChange={setCategoryId}
-              className="w-48"
-            />
+        {/* Filters - Grid on mobile, Flex on desktop */}
+        <div className="grid grid-cols-2 md:flex items-center gap-3 w-full lg:w-auto">
+          {/* Category Filter */}
+          <div className="col-span-1 md:w-auto">
+            <div className="flex items-center gap-2">
+              <Combobox
+                placeholder="All Categories"
+                options={categories.map((c) => ({ label: c.name, value: c.id }))}
+                value={categoryId}
+                onValueChange={setCategoryId}
+                className="w-full md:w-48"
+              />
+            </div>
           </div>
 
-          <Select value={status || 'all'} onValueChange={setStatus}>
-            <SelectTrigger className="w-[130px] bg-background">
-              <SelectValue placeholder="Status" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Status</SelectItem>
-              <SelectItem value="active">Active Only</SelectItem>
-              <SelectItem value="inactive">Inactive Only</SelectItem>
-            </SelectContent>
-          </Select>
+          {/* Status Filter */}
+          <div className="col-span-1 md:w-auto">
+            <Select value={status || 'all'} onValueChange={setStatus}>
+              <SelectTrigger className="w-full md:w-[130px] bg-background">
+                <SelectValue placeholder="Status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Status</SelectItem>
+                <SelectItem value="active">Active Only</SelectItem>
+                <SelectItem value="inactive">Inactive Only</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
 
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => {
-              setSearch('');
-              setCategoryId(undefined);
-              setStatus(undefined);
-              setSortBy('updatedAt');
-              setSortOrder('desc');
-            }}
-          >
-            Reset
-          </Button>
-
-          <ExportDialog />
+          {/* Action Buttons - Full row on small mobile, auto on larger */}
+          <div className="col-span-2 md:col-span-auto flex items-center gap-2 w-full md:w-auto mt-2 md:mt-0">
+            <Button
+              variant="outline"
+              className="flex-1 md:flex-none"
+              onClick={() => {
+                setSearch('');
+                setCategoryId(undefined);
+                setStatus(undefined);
+                setSortBy('updatedAt');
+                setSortOrder('desc');
+              }}
+            >
+              Reset
+            </Button>
+            <div className="flex-1 md:flex-none">
+              <ExportDialog />
+            </div>
+          </div>
         </div>
       </div>
 
