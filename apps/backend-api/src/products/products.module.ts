@@ -4,7 +4,10 @@ import { ProductsController } from './products.controller';
 import { ProductBulkService } from './product-bulk.service';
 import { ProductBulkController } from './product-bulk.controller';
 
+import { AuditModule } from '../audit/audit.module';
+
 @Module({
+  imports: [AuditModule],
   controllers: [ProductsController, ProductBulkController],
   providers: [ProductsService, ProductBulkService],
 })

@@ -18,6 +18,8 @@ import {
 } from './dto/product.dto';
 import { Param, Patch, HttpCode, HttpStatus } from '@nestjs/common';
 
+import { CurrentUser } from 'src/auth/current-user.decorator';
+
 @Controller('products')
 @UseGuards(UniversalAuthGuard)
 export class ProductsController {
@@ -54,10 +56,12 @@ export class ProductsController {
   @Patch(':id')
   update(
     @CurrentTenant() tenantId: string,
+    @CurrentUser() user: any, // Getting full user object or ID
     @Param('id') id: string,
     @Body() body: UpdateProductDto,
   ) {
-    return this.productsService.updateProduct(id, tenantId, body);
+    const userId = user?.id || 'system'; // Fallback for robustness
+    return this.productsService.updateProduct(id, tenantId, body, userId);
   }
 
   @Delete(':id')

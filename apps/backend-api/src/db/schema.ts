@@ -1,5 +1,6 @@
 import {
   pgTable,
+  pgEnum,
   uuid,
   text,
   integer,
@@ -7,8 +8,28 @@ import {
   timestamp,
   boolean,
   uniqueIndex,
+  index,
+  jsonb,
 } from 'drizzle-orm/pg-core';
 import { relations } from 'drizzle-orm';
+
+// ========================================
+// ENUMS
+// ========================================
+export const movementTypeEnum = pgEnum('movement_type', [
+  'PURCHASE',
+  'SALE',
+  'RETURN',
+  'ADJUSTMENT',
+]);
+
+export const adjustmentReasonEnum = pgEnum('adjustment_reason', [
+  'DAMAGED',
+  'EXPIRED',
+  'THEFT',
+  'COUNT_ERROR',
+  'OTHER',
+]);
 
 // Reusable column definition
 const tenantId = uuid('tenant_id').notNull();
@@ -211,3 +232,64 @@ export const accountRelations = relations(account, ({ one }) => ({
     references: [user.id],
   }),
 }));
+
+// ========================================
+// 7. INVENTORY MOVEMENTS (Immutable Ledger)
+// ========================================
+export const inventoryMovements = pgTable(
+  'inventory_movements',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    tenantId: uuid('tenant_id').notNull(),
+    productId: uuid('product_id')
+      .notNull()
+      .references(() => products.id, { onDelete: 'cascade' }),
+    type: movementTypeEnum('type').notNull(),
+    quantity: real('quantity').notNull(), // Signed: +50 for in, -5 for out
+    costPrice: integer('cost_price'), // Snapshot at time of movement (cents)
+    reason: adjustmentReasonEnum('reason'), // Only for ADJUSTMENT type
+    remarks: text('remarks'),
+    referenceId: uuid('reference_id'), // Link to order_id or batch_id
+    userId: text('user_id'), // Who made this change
+    createdAt: timestamp('created_at').defaultNow(),
+  },
+  (table) => ({
+    productIdx: index('idx_movements_product').on(table.productId),
+    tenantIdx: index('idx_movements_tenant').on(table.tenantId),
+    createdAtIdx: index('idx_movements_created').on(table.createdAt),
+  }),
+);
+
+// Inventory movement relations
+export const inventoryMovementsRelations = relations(
+  inventoryMovements,
+  ({ one }) => ({
+    product: one(products, {
+      fields: [inventoryMovements.productId],
+      references: [products.id],
+    }),
+  }),
+);
+
+// 8. AUDIT LOGS (Metadata Changes)
+export const auditLogs = pgTable(
+  'audit_logs',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    tenantId: uuid('tenant_id').notNull(),
+    userId: text('user_id').notNull(), // Supports both Auth Users and POS Users
+    entityType: text('entity_type').notNull(), // 'PRODUCT', 'CATEGORY', etc.
+    entityId: uuid('entity_id').notNull(),
+    action: text('action').notNull(), // 'CREATE', 'UPDATE', 'DELETE'
+    payload: jsonb('payload'), // JSONB - storing the diff
+    createdAt: timestamp('created_at').defaultNow(),
+  },
+  (table) => ({
+    tenantEntityIdx: index('idx_audit_tenant_entity').on(
+      table.tenantId,
+      table.entityType,
+      table.entityId,
+    ),
+    createdAtIdx: index('idx_audit_created_at').on(table.createdAt),
+  }),
+);

@@ -43,6 +43,22 @@ export class ProductQueryDto {
   isActive?: boolean;
 
   @IsOptional()
+  @Transform(({ value }) => {
+    if (value === 'true') return true;
+    if (value === 'false') return false;
+    return value;
+  })
+  isLowStock?: boolean;
+
+  @IsOptional()
+  @Transform(({ value }) => {
+    if (value === 'true') return true;
+    if (value === 'false') return false;
+    return value;
+  })
+  isExpiringSoon?: boolean;
+
+  @IsOptional()
   @IsString()
   sortBy?: string;
 
@@ -71,12 +87,6 @@ export class UpdateProductDto {
   @Min(0)
   @Max(MAX_INT, { message: 'Cost price exceeds maximum allowed value' })
   costPrice?: number;
-
-  @IsOptional()
-  @IsInt()
-  @Min(0)
-  @Max(MAX_STOCK, { message: 'Stock exceeds maximum allowed value' })
-  stock?: number;
 
   @IsOptional()
   @IsUUID()
