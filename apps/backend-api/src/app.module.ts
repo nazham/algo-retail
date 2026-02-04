@@ -7,6 +7,8 @@ import { OrdersModule } from './orders/orders.module';
 import { ProductsModule } from './products/products.module';
 import { AuthModule } from './auth/auth.module';
 import { CategoriesModule } from './categories/categories.module';
+import { InventoryModule } from './inventory/inventory.module';
+import { AuditModule } from './audit/audit.module';
 
 @Module({
   imports: [
@@ -16,8 +18,11 @@ import { CategoriesModule } from './categories/categories.module';
     OrdersModule,
     ProductsModule,
     CategoriesModule,
+    InventoryModule,
+    AuditModule,
   ],
   controllers: [AppController],
   providers: [AppService],
 })
 export class AppModule {}
+// Force restart

@@ -10,10 +10,16 @@ import {
   CreateProductDto,
 } from './dto/product.dto';
 
+import { AuditService } from '../audit/audit.service';
+
+const LOW_STOCK_THRESHOLD = 10;
+const EXPIRY_WARNING_DAYS = 30;
+
 @Injectable()
 export class ProductsService {
   constructor(
     @Inject(DB_CONNECTION) private db: NodePgDatabase<typeof schema>,
+    private readonly auditService: AuditService,
   ) {}
 
   /**
@@ -132,6 +138,8 @@ export class ProductsService {
       search,
       categoryId,
       isActive,
+      isLowStock,
+      isExpiringSoon,
       sortBy,
       sortOrder = 'desc',
     } = query;
@@ -158,6 +166,30 @@ export class ProductsService {
 
     if (isActive !== undefined) {
       filters.push(eq(schema.products.isActive, isActive));
+    }
+
+    if (isLowStock) {
+      // Show items with stock <= threshold (
+      // TODO: or use reorderPoint if we had it reliably populated)
+      filters.push(sql`${schema.products.stock} <= ${LOW_STOCK_THRESHOLD}`);
+    }
+
+    if (isExpiringSoon) {
+      const today = new Date().toISOString().split('T')[0];
+      const thirtyDaysLater = new Date(
+        Date.now() + EXPIRY_WARNING_DAYS * 24 * 60 * 60 * 1000,
+      )
+        .toISOString()
+        .split('T')[0];
+
+      // Filter expiry date between today and 30 days from now
+      // Assuming expiryDate is stored as YYYY-MM-DD string
+      filters.push(
+        and(
+          gte(schema.products.expiryDate, today),
+          sql`${schema.products.expiryDate} <= ${thirtyDaysLater}`,
+        )!,
+      );
     }
 
     const whereClause = and(...filters);
@@ -217,17 +249,59 @@ export class ProductsService {
     });
   }
 
-  async updateProduct(id: string, tenantId: string, data: UpdateProductDto) {
-    return await this.db
-      .update(schema.products)
-      .set({
-        ...data,
-        updatedAt: new Date(),
-      })
-      .where(
-        and(eq(schema.products.id, id), eq(schema.products.tenantId, tenantId)),
-      )
-      .returning();
+  async updateProduct(
+    id: string,
+    tenantId: string,
+    data: UpdateProductDto,
+    userId: string, // Added userId for audit
+  ) {
+    // Stock updates should go through InventoryService
+    // UpdateProductDto does not have 'stock' field, so it won't be in 'data'
+    // if ValidationPipe(whitelist: true) is on.
+
+    return await this.db.transaction(async (tx) => {
+      // 1. Fetch existing product for snapshot (WITH LOCK)
+      const [oldProduct] = await tx
+        .select()
+        .from(schema.products)
+        .where(
+          and(
+            eq(schema.products.id, id),
+            eq(schema.products.tenantId, tenantId),
+          ),
+        )
+        .for('update');
+
+      if (!oldProduct) {
+        throw new Error(`Product ${id} not found`);
+      }
+
+      // 2. Perform Update
+      const [newProduct] = await tx
+        .update(schema.products)
+        .set({
+          ...data,
+          updatedAt: new Date(),
+        })
+        .where(eq(schema.products.id, id))
+        .returning();
+
+      // 3. Compare & Audit
+      const diff = this.auditService.calculateDiff(oldProduct, newProduct);
+      if (diff) {
+        await this.auditService.logChange(
+          tenantId,
+          userId,
+          'PRODUCT',
+          id,
+          'UPDATE',
+          diff,
+          tx,
+        );
+      }
+
+      return newProduct;
+    });
   }
 
   async softDeleteProduct(id: string, tenantId: string) {
