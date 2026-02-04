@@ -223,7 +223,10 @@ export function productToFormData(product: ProductWithCategoryDto): ProductFormD
  * Maps form data to API payload.
  * Excludes frontend-only fields and handles optional field logic.
  */
-export function formDataToPayload(data: ProductFormData): CreateProductPayload {
+export function formDataToPayload(
+  data: ProductFormData,
+  options: { isUpdate?: boolean } = {},
+): CreateProductPayload {
   // Convert display units to cents (multiply by 100)
   const priceInCents = Math.round(data.price * 100);
   const costPriceInCents = data.costPrice != null ? Math.round(data.costPrice * 100) : undefined;
@@ -250,7 +253,13 @@ export function formDataToPayload(data: ProductFormData): CreateProductPayload {
   // Numeric fields - include if defined (including 0)
   if (costPriceInCents != null) payload.costPrice = costPriceInCents;
   if (wholesalePriceInCents != null) payload.wholesalePrice = wholesalePriceInCents;
-  if (data.stock != null) payload.stock = data.stock;
+
+  // IMPORTANT: Only include stock for CREATE operations.
+  // Updates must go through inventory ledger endpoints to maintain history.
+  if (!options.isUpdate && data.stock != null) {
+    payload.stock = data.stock;
+  }
+
   if (data.reorderPoint != null) payload.reorderPoint = data.reorderPoint;
   if (data.safetyStock != null) payload.safetyStock = data.safetyStock;
 

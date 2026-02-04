@@ -57,6 +57,7 @@ import { Combobox } from '@/components/ui/combobox';
 import { cn } from '@repo/ui/lib/utils';
 import { FormField, FormSection, ReadOnlyField } from '@/components/ui/form-field';
 import { useProductFormDraftStore } from '@/stores/product-form-draft.store';
+import { ProductHistoryTab } from '@/components/inventory/product-history-tab';
 
 // ============================================================================
 // COMPONENT PROPS
@@ -246,7 +247,7 @@ export function ProductFormDialog({
 
   const onSubmit = useCallback(
     (data: ProductFormData) => {
-      const payload = formDataToPayload(data);
+      const payload = formDataToPayload(data, { isUpdate: isEditMode });
 
       if (isEditMode && product) {
         updateProduct(
@@ -477,15 +478,27 @@ export function ProductFormDialog({
                   <FormField
                     name="stock"
                     label="Stock"
-                    helperText={isBatchManaged ? 'Managed by batches' : undefined}
+                    helperText={
+                      isBatchManaged
+                        ? 'Managed by batches'
+                        : isEditMode
+                          ? 'Manage via Inventory'
+                          : undefined
+                    }
                   >
                     <Input
                       id="stock"
                       type="number"
                       {...form.register('stock')}
-                      disabled={isBatchManaged}
-                      title={isBatchManaged ? 'Stock is managed by batches' : undefined}
-                      className={cn(isBatchManaged && 'bg-muted')}
+                      disabled={isBatchManaged || isEditMode}
+                      title={
+                        isBatchManaged
+                          ? 'Stock is managed by batches'
+                          : isEditMode
+                            ? 'Use Add/Adjust Stock to change inventory'
+                            : undefined
+                      }
+                      className={cn((isBatchManaged || isEditMode) && 'bg-muted')}
                     />
                   </FormField>
 

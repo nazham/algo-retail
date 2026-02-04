@@ -10,6 +10,8 @@ import { toast } from 'sonner';
 
 export type UseProductsOptions = ProductQueryFilters & {
   enabled?: boolean;
+  isLowStock?: boolean;
+  isExpiringSoon?: boolean;
 };
 
 export function useProducts(options: UseProductsOptions = {}) {
@@ -27,6 +29,8 @@ export function useProducts(options: UseProductsOptions = {}) {
       if (filters.categoryId) searchParams.append('categoryId', filters.categoryId);
       if (filters.isActive !== undefined)
         searchParams.append('isActive', filters.isActive.toString());
+      if (filters.isLowStock) searchParams.append('isLowStock', 'true');
+      if (filters.isExpiringSoon) searchParams.append('isExpiringSoon', 'true');
       if (filters.sortBy) searchParams.append('sortBy', filters.sortBy);
       if (filters.sortOrder) searchParams.append('sortOrder', filters.sortOrder);
 

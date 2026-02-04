@@ -45,6 +45,11 @@ import {
   ArrowUp,
   ArrowDown,
   Filter,
+  Pencil,
+  PackagePlus,
+  Scale,
+  AlertTriangle,
+  Clock,
 } from 'lucide-react';
 import { z } from 'zod';
 import { toast } from 'sonner';
@@ -54,9 +59,11 @@ import { ProductWithCategoryDto, CategoryDto } from '@algo/types';
 import { EditableCell } from './editable-cell';
 import { cn } from '@repo/ui/lib/utils';
 import { Combobox } from '../ui/combobox';
-import { ExportDialog } from './export-dialog';
+import { ProductGridToolbar } from './product-grid-toolbar';
 import { ProductFormDialog } from './product-form-dialog';
-import { Pencil } from 'lucide-react';
+import { AddStockDialog } from '../inventory/add-stock-dialog';
+import { AdjustStockDialog } from '../inventory/adjust-stock-dialog';
+import { ProductHistoryModal } from './product-history-modal';
 
 // Helper for sortable headers
 function SortableHeader({
@@ -172,11 +179,17 @@ export function ProductGrid({ onEdit }: ProductGridProps) {
   const [debouncedSearch, setDebouncedSearch] = React.useState('');
   const [categoryId, setCategoryId] = React.useState<string | undefined>(undefined);
   const [status, setStatus] = React.useState<string | undefined>(undefined);
+  const [isLowStock, setIsLowStock] = React.useState(false);
+  const [isExpiringSoon, setIsExpiringSoon] = React.useState(false);
   const [sortBy, setSortBy] = React.useState<string>('updatedAt');
   const [sortOrder, setSortOrder] = React.useState<'asc' | 'desc'>('desc');
   const [expanded, setExpanded] = React.useState<ExpandedState>({});
 
-  const { categories } = useCategories();
+  const [addStockProduct, setAddStockProduct] = React.useState<ProductWithCategoryDto | null>(null);
+  const [adjustStockProduct, setAdjustStockProduct] = React.useState<ProductWithCategoryDto | null>(
+    null,
+  );
+  const [historyProduct, setHistoryProduct] = React.useState<ProductWithCategoryDto | null>(null);
 
   // Debounce search
   React.useEffect(() => {
@@ -190,6 +203,8 @@ export function ProductGrid({ onEdit }: ProductGridProps) {
     search: debouncedSearch,
     categoryId: categoryId === 'all' ? undefined : categoryId,
     isActive: status === 'active' ? true : status === 'inactive' ? false : undefined,
+    isLowStock,
+    isExpiringSoon,
     sortBy,
     sortOrder,
   });
@@ -225,15 +240,44 @@ export function ProductGrid({ onEdit }: ProductGridProps) {
       },
       {
         id: 'actions',
+        header: () => <span className="sr-only">Actions</span>,
         cell: ({ row }) => (
-          <div className="flex items-center gap-1">
+          <div className="flex items-center gap-0.5">
             <Button
               variant="ghost"
               size="icon"
               className="h-6 w-6"
               onClick={() => onEdit?.(row.original)}
+              title="Edit product"
             >
               <Pencil className="h-3 w-3 text-muted-foreground" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-6 w-6"
+              onClick={() => setAddStockProduct(row.original)}
+              title="Add stock"
+            >
+              <PackagePlus className="h-3 w-3 text-green-600" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-6 w-6"
+              onClick={() => setAdjustStockProduct(row.original)}
+              title="Adjust stock"
+            >
+              <Scale className="h-3 w-3 text-orange-500" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-6 w-6"
+              onClick={() => setHistoryProduct(row.original)}
+              title="View history"
+            >
+              <Clock className="h-3 w-3 text-blue-600" />
             </Button>
           </div>
         ),
@@ -409,70 +453,47 @@ export function ProductGrid({ onEdit }: ProductGridProps) {
 
   return (
     <div className="space-y-4">
-      {/* Toolbar */}
-      {/* Toolbar */}
-      <div className="flex flex-col lg:flex-row items-center justify-between gap-4 bg-muted/30 p-4 rounded-lg border">
-        {/* Search - Full width on mobile/tablet, fixed on desktop */}
-        <div className="relative w-full lg:w-auto lg:flex-1 lg:max-w-sm">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Search name or SKU..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="pl-10 bg-background w-full"
-          />
-        </div>
-
-        {/* Filters - Grid on mobile, Flex on desktop */}
-        <div className="grid grid-cols-2 md:flex items-center gap-3 w-full lg:w-auto">
-          {/* Category Filter */}
-          <div className="col-span-1 md:w-auto">
-            <div className="flex items-center gap-2">
-              <Combobox
-                placeholder="All Categories"
-                options={categories.map((c) => ({ label: c.name, value: c.id }))}
-                value={categoryId}
-                onValueChange={setCategoryId}
-                className="w-full md:w-48"
-              />
-            </div>
-          </div>
-
-          {/* Status Filter */}
-          <div className="col-span-1 md:w-auto">
-            <Select value={status || 'all'} onValueChange={setStatus}>
-              <SelectTrigger className="w-full md:w-[130px] bg-background">
-                <SelectValue placeholder="Status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Status</SelectItem>
-                <SelectItem value="active">Active Only</SelectItem>
-                <SelectItem value="inactive">Inactive Only</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          {/* Action Buttons - Full row on small mobile, auto on larger */}
-          <div className="col-span-2 md:col-span-auto flex items-center gap-2 w-full md:w-auto mt-2 md:mt-0">
-            <Button
-              variant="outline"
-              className="flex-1 md:flex-none"
-              onClick={() => {
-                setSearch('');
-                setCategoryId(undefined);
-                setStatus(undefined);
-                setSortBy('updatedAt');
-                setSortOrder('desc');
-              }}
-            >
-              Reset
-            </Button>
-            <div className="flex-1 md:flex-none">
-              <ExportDialog />
-            </div>
-          </div>
-        </div>
-      </div>
+      <ProductGridToolbar
+        search={search}
+        onSearchChange={setSearch}
+        categoryId={categoryId}
+        onCategoryChange={setCategoryId}
+        status={status}
+        onStatusChange={setStatus}
+        isLowStock={isLowStock}
+        onLowStockToggle={(nextValue) => {
+          setIsLowStock(nextValue);
+          if (nextValue) {
+            setSortBy('stock');
+            setSortOrder('asc');
+            setIsExpiringSoon(false);
+          } else {
+            setSortBy('updatedAt');
+            setSortOrder('desc');
+          }
+        }}
+        isExpiringSoon={isExpiringSoon}
+        onExpiringSoonToggle={(nextValue) => {
+          setIsExpiringSoon(nextValue);
+          if (nextValue) {
+            setSortBy('expiryDate');
+            setSortOrder('asc');
+            setIsLowStock(false);
+          } else {
+            setSortBy('updatedAt');
+            setSortOrder('desc');
+          }
+        }}
+        onReset={() => {
+          setSearch('');
+          setCategoryId(undefined);
+          setStatus(undefined);
+          setIsLowStock(false);
+          setIsExpiringSoon(false);
+          setSortBy('updatedAt');
+          setSortOrder('desc');
+        }}
+      />
 
       {/* Grid */}
       <div className="rounded-md border bg-white dark:bg-zinc-950 shadow-sm overflow-hidden">
@@ -566,6 +587,25 @@ export function ProductGrid({ onEdit }: ProductGridProps) {
           </Button>
         </div>
       </div>
+
+      {/* Inventory Dialogs */}
+      <AddStockDialog
+        key={`add-${addStockProduct?.id}`}
+        product={addStockProduct}
+        open={!!addStockProduct}
+        onOpenChange={(open) => !open && setAddStockProduct(null)}
+      />
+      <AdjustStockDialog
+        key={`adjust-${adjustStockProduct?.id}`}
+        product={adjustStockProduct}
+        open={!!adjustStockProduct}
+        onOpenChange={(open) => !open && setAdjustStockProduct(null)}
+      />
+      <ProductHistoryModal
+        product={historyProduct}
+        open={!!historyProduct}
+        onOpenChange={(open) => !open && setHistoryProduct(null)}
+      />
     </div>
   );
 }
