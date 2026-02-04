@@ -8,7 +8,12 @@ import {
 } from '@algo/types';
 import { toast } from 'sonner';
 
-export function useProducts(filters: ProductQueryFilters) {
+export type UseProductsOptions = ProductQueryFilters & {
+  enabled?: boolean;
+};
+
+export function useProducts(options: UseProductsOptions = {}) {
+  const { enabled = true, ...filters } = options;
   const queryClient = useQueryClient();
 
   // Fetch paginated products
@@ -27,6 +32,8 @@ export function useProducts(filters: ProductQueryFilters) {
 
       return apiClient<PaginatedProductResponse>(`/products?${searchParams.toString()}`);
     },
+    enabled,
+    refetchOnMount: 'always', // ensure fresh data when mounting
   });
 
   // Mutation for updating a product
@@ -58,17 +65,48 @@ export function useProducts(filters: ProductQueryFilters) {
 
       return { previousProducts };
     },
-    onError: (err, variables, context) => {
+    onError: (err: any, variables, context) => {
       if (context?.previousProducts) {
         queryClient.setQueryData(['products', filters], context.previousProducts);
       }
-      toast.error('Failed to update product');
+      toast.error(err.message || 'Failed to update product');
     },
-    onSuccess: () => {
-      toast.success('Product updated');
+    onSuccess: (data) => {
+      toast.success('Product updated successfully');
     },
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ['products', filters] });
+    },
+  });
+
+  // Mutation: Create product
+  const createProductMutation = useMutation({
+    mutationFn: (data: unknown) =>
+      apiClient('/products', {
+        method: 'POST',
+        body: JSON.stringify(data),
+      }),
+    onSuccess: () => {
+      toast.success('Product created successfully');
+      queryClient.invalidateQueries({ queryKey: ['products'] });
+    },
+    onError: (error: Error) => {
+      toast.error(error.message || 'Failed to create product');
+    },
+  });
+
+  // Mutation: Delete product (soft delete)
+  const deleteProductMutation = useMutation({
+    mutationFn: (id: string) =>
+      apiClient(`/products/${id}`, {
+        method: 'DELETE',
+      }),
+    onSuccess: () => {
+      toast.success('Product deleted successfully');
+      queryClient.invalidateQueries({ queryKey: ['products'] });
+    },
+    onError: (error: Error) => {
+      toast.error(error.message || 'Failed to delete product');
     },
   });
 
@@ -77,8 +115,17 @@ export function useProducts(filters: ProductQueryFilters) {
     total: productsQuery.data?.total ?? 0,
     isLoading: productsQuery.isLoading,
     isError: productsQuery.isError,
+    refetch: productsQuery.refetch,
+
+    // Mutations
+    createProduct: createProductMutation.mutate,
+    isCreating: createProductMutation.isPending,
+
     updateProduct: updateProductMutation.mutate,
     isUpdating: updateProductMutation.isPending,
+
+    deleteProduct: deleteProductMutation.mutate,
+    isDeleting: deleteProductMutation.isPending,
   };
 }
 

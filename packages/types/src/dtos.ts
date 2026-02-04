@@ -97,11 +97,23 @@ export interface ProductWithCategoryDto {
   costPrice?: number;
   stock: number;
   uom?: string;
+  location?: string | null;
   isActive: boolean;
   expiryDate?: string | null;
+  mfgDate?: string | null;
   categoryId: string | null;
   category: CategoryDto | null;
   parentId?: string | null;
+  // New inventory fields
+  wholesalePrice?: number | null;
+  reorderPoint?: number | null;
+  safetyStock?: number | null;
+  // Metadata fields
+  supplier?: string | null;
+  brand?: string | null;
+  batchNo?: string | null;
+  // Timestamps
+  createdAt: string;
   updatedAt: string;
 }
 

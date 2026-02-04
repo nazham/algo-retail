@@ -35,6 +35,56 @@ interface SessionUser {
   tenantId?: string;
 }
 
+// ============= SESSION CACHE =============
+// Cache session to avoid duplicate getSession calls across parallel API requests
+// TTL of 30 seconds balances security with performance
+const SESSION_CACHE_TTL = 30_000; // 30 seconds
+
+interface CachedSession {
+  data: { session?: { token?: string }; user?: SessionUser } | null;
+  timestamp: number;
+}
+
+let sessionCache: CachedSession | null = null;
+let pendingSessionRequest: Promise<CachedSession['data']> | null = null;
+
+async function getCachedSession(): Promise<CachedSession['data']> {
+  const now = Date.now();
+
+  // Return cached session if still valid
+  if (sessionCache && now - sessionCache.timestamp < SESSION_CACHE_TTL) {
+    return sessionCache.data;
+  }
+
+  // If a request is already in flight, wait for it (deduplication)
+  if (pendingSessionRequest) {
+    return pendingSessionRequest;
+  }
+
+  // Fetch new session and cache it
+  pendingSessionRequest = authClient
+    .getSession()
+    .then((result) => {
+      sessionCache = {
+        data: result?.data ?? null,
+        timestamp: Date.now(),
+      };
+      return sessionCache.data;
+    })
+    .finally(() => {
+      pendingSessionRequest = null;
+    });
+
+  return pendingSessionRequest;
+}
+
+// Export for manual cache invalidation (e.g., after login/logout)
+export function invalidateSessionCache() {
+  sessionCache = null;
+  pendingSessionRequest = null;
+}
+// =========================================
+
 export async function apiClient<T>(endpoint: string, options: ApiClientOptions = {}): Promise<T> {
   const { headers, ...rest } = options;
   const baseUrl = getBaseUrl();
@@ -44,10 +94,10 @@ export async function apiClient<T>(endpoint: string, options: ApiClientOptions =
     ? endpoint
     : `${baseUrl}${endpoint.startsWith('/') ? '' : '/'}${endpoint}`;
 
-  // Get session token and user info if available
-  const session = await authClient.getSession();
-  const token = session?.data?.session?.token;
-  const user = session?.data?.user as SessionUser | undefined;
+  // Get session token and user info if available (using cached session)
+  const session = await getCachedSession();
+  const token = session?.session?.token;
+  const user = session?.user as SessionUser | undefined;
   const tenantId = user?.tenantId;
 
   // Prepare headers
@@ -77,7 +127,8 @@ export async function apiClient<T>(endpoint: string, options: ApiClientOptions =
       let errorMessage = 'An error occurred';
       try {
         const errorData = await response.json();
-        errorMessage = errorData.message || errorData.error || errorMessage;
+        const rawMessage = errorData.message || errorData.error || errorMessage;
+        errorMessage = Array.isArray(rawMessage) ? rawMessage.join(', ') : rawMessage;
       } catch (e) {
         errorMessage = response.statusText;
       }
