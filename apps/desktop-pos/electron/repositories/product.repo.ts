@@ -13,8 +13,11 @@ export class ProductRepository {
     });
   }
 
-  async bulkUpsert(products: any[]) {
-    if (products.length === 0) return;
+  async bulkUpsert(products: any[]): Promise<{ success: number; failed: number }> {
+    if (products.length === 0) return { success: 0, failed: 0 };
+
+    let success = 0;
+    let failed = 0;
 
     // OPTIMIZED STRATEGY: Try Fast Batch Transaction First
     try {
@@ -27,7 +30,15 @@ export class ProductRepository {
               sku: p.sku,
               price: p.price,
               stock: p.stock,
-              // We only sync Catalog details. Inventory is managed locally or via Order Deductions.
+              costPrice: p.costPrice,
+              wholesalePrice: p.wholesalePrice,
+              taxRate: p.taxRate,
+              uom: p.uom,
+              reorderPoint: p.reorderPoint,
+              location: p.location,
+              batchNo: p.batchNo,
+              expiryDate: p.expiryDate,
+              // We only sync Catalog details. Inventory is managed via Order Deductions.
               categoryId: p.categoryId || p.category || null,
               isActive: p.isActive,
               updatedAt: new Date(p.updatedAt),
@@ -38,6 +49,14 @@ export class ProductRepository {
                 name: sql`excluded.name` as any,
                 sku: sql`excluded.sku` as any,
                 price: sql`excluded.price` as any,
+                costPrice: sql`excluded.cost_price` as any,
+                wholesalePrice: sql`excluded.wholesale_price` as any,
+                taxRate: sql`excluded.tax_rate` as any,
+                uom: sql`excluded.uom` as any,
+                reorderPoint: sql`excluded.reorder_point` as any,
+                location: sql`excluded.location` as any,
+                batchNo: sql`excluded.batch_no` as any,
+                expiryDate: sql`excluded.expiry_date` as any,
                 // ✅ SMART STOCK SYNC:
                 // Local Stock = Cloud Stock (Source of Truth) - Pending Local Sales (Reality)
                 // This allows Web Admin stocktakes to propagate WITHOUT wiping out offline sales.
@@ -56,6 +75,9 @@ export class ProductRepository {
             .run();
         }
       }); // Execute transaction
+
+      // If transaction succeeds, all are successful
+      success = products.length;
     } catch (batchError) {
       console.warn('⚠️ Batch Sync Failed. Falling back to One-by-One...', batchError);
 
@@ -70,6 +92,14 @@ export class ProductRepository {
               sku: p.sku,
               price: p.price,
               stock: p.stock,
+              costPrice: p.costPrice,
+              wholesalePrice: p.wholesalePrice,
+              taxRate: p.taxRate,
+              uom: p.uom,
+              reorderPoint: p.reorderPoint,
+              location: p.location,
+              batchNo: p.batchNo,
+              expiryDate: p.expiryDate,
               categoryId: p.categoryId || p.category || null,
               isActive: p.isActive,
               updatedAt: new Date(p.updatedAt),
@@ -80,6 +110,14 @@ export class ProductRepository {
                 name: sql`excluded.name` as any,
                 sku: sql`excluded.sku` as any,
                 price: sql`excluded.price` as any,
+                costPrice: sql`excluded.cost_price` as any,
+                wholesalePrice: sql`excluded.wholesale_price` as any,
+                taxRate: sql`excluded.tax_rate` as any,
+                uom: sql`excluded.uom` as any,
+                reorderPoint: sql`excluded.reorder_point` as any,
+                location: sql`excluded.location` as any,
+                batchNo: sql`excluded.batch_no` as any,
+                expiryDate: sql`excluded.expiry_date` as any,
                 // ✅ SMART STOCK SYNC (Fallback):
                 stock: sql`excluded.current_stock - (
                   SELECT COALESCE(SUM(oi.quantity), 0)
@@ -94,10 +132,14 @@ export class ProductRepository {
               },
             })
             .run();
+          success++;
         } catch (singleError) {
           console.error(`❌ Failed to sync product ${p.sku} (${p.id})`, singleError);
+          failed++;
         }
       }
     }
+
+    return { success, failed };
   }
 }

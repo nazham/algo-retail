@@ -8,6 +8,7 @@ export class CreateOrderItemDto {
   productName!: string;
   quantity!: number;
   price!: number;
+  costPrice?: number;
 }
 
 export class CreateOrderDto {
@@ -22,6 +23,7 @@ export class CreateOrderDto {
   discountTotal!: number;
   grandTotal!: number;
   paymentMethod!: PaymentMethod;
+  status?: string; // 🟢 From Desktop (e.g., COMPLETED, REFUNDED)
   items!: CreateOrderItemDto[]; // Array of the class above
 }
 

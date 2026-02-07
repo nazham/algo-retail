@@ -4,6 +4,14 @@ import { randomUUID } from 'crypto';
 import { desc, eq, sql, and, gte, lte, like, or } from 'drizzle-orm';
 
 export class OrderRepository {
+  /**
+   * ⚠️ ARCHITECTURE NOTE:
+   * We use `as any` casting for schema columns because of a Version Skew between
+   * `better-sqlite3` v12.5.0 (App) and v12.6.0 (Shared Lib).
+   *
+   * This skew is INTENTIONAL to separate Electron (ABI 140) from Node CLI (ABI 127).
+   * DO NOT REMOVE THE CASTS unless you resolve the ABI conflict.
+   */
   constructor(private db: DB) {}
 
   // The main function can remain async (to match the Promise interface of the Repository)
@@ -31,6 +39,15 @@ export class OrderRepository {
 
       // B. Insert Items & Update Stock
       for (const item of data.items) {
+        // 1. Get current cost price snapshot
+        const product = tx
+          .select({ costPrice: schema.products.costPrice })
+          .from(schema.products)
+          .where(eq(schema.products.id as any, item.productId) as any)
+          .get();
+
+        const currentCost = product?.costPrice ?? 0;
+
         tx.insert(schema.orderItems)
           .values({
             id: randomUUID(),
@@ -39,15 +56,16 @@ export class OrderRepository {
             productName: item.productName,
             quantity: item.quantity,
             unitPrice: item.price,
+            costPrice: currentCost, // 🟢 SNAPSHOT
             subtotal: item.price * item.quantity,
           })
           .run();
 
         tx.update(schema.products)
           .set({
-            stock: sql`${schema.products.stock} - ${item.quantity}`,
+            stock: sql`${schema.products.stock} - ${item.quantity}` as any,
           })
-          .where(eq(schema.products.id, item.productId))
+          .where(eq(schema.products.id as any, item.productId) as any)
           .run();
       }
 
@@ -72,17 +90,17 @@ export class OrderRepository {
 
     if (filters?.startDate) {
       const startTimestamp = new Date(filters.startDate).getTime();
-      conditions.push(gte(schema.orders.createdAt, new Date(startTimestamp)));
+      conditions.push(gte(schema.orders.createdAt as any, new Date(startTimestamp)));
     }
 
     if (filters?.endDate) {
       // Don't add extra day - frontend already sends end of day timestamp
       const endTimestamp = new Date(filters.endDate).getTime();
-      conditions.push(lte(schema.orders.createdAt, new Date(endTimestamp)));
+      conditions.push(lte(schema.orders.createdAt as any, new Date(endTimestamp)));
     }
 
     if (filters?.status) {
-      conditions.push(eq(schema.orders.status, filters.status));
+      conditions.push(eq(schema.orders.status as any, filters.status));
     }
 
     if (filters?.searchTerm) {
@@ -91,22 +109,22 @@ export class OrderRepository {
 
       conditions.push(
         or(
-          like(schema.orders.orderNumber, searchPattern),
+          like(schema.orders.orderNumber as any, searchPattern),
           sql`EXISTS (
             SELECT 1 FROM order_items
             WHERE order_items.order_id = orders.id
             AND order_items.product_name LIKE ${searchPattern}
           )`,
-        )!,
+        )! as any,
       );
     }
 
     // Combine conditions with AND, or use undefined if no conditions
-    const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
+    const whereClause = conditions.length > 0 ? (and(...conditions) as any) : undefined;
 
     // Get total count for pagination
     const countQuery = this.db
-      .select({ count: sql<number>`cast(count(*) as integer)` })
+      .select({ count: sql<number>`cast(count(*) as integer)` as any })
       .from(schema.orders);
 
     if (whereClause) {
@@ -114,11 +132,13 @@ export class OrderRepository {
     }
 
     const countResult = countQuery.get();
-    const total = countResult?.count || 0;
+    // 🛡️ CAST SAFETY: better-sqlite3 may return BigInt or number depending on configuration.
+    // 'Number()' is safe here as order count will not exceed Number.MAX_SAFE_INTEGER (2^53).
+    const total = Number(countResult?.count || 0);
 
     // Get paginated data using query API
     const query: any = {
-      orderBy: [desc(schema.orders.createdAt)],
+      orderBy: [desc(schema.orders.createdAt as any)],
       limit,
       offset,
       with: {

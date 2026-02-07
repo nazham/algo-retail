@@ -26,8 +26,7 @@ export class TenantContextMiddleware implements NestMiddleware {
         const tenantId =
           user.tenantId ||
           (user.tenantIds && user.tenantIds[0]) ||
-          process.env.DEFAULT_TENANT_ID ||
-          '00000000-0000-0000-0000-000000000001';
+          process.env.DEFAULT_TENANT_ID;
 
         req['tenantId'] = tenantId;
       } else {

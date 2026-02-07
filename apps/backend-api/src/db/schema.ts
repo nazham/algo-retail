@@ -106,6 +106,7 @@ export const orders = pgTable('orders', {
   status: text('status').default('COMPLETED'),
 
   createdAt: timestamp('created_at').defaultNow(),
+  syncedAt: timestamp('synced_at'),
 });
 
 // 4. ORDER ITEMS

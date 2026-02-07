@@ -265,30 +265,53 @@ export class InventoryService {
     costPrice?: number,
     tx?: any, // Optional transaction object
   ) {
-    const dbOrTx = tx || this.db;
+    // 🛡️ ATOMICITY: Ensure we always have a transaction wrapper
+    const work = async (dbOrTx: any) => {
+      // Validate product exists and belongs to tenant
+      const [product] = await dbOrTx
+        .select({
+          id: schema.products.id,
+          stock: schema.products.stock,
+          costPrice: schema.products.costPrice,
+        })
+        .from(schema.products)
+        .where(
+          and(
+            eq(schema.products.id, productId),
+            eq(schema.products.tenantId, tenantId),
+          ),
+        )
+        .for('update'); // Lock row for atomic update
 
-    // Validate product exists and belongs to tenant
-    const [product] = await dbOrTx
-      .select({ id: schema.products.id })
-      .from(schema.products)
-      .where(
-        and(
-          eq(schema.products.id, productId),
-          eq(schema.products.tenantId, tenantId),
-        ),
-      );
+      if (!product) {
+        throw new NotFoundException(`Product ${productId} not found`);
+      }
 
-    if (!product) {
-      throw new NotFoundException(`Product ${productId} not found`);
+      // 1. Log the movement (Capture Cost Price Snapshot)
+      await dbOrTx.insert(schema.inventoryMovements).values({
+        tenantId,
+        productId,
+        type: 'SALE',
+        quantity: -Math.abs(quantity), // Always negative for sales
+        costPrice: costPrice ?? product.costPrice, // Use provided cost or fallback to product current cost
+        referenceId: orderId,
+      });
+
+      // 2. Decrement the stock
+      await dbOrTx
+        .update(schema.products)
+        .set({
+          stock: sql`${schema.products.stock} - ${Math.abs(quantity)}`,
+          updatedAt: new Date(),
+        })
+        .where(eq(schema.products.id, productId));
+    };
+
+    // Use provided transaction or start a new one
+    if (tx) {
+      return await work(tx);
+    } else {
+      return await this.db.transaction(work);
     }
-
-    await dbOrTx.insert(schema.inventoryMovements).values({
-      tenantId,
-      productId,
-      type: 'SALE',
-      quantity: -Math.abs(quantity), // Always negative for sales
-      costPrice,
-      referenceId: orderId,
-    });
   }
 }

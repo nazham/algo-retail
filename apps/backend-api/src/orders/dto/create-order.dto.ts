@@ -6,6 +6,7 @@ import {
   ValidateNested,
   Min,
   IsIn,
+  IsOptional,
 } from 'class-validator';
 import { Type } from 'class-transformer';
 
@@ -25,6 +26,10 @@ export class CreateOrderItemDto {
   @IsNumber()
   @Min(0)
   price!: number;
+
+  @IsNumber()
+  @Min(0)
+  costPrice?: number;
 }
 
 export class CreateOrderDto {
@@ -55,6 +60,10 @@ export class CreateOrderDto {
 
   @IsString()
   paymentMethod!: PaymentMethod;
+
+  @IsString()
+  @IsOptional()
+  status?: string;
 
   @ValidateNested({ each: true })
   @Type(() => CreateOrderItemDto)

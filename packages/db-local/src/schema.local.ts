@@ -65,6 +65,8 @@ export const orders = sqliteTable(
       .notNull()
       .default(sql`(unixepoch() * 1000)`),
     isSynced: integer('is_synced', { mode: 'boolean' }).default(false),
+    retryCount: integer('retry_count').default(0),
+    syncError: text('sync_error'),
   },
   (table) => ({
     isSyncedIdx: index('idx_orders_is_synced').on(table.isSynced),
@@ -87,6 +89,7 @@ export const orderItems = sqliteTable(
     productName: text('product_name').notNull(),
     quantity: real('quantity').notNull(),
     unitPrice: integer('unit_price').notNull(),
+    costPrice: integer('cost_price').default(0),
     subtotal: integer('subtotal').notNull(),
   },
   (table) => ({

@@ -1,7 +1,7 @@
 import { CategoryRepository } from '../repositories/category.repo';
 import { ProductRepository } from '../repositories/product.repo';
 import { SyncRepository } from '../repositories/sync.repo';
-import { CreateOrderDto, PaymentMethod } from '@algo/types';
+import { CreateOrderDto, OrderResultDto, PaymentMethod } from '@algo/types';
 
 export class SyncService {
   private isRunning = false;
@@ -22,7 +22,15 @@ export class SyncService {
   ) {
     this.apiUrl = process.env.API_URL || 'http://localhost:8080';
     this.apiKey = process.env.API_KEY || '';
-    this.tenantId = process.env.TENANT_ID || '00000000-0000-0000-0000-000000000001';
+
+    // 🛡️ SECURITY: Fail fast if Tenant ID is missing
+    const envTenantId = process.env.TENANT_ID;
+    if (!envTenantId) {
+      throw new Error(
+        'FATAL: TENANT_ID is missing from environment variables. Cannot start SyncService.',
+      );
+    }
+    this.tenantId = envTenantId;
   }
 
   private notify(state: 'IDLE' | 'SYNCING' | 'ERROR' | 'OFFLINE', message?: string) {
@@ -201,38 +209,61 @@ export class SyncService {
     }
 
     console.log(`📤 Sync Worker: Uploading ${pendingOrders.length} orders...`);
+
+    // Batch processing (Chunk size = 5)
+    const chunkSize = 5;
     const successfulIds: string[] = [];
 
-    for (const order of pendingOrders) {
-      const payload: CreateOrderDto = {
-        subtotal: order.subtotal ?? 0,
-        taxTotal: order.taxTotal ?? 0,
-        discountTotal: order.discountTotal ?? 0,
-        grandTotal: order.grandTotal ?? 0,
-        // Map items safely
-        items: order.items.map((i) => ({
-          productId: i.productId,
-          productName: i.productName,
-          quantity: i.quantity,
-          price: i.unitPrice ?? 0,
-        })),
-        id: order.id,
-        orderNumber: order.orderNumber,
-        createdAt: new Date(order.createdAt).toISOString(),
-        paymentMethod: (order.paymentMethod as PaymentMethod) || 'CASH',
-      };
+    for (let i = 0; i < pendingOrders.length; i += chunkSize) {
+      const chunk = pendingOrders.slice(i, i + chunkSize);
 
-      // Use Helper (POST)
-      try {
-        await this.request<any>('/orders', {
-          method: 'POST',
-          body: JSON.stringify(payload),
-        });
-        successfulIds.push(order.id);
-        console.log(`   -> Uploaded Order ${order.orderNumber}`);
-      } catch (err) {
-        console.error(`❌ Failed to sync order ${order.orderNumber}:`, err);
-        // Continue with next order instead of blocking the whole loop
+      const results = await Promise.allSettled(
+        chunk.map(async (order) => {
+          const payload: CreateOrderDto = {
+            subtotal: order.subtotal ?? 0,
+            taxTotal: order.taxTotal ?? 0,
+            discountTotal: order.discountTotal ?? 0,
+            grandTotal: order.grandTotal ?? 0,
+            // Map items safely
+            items: order.items.map((i) => ({
+              productId: i.productId,
+              productName: i.productName,
+              quantity: i.quantity,
+              price: i.unitPrice ?? 0,
+              costPrice: i.costPrice ?? 0, // 🟢 Transmit Snapshot
+            })),
+            id: order.id,
+            orderNumber: order.orderNumber,
+            createdAt: new Date(order.createdAt).toISOString(),
+            paymentMethod: (order.paymentMethod as PaymentMethod) || 'CASH',
+            status: order.status || 'COMPLETED', // 🟢 Pass status to backend
+          };
+
+          // Use Helper (POST)
+          await this.request<OrderResultDto>('/orders', {
+            method: 'POST',
+            body: JSON.stringify(payload),
+          });
+
+          return order.id;
+        }),
+      );
+
+      // Process batch results
+      for (let j = 0; j < results.length; j++) {
+        const result = results[j];
+        const order = chunk[j];
+
+        if (result.status === 'fulfilled') {
+          successfulIds.push(result.value);
+          console.log(`   -> Uploaded Order ${order.orderNumber}`);
+        } else {
+          console.error(`❌ Failed to sync order ${order.orderNumber}:`, result.reason);
+          await this.repo.incrementRetryCount(
+            order.id,
+            result.reason instanceof Error ? result.reason.message : String(result.reason),
+          );
+        }
       }
     }
 
@@ -277,9 +308,17 @@ export class SyncService {
       // 1. Process Items
       if (items && items.length > 0) {
         console.log(`📥 Received ${items.length} product updates.`);
-        await this.productRepo.bulkUpsert(items);
+        const { success, failed } = await this.productRepo.bulkUpsert(items);
 
-        if (serverTime) this.lastPulse = serverTime;
+        console.log(`   -> Synced: ${success}, Failed: ${failed}`);
+
+        if (failed > 0) {
+          console.warn(`⚠️ Partial Sync Failure (${failed} items). NOT advancing cursor.`);
+          // Do NOT update lastPulse, so we retry fetching these items next time
+        } else if (serverTime) {
+          this.lastPulse = serverTime;
+        }
+
         return items;
       }
 
