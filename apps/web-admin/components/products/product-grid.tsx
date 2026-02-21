@@ -173,6 +173,8 @@ interface ProductGridProps {
   onEdit?: (product: ProductWithCategoryDto) => void;
 }
 
+const PAGE_SIZE = 20;
+
 export function ProductGrid({ onEdit }: ProductGridProps) {
   const [page, setPage] = React.useState(1);
   const [search, setSearch] = React.useState('');
@@ -199,7 +201,7 @@ export function ProductGrid({ onEdit }: ProductGridProps) {
 
   const { products, total, isLoading, updateProduct } = useProducts({
     page,
-    limit: 20,
+    limit: PAGE_SIZE,
     search: debouncedSearch,
     categoryId: categoryId === 'all' ? undefined : categoryId,
     isActive: status === 'active' ? true : status === 'inactive' ? false : undefined,
@@ -580,7 +582,7 @@ export function ProductGrid({ onEdit }: ProductGridProps) {
             variant="outline"
             size="sm"
             onClick={() => setPage((p) => p + 1)}
-            disabled={page * 20 >= total || isLoading}
+            disabled={page * PAGE_SIZE >= total || isLoading}
             className="h-8"
           >
             Next

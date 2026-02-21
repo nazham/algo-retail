@@ -53,7 +53,7 @@ export function ProductHistoryModal({ product, open, onOpenChange }: ProductHist
 
             <div className="flex-1 overflow-hidden">
               <TabsContent value="inventory" className="mt-0 h-full overflow-y-auto">
-                <ProductHistoryTab productId={product.id} />
+                <ProductHistoryTab productId={product.id} currentStock={product.stock} />
               </TabsContent>
 
               <TabsContent value="audit" className="mt-0 h-full overflow-y-auto">

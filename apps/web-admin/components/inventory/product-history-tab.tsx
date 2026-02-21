@@ -2,7 +2,7 @@
 
 import { useProductMovements, InventoryMovement } from '@/hooks/use-inventory';
 import { format } from 'date-fns';
-
+import Link from 'next/link';
 import {
   Table,
   TableBody,
@@ -15,10 +15,12 @@ import { Badge } from '@repo/ui/components/ui/badge';
 import { Button } from '@repo/ui/components/ui/button';
 import { Loader2, Package, ArrowUp, ArrowDown } from 'lucide-react';
 import { cn } from '@repo/ui/lib/utils';
+import { formatCurrency } from '@/lib/utils';
 import { useState } from 'react';
 
 interface ProductHistoryTabProps {
   productId: string;
+  currentStock: number;
 }
 
 const MOVEMENT_TYPE_CONFIG = {
@@ -36,7 +38,7 @@ const REASON_LABELS: Record<string, string> = {
   OTHER: 'Other',
 };
 
-export function ProductHistoryTab({ productId }: ProductHistoryTabProps) {
+export function ProductHistoryTab({ productId, currentStock }: ProductHistoryTabProps) {
   const [page, setPage] = useState(1);
   const { data, isLoading } = useProductMovements(productId, { page, limit: 10 });
 
@@ -62,12 +64,19 @@ export function ProductHistoryTab({ productId }: ProductHistoryTabProps) {
 
   return (
     <div className="space-y-4">
+      {/* Header Stat */}
+      <div className="bg-muted/30 p-3 rounded-md border flex items-center justify-between">
+        <span className="text-sm font-medium text-muted-foreground">Current Stock Level</span>
+        <span className="text-lg font-bold">{currentStock}</span>
+      </div>
+
       <Table>
         <TableHeader>
           <TableRow>
             <TableHead className="w-[140px]">Date</TableHead>
             <TableHead>Type</TableHead>
             <TableHead className="text-right">Change</TableHead>
+            <TableHead className="text-right">Cost Price</TableHead>
             <TableHead>Reason / Reference</TableHead>
             <TableHead>User</TableHead>
           </TableRow>
@@ -98,12 +107,23 @@ export function ProductHistoryTab({ productId }: ProductHistoryTabProps) {
                     {movement.quantity}
                   </span>
                 </TableCell>
+                <TableCell className="text-right text-xs">
+                  {movement.costPrice ? formatCurrency(movement.costPrice) : '-'}
+                </TableCell>
                 <TableCell className="text-sm">
                   {movement.type === 'ADJUSTMENT' && movement.reason ? (
                     REASON_LABELS[movement.reason] || movement.reason
+                  ) : movement.type === 'SALE' && movement.referenceId ? (
+                    <Link
+                      href={`/dashboard/orders?search=${movement.orderNumber || ''}`}
+                      className="text-primary hover:underline font-mono text-xs inline-flex items-center gap-1"
+                      target="_blank"
+                    >
+                      {movement.orderNumber || 'View Order'}
+                    </Link>
                   ) : movement.referenceId ? (
                     <span className="text-muted-foreground font-mono text-xs">
-                      Order #{movement.referenceId.slice(0, 8)}
+                      #{movement.referenceId.slice(0, 8)}
                     </span>
                   ) : movement.remarks ? (
                     <span className="text-muted-foreground">{movement.remarks}</span>
@@ -121,31 +141,29 @@ export function ProductHistoryTab({ productId }: ProductHistoryTabProps) {
       </Table>
 
       {/* Pagination */}
-      {totalPages > 1 && (
-        <div className="flex items-center justify-between pt-2">
-          <span className="text-xs text-muted-foreground">
-            Page {page} of {totalPages} ({data.total} total)
-          </span>
-          <div className="flex gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setPage((p) => Math.max(1, p - 1))}
-              disabled={page === 1}
-            >
-              Previous
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setPage((p) => p + 1)}
-              disabled={page >= totalPages}
-            >
-              Next
-            </Button>
-          </div>
+      <div className="flex items-center justify-between pt-2">
+        <span className="text-xs text-muted-foreground">
+          Page {page} of {Math.max(1, totalPages)} ({data.total} total)
+        </span>
+        <div className="flex gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setPage((p) => Math.max(1, p - 1))}
+            disabled={page === 1}
+          >
+            Previous
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setPage((p) => p + 1)}
+            disabled={page >= totalPages}
+          >
+            Next
+          </Button>
         </div>
-      )}
+      </div>
     </div>
   );
 }
