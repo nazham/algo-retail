@@ -9,6 +9,10 @@ import {
   MovementsQueryDto,
 } from './dto/inventory.dto';
 
+type Tx = Parameters<
+  Parameters<NodePgDatabase<typeof schema>['transaction']>[0]
+>[0];
+
 @Injectable()
 export class InventoryService {
   constructor(
@@ -62,7 +66,7 @@ export class InventoryService {
 
       // 3. Update product stock and cost price (Atomic Increment)
       const updateData: Record<string, unknown> = {
-        stock: sql`${schema.products.stock} + ${data.quantity}`,
+        stock: sql`ROUND((${schema.products.stock} + ${data.quantity})::numeric, 2)`,
         updatedAt: new Date(),
       };
 
@@ -216,12 +220,17 @@ export class InventoryService {
         referenceId: schema.inventoryMovements.referenceId,
         userId: schema.inventoryMovements.userId,
         userName: schema.user.name,
+        orderNumber: schema.orders.orderNumber,
         createdAt: schema.inventoryMovements.createdAt,
       })
       .from(schema.inventoryMovements)
       .leftJoin(
         schema.user,
         eq(schema.inventoryMovements.userId, schema.user.id),
+      )
+      .leftJoin(
+        schema.orders,
+        eq(schema.inventoryMovements.referenceId, schema.orders.id), // Join orders on referenceId
       )
       .where(
         and(
@@ -263,10 +272,10 @@ export class InventoryService {
     quantity: number,
     orderId: string,
     costPrice?: number,
-    tx?: any, // Optional transaction object
+    tx?: Tx, // Optional transaction object
   ) {
     // 🛡️ ATOMICITY: Ensure we always have a transaction wrapper
-    const work = async (dbOrTx: any) => {
+    const work = async (dbOrTx: Tx | NodePgDatabase<typeof schema>) => {
       // Validate product exists and belongs to tenant
       const [product] = await dbOrTx
         .select({
@@ -301,7 +310,7 @@ export class InventoryService {
       await dbOrTx
         .update(schema.products)
         .set({
-          stock: sql`${schema.products.stock} - ${Math.abs(quantity)}`,
+          stock: sql`ROUND((${schema.products.stock} - ${Math.abs(quantity)})::numeric, 2)`,
           updatedAt: new Date(),
         })
         .where(eq(schema.products.id, productId));

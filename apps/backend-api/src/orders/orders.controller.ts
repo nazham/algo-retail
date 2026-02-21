@@ -1,20 +1,38 @@
-import { Controller, Post, Body, Get, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Body,
+  Get,
+  UseGuards,
+  Query,
+  Param,
+} from '@nestjs/common';
+import { GetOrdersDto } from './dto/get-orders.dto';
 import { OrdersService } from './orders.service';
 import { CreateOrderDto } from './dto/create-order.dto';
-import { ApiKeyGuard } from 'src/auth/api-key.guard';
+import { UniversalAuthGuard } from 'src/auth/universal-auth.guard';
+import { CurrentTenant } from 'src/auth/current-tenant.decorator';
 
 @Controller('orders')
-@UseGuards(ApiKeyGuard)
+@UseGuards(UniversalAuthGuard)
 export class OrdersController {
   constructor(private readonly ordersService: OrdersService) {}
 
   @Post()
-  create(@Body() createOrderDto: CreateOrderDto) {
-    return this.ordersService.create(createOrderDto);
+  create(
+    @CurrentTenant() tenantId: string,
+    @Body() createOrderDto: CreateOrderDto,
+  ) {
+    return this.ordersService.create(tenantId, createOrderDto);
   }
 
   @Get()
-  findAll() {
-    return this.ordersService.findAll();
+  findAll(@CurrentTenant() tenantId: string, @Query() query: GetOrdersDto) {
+    return this.ordersService.findAll(tenantId, query);
+  }
+
+  @Get(':id')
+  findOne(@CurrentTenant() tenantId: string, @Param('id') id: string) {
+    return this.ordersService.findOne(tenantId, id);
   }
 }

@@ -1,5 +1,16 @@
 // packages/types/src/dtos.ts
 
+export const ORDER_STATUSES = ['COMPLETED', 'REFUNDED', 'PENDING', 'CANCELLED'] as const;
+export type OrderStatusType = (typeof ORDER_STATUSES)[number];
+
+// Standard Enum for class-validator and frontend form usage
+export enum OrderStatus {
+  COMPLETED = 'COMPLETED',
+  REFUNDED = 'REFUNDED',
+  PENDING = 'PENDING',
+  CANCELLED = 'CANCELLED',
+}
+
 // Payment Method Type
 export type PaymentMethod = 'CASH' | 'BANK_TRANSFER' | 'CARD';
 
@@ -47,7 +58,7 @@ export interface OrderDto {
   discountTotal: number;
   grandTotal: number;
   paymentMethod: string;
-  status: string;
+  status: OrderStatusType;
   createdAt: string;
   items: OrderItemDto[];
 }
@@ -151,10 +162,10 @@ export interface UpdateProductRequest {
 export interface OrderFilters {
   page?: number;
   limit?: number;
-  startDate?: string; // ISO date string
-  endDate?: string; // ISO date string
-  status?: string;
-  searchTerm?: string; // For order number search
+  from?: string; // ISO date string
+  to?: string; // ISO date string
+  status?: OrderStatusType;
+  search?: string; // For order number search
 }
 
 export interface PaginatedOrderResponse {

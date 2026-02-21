@@ -143,8 +143,19 @@ export class AuditService {
     }
 
     return await this.db
-      .select()
+      .select({
+        id: schema.auditLogs.id,
+        tenantId: schema.auditLogs.tenantId,
+        userId: schema.auditLogs.userId,
+        entityType: schema.auditLogs.entityType,
+        entityId: schema.auditLogs.entityId,
+        action: schema.auditLogs.action,
+        payload: schema.auditLogs.payload,
+        createdAt: schema.auditLogs.createdAt,
+        userName: schema.user.name, // Select userName
+      })
       .from(schema.auditLogs)
+      .leftJoin(schema.user, eq(schema.auditLogs.userId, schema.user.id)) // Join user table
       .where(and(...filters))
       .orderBy(desc(schema.auditLogs.createdAt))
       .limit(limit)
