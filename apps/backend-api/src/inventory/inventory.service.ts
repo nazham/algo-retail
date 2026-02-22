@@ -230,7 +230,10 @@ export class InventoryService {
       )
       .leftJoin(
         schema.orders,
-        eq(schema.inventoryMovements.referenceId, schema.orders.id), // Join orders on referenceId
+        and(
+          eq(schema.inventoryMovements.referenceId, schema.orders.id), // Join orders on referenceId
+          eq(schema.inventoryMovements.type, 'SALE'), // Safety: only join for sales
+        ),
       )
       .where(
         and(
@@ -313,7 +316,12 @@ export class InventoryService {
           stock: sql`ROUND((${schema.products.stock} - ${Math.abs(quantity)})::numeric, 2)`,
           updatedAt: new Date(),
         })
-        .where(eq(schema.products.id, productId));
+        .where(
+          and(
+            eq(schema.products.id, productId),
+            eq(schema.products.tenantId, tenantId),
+          ),
+        );
     };
 
     // Use provided transaction or start a new one

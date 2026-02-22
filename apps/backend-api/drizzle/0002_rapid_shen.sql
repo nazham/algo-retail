@@ -1,3 +1,0 @@
--- CREATE TYPE "public"."order_status" AS ENUM('COMPLETED', 'REFUNDED', 'PENDING', 'CANCELLED');--> statement-breakpoint
-ALTER TABLE "orders" ALTER COLUMN "status" SET DEFAULT 'COMPLETED'::"public"."order_status";--> statement-breakpoint
-ALTER TABLE "orders" ALTER COLUMN "status" SET DATA TYPE "public"."order_status" USING (CASE WHEN "status"::text IN ('COMPLETED', 'REFUNDED', 'PENDING', 'CANCELLED') THEN "status"::"public"."order_status" ELSE 'COMPLETED'::"public"."order_status" END);

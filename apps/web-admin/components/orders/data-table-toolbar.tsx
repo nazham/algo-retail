@@ -1,6 +1,5 @@
 'use client';
 
-import { Table } from '@tanstack/react-table';
 import { X } from 'lucide-react';
 
 import { Button } from '@repo/ui/components/ui/button';
@@ -17,7 +16,6 @@ import { DateRange } from 'react-day-picker';
 import { DatePickerWithRange } from '../ui/date-range-picker';
 
 interface DataTableToolbarProps<TData> {
-  table?: Table<TData>;
   search: string;
   onSearchChange: (value: string) => void;
   date: DateRange | undefined;
@@ -28,7 +26,6 @@ interface DataTableToolbarProps<TData> {
 }
 
 export function DataTableToolbar<TData>({
-  table, // Not strictly used for now as filters are external
   search,
   onSearchChange,
   date,

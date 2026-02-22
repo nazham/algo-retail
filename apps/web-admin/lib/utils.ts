@@ -5,7 +5,7 @@
 export const formatCurrency = (amountInCents: number) => {
   return (
     'Rs. ' +
-    ((amountInCents || 0) / 100).toLocaleString('en-US', {
+    ((amountInCents || 0) / 100).toLocaleString('en-IN', {
       minimumFractionDigits: 2,
       maximumFractionDigits: 2,
     })

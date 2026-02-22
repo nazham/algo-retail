@@ -55,7 +55,10 @@ export class OrdersService {
     }
     // 1. Idempotency Check: Does this Order ID already exist?
     const existing = await this.db.query.orders.findFirst({
-      where: eq(schema.orders.id, dto.id),
+      where: and(
+        eq(schema.orders.id, dto.id),
+        eq(schema.orders.tenantId, tenantId),
+      ),
     });
 
     if (existing) {
@@ -145,8 +148,8 @@ export class OrdersService {
         items: order.items.map((item) => ({
           ...item,
         })),
-        status: (order.status as OrderStatusType) || 'COMPLETED',
-        paymentMethod: order.paymentMethod || 'CASH', // Fallback
+        status: order.status || 'COMPLETED',
+        paymentMethod: order.paymentMethod || 'CASH',
       })),
       total,
       page,

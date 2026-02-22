@@ -33,7 +33,6 @@ export function useOrder(id: string | null) {
   return useQuery({
     queryKey: ['order', id],
     queryFn: () => {
-      if (!id) return null;
       return apiClient<OrderDto>(`/orders/${id}`);
     },
     enabled: !!id,

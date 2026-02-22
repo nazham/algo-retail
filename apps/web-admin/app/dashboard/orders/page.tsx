@@ -50,6 +50,14 @@ export default function OrdersPage() {
     return () => clearTimeout(timer);
   }, [search]);
 
+  React.useEffect(() => {
+    if (from && to) {
+      setDate({ from: new Date(from), to: new Date(to) });
+    } else if (!from && !to) {
+      setDate(undefined);
+    }
+  }, [from, to]);
+
   // Sync Date to URL
   React.useEffect(() => {
     if (date?.from && date?.to) {

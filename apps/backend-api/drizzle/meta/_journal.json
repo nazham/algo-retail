@@ -12,15 +12,8 @@
     {
       "idx": 1,
       "version": "7",
-      "when": 1770440350122,
-      "tag": "0001_reflective_riptide",
-      "breakpoints": true
-    },
-    {
-      "idx": 2,
-      "version": "7",
-      "when": 1770557960790,
-      "tag": "0002_rapid_shen",
+      "when": 1771755202702,
+      "tag": "0001_salty_quicksilver",
       "breakpoints": true
     }
   ]

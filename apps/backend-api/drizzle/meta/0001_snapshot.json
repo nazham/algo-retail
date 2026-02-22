@@ -1,5 +1,5 @@
 {
-  "id": "3ff96089-3bef-48df-a583-89a0f3f1056c",
+  "id": "84440dda-b194-4e9a-8b91-aed5ff522651",
   "prevId": "bb77d786-9ae1-49de-9259-456205772297",
   "version": "7",
   "dialect": "postgresql",
@@ -519,7 +519,8 @@
         },
         "status": {
           "name": "status",
-          "type": "text",
+          "type": "order_status",
+          "typeSchema": "public",
           "primaryKey": false,
           "notNull": false,
           "default": "'COMPLETED'"
@@ -1142,6 +1143,11 @@
       "name": "movement_type",
       "schema": "public",
       "values": ["PURCHASE", "SALE", "RETURN", "ADJUSTMENT"]
+    },
+    "public.order_status": {
+      "name": "order_status",
+      "schema": "public",
+      "values": ["COMPLETED", "REFUNDED", "PENDING", "CANCELLED"]
     }
   },
   "schemas": {},
