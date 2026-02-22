@@ -9,6 +9,7 @@ import { AuthModule } from './auth/auth.module';
 import { CategoriesModule } from './categories/categories.module';
 import { InventoryModule } from './inventory/inventory.module';
 import { AuditModule } from './audit/audit.module';
+import { TenantsModule } from './tenants/tenants.module';
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { AuditModule } from './audit/audit.module';
     CategoriesModule,
     InventoryModule,
     AuditModule,
+    TenantsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

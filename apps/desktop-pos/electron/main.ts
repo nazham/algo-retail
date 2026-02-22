@@ -89,6 +89,11 @@ syncService.onUpdates = (stats) => {
     win.webContents.send('sync:updates-available', stats);
   }
 };
+syncService.onConfigUpdate = (config) => {
+  if (win) {
+    win.webContents.send('sync:config-updated', config);
+  }
+};
 
 // Handler for Manual Trigger
 ipcMain.handle('sync:trigger-manual', async () => {
@@ -103,7 +108,7 @@ registerCategoryHandlers(categoryRepo);
 registerOrderHandlers(orderRepo);
 registerUserHandlers(userRepo);
 registerPrintHandlers();
-registerConfigHandlers();
+registerConfigHandlers(syncService);
 registerReportHandlers(reportService);
 
 // 5. Start the Sync Loop (Every 60 Seconds)

@@ -32,7 +32,20 @@ export async function middleware(request: NextRequest) {
     }
   }
 
-  // 2. /waitlist page: If user is NOT waitlisted (e.g., admin), redirect to dashboard
+  // 2. Protect /onboarding route
+  if (pathname === '/onboarding') {
+    // No session -> redirect to login
+    if (!hasSession) {
+      return NextResponse.redirect(new URL('/login', request.url));
+    }
+
+    // Waitlisted users can't onboard
+    if (authRole === 'waitlist') {
+      return NextResponse.redirect(new URL('/waitlist', request.url));
+    }
+  }
+
+  // 3. /waitlist page: If user is NOT waitlisted (e.g., admin), redirect to dashboard
   if (pathname === '/waitlist') {
     if (hasSession && authRole && authRole !== 'waitlist') {
       return NextResponse.redirect(new URL('/dashboard', request.url));
@@ -43,5 +56,5 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/dashboard/:path*', '/waitlist'],
+  matcher: ['/dashboard/:path*', '/waitlist', '/onboarding'],
 };

@@ -5,9 +5,6 @@ type ApiClientOptions = RequestInit & {
   // Add any custom options here if needed
 };
 
-// MVP: Hardcoded tenant ID until auth is fully multi-tenant
-// In production this will be extracted from the user's session
-
 function getBaseUrl() {
   // 🟢 Client-side: Proxy through Next.js to attach cookies
   if (typeof window !== 'undefined') {
@@ -104,8 +101,7 @@ export async function apiClient<T>(endpoint: string, options: ApiClientOptions =
   const defaultHeaders: HeadersInit = {
     // 'Content-Type': 'application/json', // Let browser set content-type for FormData
     ...(token ? { Authorization: `Bearer ${token}` } : {}),
-    // Use dynamic Tenant ID if available, otherwise fallback (or fail if strict)
-    // Falling back to the MVP ID only if we really must, but usually we want to respect the user's tenant
+    // Use dynamic Tenant ID from session
     ...(tenantId ? { 'X-Tenant-ID': tenantId } : {}),
     ...headers,
   } as HeadersInit;

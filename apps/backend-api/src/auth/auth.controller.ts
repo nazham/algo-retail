@@ -1,5 +1,5 @@
 import { Controller, All, Req, Res } from '@nestjs/common';
-import { auth } from './auth'; // Import the instance from auth.ts
+import { auth } from './auth.config'; // Unified auth config
 import { toNodeHandler } from 'better-auth/node';
 
 @Controller('api/auth')

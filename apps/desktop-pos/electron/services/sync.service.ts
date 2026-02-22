@@ -15,6 +15,8 @@ export class SyncService {
     message?: string,
   ) => void;
 
+  public onConfigUpdate?: (config: any) => void;
+
   constructor(
     private repo: SyncRepository,
     private productRepo: ProductRepository,
@@ -96,6 +98,9 @@ export class SyncService {
         stats.products = changedItems.length;
         stats.changedProducts = changedItems;
       }
+
+      // Pull tenant config from server
+      await this.pullConfig();
 
       if (stats.orders > 0 || stats.categories > 0 || stats.products > 0) {
         this.hasRecentActivity = true;
@@ -328,5 +333,39 @@ export class SyncService {
       }
     }
     return [];
+  }
+
+  /**
+   * Pull tenant config from server and notify renderer.
+   */
+  private async pullConfig(): Promise<void> {
+    try {
+      const data = await this.request<{ tenant: { config: any } | null }>('/tenants/me');
+
+      if (data?.tenant?.config && this.onConfigUpdate) {
+        this.onConfigUpdate(data.tenant.config);
+      }
+    } catch (error) {
+      // Config pull is non-critical — don't break the sync cycle
+      console.warn('⚠️ Failed to pull tenant config:', error);
+    }
+  }
+
+  /**
+   * Push local config to server.
+   * Called via IPC from renderer when user saves settings.
+   */
+  async pushConfig(config: any): Promise<boolean> {
+    try {
+      await this.request('/tenants/config', {
+        method: 'PATCH',
+        body: JSON.stringify(config),
+      });
+      console.log('✅ Config pushed to server successfully.');
+      return true;
+    } catch (error) {
+      console.error('❌ Failed to push config to server:', error);
+      return false;
+    }
   }
 }
