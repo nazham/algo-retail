@@ -76,10 +76,10 @@ export class OrderRepository {
   async findAll(filters?: {
     page?: number;
     limit?: number;
-    startDate?: string;
-    endDate?: string;
+    from?: string;
+    to?: string;
     status?: string;
-    searchTerm?: string;
+    search?: string;
   }) {
     const page = filters?.page || 1;
     const limit = filters?.limit || 10;
@@ -88,14 +88,14 @@ export class OrderRepository {
     // Build where conditions array
     const conditions = [];
 
-    if (filters?.startDate) {
-      const startTimestamp = new Date(filters.startDate).getTime();
+    if (filters?.from) {
+      const startTimestamp = new Date(filters.from).getTime();
       conditions.push(gte(schema.orders.createdAt as any, new Date(startTimestamp)));
     }
 
-    if (filters?.endDate) {
+    if (filters?.to) {
       // Don't add extra day - frontend already sends end of day timestamp
-      const endTimestamp = new Date(filters.endDate).getTime();
+      const endTimestamp = new Date(filters.to).getTime();
       conditions.push(lte(schema.orders.createdAt as any, new Date(endTimestamp)));
     }
 
@@ -103,9 +103,9 @@ export class OrderRepository {
       conditions.push(eq(schema.orders.status as any, filters.status));
     }
 
-    if (filters?.searchTerm) {
+    if (filters?.search) {
       // Search across order number AND product names in order items
-      const searchPattern = `%${filters.searchTerm}%`;
+      const searchPattern = `%${filters.search}%`;
 
       conditions.push(
         or(
