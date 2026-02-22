@@ -6,6 +6,7 @@ import { Loader2, History, User } from 'lucide-react';
 import { ScrollArea } from '@repo/ui/components/ui/scroll-area';
 import { Button } from '@repo/ui/components/ui/button';
 import { cn } from '@repo/ui/lib/utils';
+import { formatCurrency } from '@/lib/utils';
 import { useState } from 'react';
 
 interface ProductAuditTabProps {
@@ -53,7 +54,7 @@ export function ProductAuditTab({ productId }: ProductAuditTabProps) {
                   <div className="flex items-center gap-2 text-sm font-semibold">
                     <span className="capitalize">{log.action.toLowerCase()}d</span>
                     <span className="text-xs font-normal text-muted-foreground flex items-center gap-1">
-                      <User className="h-3 w-3" /> {log.userName || 'System'}
+                      <User className="h-3 w-3" /> {log.userName || log.userId || 'System'}
                     </span>
                   </div>
                   <time className="text-[10px] text-muted-foreground">
@@ -129,7 +130,7 @@ function formatValue(field: string, value: any): string {
   // Format prices (assuming fields containing 'price' or 'Price' are cents)
   if (field.toLowerCase().includes('price')) {
     const val = typeof value === 'string' ? parseFloat(value) : value;
-    return `Rs ${(val / 100).toFixed(2)}`;
+    return formatCurrency(val);
   }
 
   // Handle Dates

@@ -55,3 +55,4 @@ coverage
 !.vscode/extensions.json
 !.vscode/launch.json
 .idea
+packages/db-local/tsconfig.tsbuildinfo

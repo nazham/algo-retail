@@ -41,6 +41,12 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       return;
     }
 
+    // Guard: If user has no tenant, redirect to onboarding
+    if (!user?.tenantId) {
+      router.replace('/onboarding');
+      return;
+    }
+
     setIsAuthorized(true);
   }, [session, isPending, router]);
 

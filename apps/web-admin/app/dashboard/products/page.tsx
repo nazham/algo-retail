@@ -4,8 +4,9 @@ import { useState } from 'react';
 import { ProductGrid } from '@/components/products/product-grid';
 import { ProductFormDialog } from '@/components/products/product-form-dialog';
 import { Button } from '@repo/ui/components/ui/button';
-import { Upload, Plus } from 'lucide-react';
+import { Upload, Plus, RefreshCw } from 'lucide-react';
 import Link from 'next/link';
+import { useQueryClient, useIsFetching } from '@tanstack/react-query';
 
 import { DashboardContainer } from '@/components/dashboard-container';
 import { ProductWithCategoryDto } from '@algo/types';
@@ -15,6 +16,12 @@ export default function ProductsPage() {
   const [selectedProduct, setSelectedProduct] = useState<ProductWithCategoryDto | undefined>(
     undefined,
   );
+  const queryClient = useQueryClient();
+  const isFetching = useIsFetching({ queryKey: ['products'] }) > 0;
+
+  const handleRefresh = () => {
+    queryClient.invalidateQueries({ queryKey: ['products'] });
+  };
 
   const handleCreate = () => {
     setSelectedProduct(undefined);
@@ -36,6 +43,10 @@ export default function ProductsPage() {
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-3">
+          <Button variant="outline" onClick={handleRefresh} disabled={isFetching}>
+            <RefreshCw className={`h-4 w-4 mr-2 ${isFetching ? 'animate-spin' : ''}`} />
+            Refresh
+          </Button>
           <Button variant="outline" className="gap-2" asChild>
             <Link href="/dashboard/products/upload">
               <Upload className="h-4 w-4" />

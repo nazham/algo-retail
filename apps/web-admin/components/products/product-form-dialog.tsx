@@ -57,7 +57,6 @@ import { Combobox } from '@/components/ui/combobox';
 import { cn } from '@repo/ui/lib/utils';
 import { FormField, FormSection, ReadOnlyField } from '@/components/ui/form-field';
 import { useProductFormDraftStore } from '@/stores/product-form-draft.store';
-import { ProductHistoryTab } from '@/components/inventory/product-history-tab';
 
 // ============================================================================
 // COMPONENT PROPS

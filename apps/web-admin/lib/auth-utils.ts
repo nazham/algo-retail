@@ -44,17 +44,37 @@ export async function getCurrentRole(): Promise<string> {
 }
 
 /**
- * Redirect user based on their role.
+ * Get current user's tenant ID from session.
+ */
+export async function getCurrentTenantId(): Promise<string | null> {
+  const session = await authClient.getSession();
+  const user = session.data?.user as SessionUser | undefined;
+  return user?.tenantId || null;
+}
+
+/**
+ * Redirect user based on their role and tenant status.
  * Respects callbackUrl if provided (useful for deep linking).
+ *
+ * Flow:
+ * 1. Waitlisted users → /waitlist
+ * 2. Approved users without a tenant → /onboarding
+ * 3. Approved users with a tenant → /dashboard (or callbackUrl)
  */
 export async function redirectByRole(
   router: { push: (url: string) => void },
   callbackUrl?: string | null,
 ) {
-  const role = await getCurrentRole();
+  const session = await authClient.getSession();
+  const user = session.data?.user as SessionUser | undefined;
+  const role = user?.role || 'waitlist';
+  const tenantId = user?.tenantId;
 
   if (role === 'waitlist') {
     router.push('/waitlist');
+  } else if (!tenantId) {
+    // Approved but no tenant yet → onboarding
+    router.push('/onboarding');
   } else if (callbackUrl) {
     router.push(callbackUrl);
   } else {

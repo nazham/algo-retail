@@ -29,6 +29,7 @@ export interface InventoryMovement {
   referenceId: string | null;
   userId: string | null;
   userName: string | null;
+  orderNumber?: string | null;
   createdAt: string;
 }
 

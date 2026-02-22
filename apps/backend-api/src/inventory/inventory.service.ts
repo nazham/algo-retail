@@ -9,6 +9,10 @@ import {
   MovementsQueryDto,
 } from './dto/inventory.dto';
 
+type Tx = Parameters<
+  Parameters<NodePgDatabase<typeof schema>['transaction']>[0]
+>[0];
+
 @Injectable()
 export class InventoryService {
   constructor(
@@ -62,7 +66,7 @@ export class InventoryService {
 
       // 3. Update product stock and cost price (Atomic Increment)
       const updateData: Record<string, unknown> = {
-        stock: sql`${schema.products.stock} + ${data.quantity}`,
+        stock: sql`ROUND((${schema.products.stock} + ${data.quantity})::numeric, 2)`,
         updatedAt: new Date(),
       };
 
@@ -216,12 +220,20 @@ export class InventoryService {
         referenceId: schema.inventoryMovements.referenceId,
         userId: schema.inventoryMovements.userId,
         userName: schema.user.name,
+        orderNumber: schema.orders.orderNumber,
         createdAt: schema.inventoryMovements.createdAt,
       })
       .from(schema.inventoryMovements)
       .leftJoin(
         schema.user,
         eq(schema.inventoryMovements.userId, schema.user.id),
+      )
+      .leftJoin(
+        schema.orders,
+        and(
+          eq(schema.inventoryMovements.referenceId, schema.orders.id), // Join orders on referenceId
+          eq(schema.inventoryMovements.type, 'SALE'), // Safety: only join for sales
+        ),
       )
       .where(
         and(
@@ -263,32 +275,60 @@ export class InventoryService {
     quantity: number,
     orderId: string,
     costPrice?: number,
-    tx?: any, // Optional transaction object
+    tx?: Tx, // Optional transaction object
   ) {
-    const dbOrTx = tx || this.db;
+    // 🛡️ ATOMICITY: Ensure we always have a transaction wrapper
+    const work = async (dbOrTx: Tx | NodePgDatabase<typeof schema>) => {
+      // Validate product exists and belongs to tenant
+      const [product] = await dbOrTx
+        .select({
+          id: schema.products.id,
+          stock: schema.products.stock,
+          costPrice: schema.products.costPrice,
+        })
+        .from(schema.products)
+        .where(
+          and(
+            eq(schema.products.id, productId),
+            eq(schema.products.tenantId, tenantId),
+          ),
+        )
+        .for('update'); // Lock row for atomic update
 
-    // Validate product exists and belongs to tenant
-    const [product] = await dbOrTx
-      .select({ id: schema.products.id })
-      .from(schema.products)
-      .where(
-        and(
-          eq(schema.products.id, productId),
-          eq(schema.products.tenantId, tenantId),
-        ),
-      );
+      if (!product) {
+        throw new NotFoundException(`Product ${productId} not found`);
+      }
 
-    if (!product) {
-      throw new NotFoundException(`Product ${productId} not found`);
+      // 1. Log the movement (Capture Cost Price Snapshot)
+      await dbOrTx.insert(schema.inventoryMovements).values({
+        tenantId,
+        productId,
+        type: 'SALE',
+        quantity: -Math.abs(quantity), // Always negative for sales
+        costPrice: costPrice ?? product.costPrice, // Use provided cost or fallback to product current cost
+        referenceId: orderId,
+      });
+
+      // 2. Decrement the stock
+      await dbOrTx
+        .update(schema.products)
+        .set({
+          stock: sql`ROUND((${schema.products.stock} - ${Math.abs(quantity)})::numeric, 2)`,
+          updatedAt: new Date(),
+        })
+        .where(
+          and(
+            eq(schema.products.id, productId),
+            eq(schema.products.tenantId, tenantId),
+          ),
+        );
+    };
+
+    // Use provided transaction or start a new one
+    if (tx) {
+      return await work(tx);
+    } else {
+      return await this.db.transaction(work);
     }
-
-    await dbOrTx.insert(schema.inventoryMovements).values({
-      tenantId,
-      productId,
-      type: 'SALE',
-      quantity: -Math.abs(quantity), // Always negative for sales
-      costPrice,
-      referenceId: orderId,
-    });
   }
 }

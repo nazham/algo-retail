@@ -12,6 +12,7 @@ import {
   jsonb,
 } from 'drizzle-orm/pg-core';
 import { relations } from 'drizzle-orm';
+import { ORDER_STATUSES } from '@algo/types';
 
 // ========================================
 // ENUMS
@@ -29,6 +30,13 @@ export const adjustmentReasonEnum = pgEnum('adjustment_reason', [
   'THEFT',
   'COUNT_ERROR',
   'OTHER',
+]);
+
+export const orderStatusEnum = pgEnum('order_status', [
+  'COMPLETED',
+  'REFUNDED',
+  'PENDING',
+  'CANCELLED',
 ]);
 
 // Reusable column definition
@@ -103,9 +111,10 @@ export const orders = pgTable('orders', {
   discountTotal: integer('discount_total').default(0),
   grandTotal: integer('grand_total').notNull(),
   paymentMethod: text('payment_method'),
-  status: text('status').default('COMPLETED'),
+  status: orderStatusEnum('status').default('COMPLETED'),
 
   createdAt: timestamp('created_at').defaultNow(),
+  syncedAt: timestamp('synced_at'),
 });
 
 // 4. ORDER ITEMS
@@ -293,3 +302,15 @@ export const auditLogs = pgTable(
     createdAtIdx: index('idx_audit_created_at').on(table.createdAt),
   }),
 );
+
+// 9. ORDER RELATIONS
+export const ordersRelations = relations(orders, ({ many }) => ({
+  items: many(orderItems),
+}));
+
+export const orderItemsRelations = relations(orderItems, ({ one }) => ({
+  order: one(orders, {
+    fields: [orderItems.orderId],
+    references: [orders.id],
+  }),
+}));

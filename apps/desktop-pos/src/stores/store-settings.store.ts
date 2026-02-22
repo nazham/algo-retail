@@ -11,6 +11,7 @@ interface StoreSettingsState {
   validationErrors: Record<string, string>;
   hasChanges: boolean;
   isValid: boolean;
+  pendingSync: boolean;
 
   // Actions
   initialize: () => Promise<void>;
@@ -18,6 +19,8 @@ interface StoreSettingsState {
   saveConfig: () => Promise<boolean>;
   resetToDefaults: () => Promise<void>;
   setValidationErrors: (errors: Record<string, string>) => void;
+  applyRemoteConfig: (config: ShopConfig) => void;
+  setupConfigListener: () => () => void;
 }
 
 export const useStoreSettingsStore = create<StoreSettingsState>()(
@@ -29,6 +32,7 @@ export const useStoreSettingsStore = create<StoreSettingsState>()(
       validationErrors: {},
       hasChanges: false,
       isValid: true,
+      pendingSync: false,
 
       initialize: async () => {
         // Only initialize if not already loaded
@@ -104,6 +108,21 @@ export const useStoreSettingsStore = create<StoreSettingsState>()(
           return false;
         }
 
+        // Push to server
+        try {
+          const pushed = await window.api.invoke('config:push-to-server', storeConfig);
+          if (!pushed) {
+            set({ pendingSync: true });
+            toast.warning('Settings saved locally. Server sync will retry later.');
+          } else {
+            set({ pendingSync: false });
+          }
+        } catch (error) {
+          console.warn('Failed to push config to server:', error);
+          set({ pendingSync: true });
+          toast.warning('Settings saved locally. Server sync will retry later.');
+        }
+
         // Mark as original (persist middleware will save to localStorage)
         set({ originalConfig: storeConfig, hasChanges: false });
         toast.success('Store settings saved successfully');
@@ -129,6 +148,59 @@ export const useStoreSettingsStore = create<StoreSettingsState>()(
       setValidationErrors: (errors) => {
         set({ validationErrors: errors, isValid: Object.keys(errors).length === 0 });
       },
+
+      /**
+       * Apply config received from the server (via sync cycle).
+       * Server is source of truth — overwrites local if no unsaved changes.
+       */
+      applyRemoteConfig: (config: ShopConfig) => {
+        const { hasChanges, pendingSync, storeConfig } = get();
+
+        // Don't overwrite unsaved local changes
+        if (hasChanges) {
+          console.log('[Config] Skipping server config — local changes pending.');
+          return;
+        }
+
+        // Handle offline saves that haven't reached server yet
+        if (pendingSync && storeConfig) {
+          console.log(
+            '[Config] Skipping server config — local version is ahead. Pushing local now...',
+          );
+          window.api.invoke('config:push-to-server', storeConfig).then((success) => {
+            if (success) {
+              set({ pendingSync: false });
+            }
+          });
+          return;
+        }
+
+        // Validate the incoming config
+        const result = shopConfigSchema.safeParse(config);
+        if (!result.success) {
+          console.warn('[Config] Invalid config from server, ignoring.');
+          return;
+        }
+
+        set({
+          storeConfig: config,
+          originalConfig: config,
+          validationErrors: {},
+          isValid: true,
+          hasChanges: false,
+        });
+      },
+
+      /**
+       * Set up IPC listener for server config updates.
+       * Returns a cleanup function to remove the listener.
+       */
+      setupConfigListener: () => {
+        const cleanup = window.api.on('sync:config-updated', (config: any) => {
+          get().applyRemoteConfig(config);
+        });
+        return cleanup;
+      },
     }),
     {
       name: 'app:store:config',
@@ -136,6 +208,7 @@ export const useStoreSettingsStore = create<StoreSettingsState>()(
       partialize: (state) => ({
         storeConfig: state.storeConfig,
         originalConfig: state.originalConfig,
+        pendingSync: state.pendingSync,
       }),
       onRehydrateStorage: () => (state) => {
         // Validate on load

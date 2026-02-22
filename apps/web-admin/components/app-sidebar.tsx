@@ -1,12 +1,11 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
   LayoutDashboard,
   Package,
-  Upload,
   Settings,
   LogOut,
   FileText,
@@ -14,12 +13,12 @@ import {
   Menu,
   ChevronLeft,
   ChevronRight,
+  Store,
 } from 'lucide-react';
 import { cn } from '@repo/ui/lib/utils';
 import { Button } from '@repo/ui/components/ui/button';
 import { signOutAndRedirect } from '@/lib/auth-utils';
 import { ModeToggle } from '@repo/ui/components/mode-toggle';
-import { Separator } from '@repo/ui/components/ui/separator';
 import {
   Tooltip,
   TooltipContent,
@@ -33,6 +32,8 @@ import {
   SheetTitle,
   SheetDescription,
 } from '@repo/ui/components/ui/sheet';
+import { useSession } from '@/lib/auth-client';
+import { useTenant } from '@/hooks/use-tenant';
 
 const sidebarItems = [
   {
@@ -54,6 +55,11 @@ const sidebarItems = [
     title: 'Orders',
     href: '/dashboard/orders',
     icon: FileText,
+  },
+  {
+    title: 'Settings',
+    href: '/dashboard/settings',
+    icon: Settings,
   },
 ];
 
@@ -102,6 +108,49 @@ function SidebarNav({ isCollapsed, pathname, onNavigate }: SidebarNavProps) {
   );
 }
 
+/** Compact user/tenant info section */
+function TenantBadge({
+  tenantName,
+  userName,
+  isCollapsed,
+}: {
+  tenantName: string | null;
+  userName: string | null;
+  isCollapsed?: boolean;
+}) {
+  if (isCollapsed) {
+    return (
+      <Tooltip delayDuration={0}>
+        <TooltipTrigger asChild>
+          <div className="flex items-center justify-center py-2">
+            <div className="h-8 w-8 rounded-md bg-primary/10 flex items-center justify-center">
+              <Store className="h-4 w-4 text-primary" />
+            </div>
+          </div>
+        </TooltipTrigger>
+        <TooltipContent side="right">
+          <div className="text-xs">
+            <p className="font-medium">{tenantName || 'No Business'}</p>
+            {userName && <p className="text-muted-foreground">{userName}</p>}
+          </div>
+        </TooltipContent>
+      </Tooltip>
+    );
+  }
+
+  return (
+    <div className="flex items-center gap-3 px-4 py-2">
+      <div className="h-8 w-8 rounded-md bg-primary/10 flex items-center justify-center shrink-0">
+        <Store className="h-4 w-4 text-primary" />
+      </div>
+      <div className="min-w-0 flex-1">
+        <p className="text-sm font-medium truncate">{tenantName || 'No Business'}</p>
+        {userName && <p className="text-xs text-muted-foreground truncate">{userName}</p>}
+      </div>
+    </div>
+  );
+}
+
 interface AppSidebarProps {
   isCollapsed?: boolean;
   onToggleCollapse?: () => void;
@@ -109,14 +158,12 @@ interface AppSidebarProps {
 
 export function AppSidebar({ isCollapsed = false, onToggleCollapse }: AppSidebarProps) {
   const pathname = usePathname();
-  // const [isCollapsed, setIsCollapsed] = useState(false); // Controlled by parent now
   const [isMobileOpen, setIsMobileOpen] = useState(false);
+  const { data: session } = useSession();
+  const { tenant } = useTenant();
 
-  // Persist collapsed state MOVED TO PARENT
-  // useEffect(() => {
-  //   const saved = localStorage.getItem('sidebar-collapsed');
-  //   if (saved) setIsCollapsed(saved === 'true');
-  // }, []);
+  const userName = (session?.user as any)?.name || null;
+  const tenantName = tenant?.name || null;
 
   const toggleCollapse = () => {
     onToggleCollapse?.();
@@ -141,11 +188,14 @@ export function AppSidebar({ isCollapsed = false, onToggleCollapse }: AppSidebar
             <div className="flex h-14 items-center border-b px-6">
               <SheetTitle className="flex items-center gap-2 font-semibold">
                 <Package className="h-6 w-6" />
-                <span>Algo Retail</span>
+                <span>{tenantName || 'Algo Retail'}</span>
               </SheetTitle>
               <SheetDescription className="sr-only">
                 Navigation menu for Algo Retail admin dashboard.
               </SheetDescription>
+            </div>
+            <div className="px-2 pt-3">
+              <TenantBadge tenantName={tenantName} userName={userName} />
             </div>
             <div className="flex-1 overflow-auto py-4">
               <SidebarNav pathname={pathname} onNavigate={() => setIsMobileOpen(false)} />
@@ -166,7 +216,7 @@ export function AppSidebar({ isCollapsed = false, onToggleCollapse }: AppSidebar
         </Sheet>
         <div className="flex items-center gap-2 font-semibold">
           <Package className="h-6 w-6" />
-          <span>Algo Retail</span>
+          <span>{tenantName || 'Algo Retail'}</span>
         </div>
       </div>
 
@@ -195,6 +245,11 @@ export function AppSidebar({ isCollapsed = false, onToggleCollapse }: AppSidebar
                 <Package className="h-6 w-6 shrink-0" />
               </Link>
             )}
+          </div>
+
+          {/* Tenant/User Badge */}
+          <div className={cn('border-b py-2', isCollapsed ? 'px-2' : '')}>
+            <TenantBadge tenantName={tenantName} userName={userName} isCollapsed={isCollapsed} />
           </div>
 
           <div className="flex-1 overflow-auto py-4">

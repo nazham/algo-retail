@@ -36,6 +36,7 @@ export class ProductsService {
         .select()
         .from(schema.skuSequence)
         .where(eq(schema.skuSequence.id, 1))
+        .for('update')
         .then((rows) => rows[0]);
 
       let startValue = 0;

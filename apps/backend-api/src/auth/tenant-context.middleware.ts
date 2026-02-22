@@ -20,14 +20,9 @@ export class TenantContextMiddleware implements NestMiddleware {
         // Inject user and tenant context into request
         req['user'] = session.user;
 
-        // Extract tenant ID (support both singular and plural from schema)
-        // MVP Fallback: Use a hardcoded ID if absolutely everything else fails
+        // Extract tenant ID from user session
         const user = session.user as any;
-        const tenantId =
-          user.tenantId ||
-          (user.tenantIds && user.tenantIds[0]) ||
-          process.env.DEFAULT_TENANT_ID ||
-          '00000000-0000-0000-0000-000000000001';
+        const tenantId = user.tenantId || process.env.DEFAULT_TENANT_ID;
 
         req['tenantId'] = tenantId;
       } else {

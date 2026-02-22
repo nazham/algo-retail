@@ -25,13 +25,16 @@ export function GeneralSettingsTab() {
   const saveConfig = useStoreSettingsStore((state) => state.saveConfig);
   const resetToDefaults = useStoreSettingsStore((state) => state.resetToDefaults);
   const initialize = useStoreSettingsStore((state) => state.initialize);
+  const setupConfigListener = useStoreSettingsStore((state) => state.setupConfigListener);
 
   const [showResetDialog, setShowResetDialog] = useState(false);
 
-  // Initialize store on mount
+  // Initialize store and config listener on mount
   useEffect(() => {
     initialize();
-  }, [initialize]);
+    const cleanup = setupConfigListener();
+    return cleanup;
+  }, [initialize, setupConfigListener]);
 
   const handleResetConfirm = async () => {
     await resetToDefaults();

@@ -2,7 +2,7 @@ import { useState, useMemo, useEffect } from 'react';
 import { useOrders } from '../features/orders/hooks/use-orders';
 import { OrderPageLayout } from '../features/orders/components/OrderPageLayout';
 import { AlertCircle } from 'lucide-react';
-import type { OrderFilters } from '@algo/types';
+import type { OrderFilters, OrderStatusType } from '@algo/types';
 
 export default function OrderPage() {
   const [searchTerm, setSearchTerm] = useState('');
@@ -32,7 +32,7 @@ export default function OrderPage() {
       const normalizedSearchTerm = debouncedSearchTerm.startsWith('#')
         ? debouncedSearchTerm.substring(1)
         : debouncedSearchTerm;
-      f.searchTerm = normalizedSearchTerm;
+      f.search = normalizedSearchTerm;
     }
 
     if (date) {
@@ -42,13 +42,13 @@ export default function OrderPage() {
       const endOfDay = new Date(date);
       endOfDay.setHours(23, 59, 59, 999);
 
-      f.startDate = startOfDay.toISOString();
-      f.endDate = endOfDay.toISOString();
+      f.from = startOfDay.toISOString();
+      f.to = endOfDay.toISOString();
     }
 
     // Only add status filter if not "all"
-    if (status && status !== 'all') {
-      f.status = status;
+    if (status && status.toLowerCase() !== 'all') {
+      f.status = status as OrderStatusType;
     }
 
     return f;
