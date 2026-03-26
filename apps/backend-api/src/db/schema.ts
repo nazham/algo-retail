@@ -128,6 +128,8 @@ export const orderItems = pgTable('order_items', {
   quantity: real('quantity').notNull(),
   unitPrice: integer('unit_price').notNull(),
   subtotal: integer('subtotal').notNull(),
+  discountAmount: integer('discount_amount').default(0),
+  discountType: text('discount_type').default('MANUAL'),
 });
 
 // 5. CASHIER/USERS (POS users with PIN)

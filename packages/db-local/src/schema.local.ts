@@ -90,6 +90,8 @@ export const orderItems = sqliteTable(
     quantity: real('quantity').notNull(),
     unitPrice: integer('unit_price').notNull(),
     costPrice: integer('cost_price').default(0),
+    discountAmount: integer('discount_amount').default(0),
+    discountType: text('discount_type').default('MANUAL'),
     subtotal: integer('subtotal').notNull(),
   },
   (table) => ({
