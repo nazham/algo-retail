@@ -236,6 +236,8 @@ export class SyncService {
               quantity: i.quantity,
               price: i.unitPrice ?? 0,
               costPrice: i.costPrice ?? 0, // 🟢 Transmit Snapshot
+              discountAmount: i.discountAmount ?? 0, // Transmit item-level discount if available
+              discountType: i.discountType ?? 'MANUAL', // Transmit discount type if available
             })),
             id: order.id,
             orderNumber: order.orderNumber,
