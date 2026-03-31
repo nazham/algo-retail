@@ -20,6 +20,8 @@ export class CreateOrderItemDto {
   quantity!: number;
   price!: number;
   costPrice?: number;
+  discountAmount?: number; // This code will be used to calculate the discountTotal in the order, but we can also store it here for reference
+  discountType?: string; // e.g., 'PERCENTAGE' or 'FIXED', this is optional and can be used to determine how the discountAmount should be applied when calculating the order totals
 }
 
 export class CreateOrderDto {
@@ -48,6 +50,8 @@ export interface OrderItemDto {
   productName: string;
   quantity: number;
   unitPrice: number;
+  discountAmount?: number; // This is the discount applied to this item, if any. It can be used to calculate the discountTotal for the order.
+  discountType?: string; // This indicates how the discountAmount should be applied (e.g., 'PERCENTAGE' or 'FIXED'). This is optional and can be used for reference when calculating the order totals.
 }
 
 export interface OrderDto {
