@@ -104,6 +104,16 @@ export function OrderDetailsDialog({ order, open, onOpenChange }: OrderDetailsDi
                       {formatCurrency(item.unitPrice * item.quantity)}
                     </td>
                   </tr>
+                  {(item.discountAmount ?? 0) > 0 && (
+                    <tr key={`${idx}-discount`}>
+                      <td colSpan={2} className="pb-1 text-[10px] text-green-600 italic">
+                        Discount ({item.discountType ?? 'Manual'})
+                      </td>
+                      <td className="pb-1 text-[10px] text-right text-green-600">
+                        - {formatCurrency(item.discountAmount ?? 0)}
+                      </td>
+                    </tr>
+                  )}
                 </>
               ))}
             </tbody>
