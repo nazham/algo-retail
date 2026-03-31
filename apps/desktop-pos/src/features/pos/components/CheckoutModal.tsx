@@ -144,6 +144,8 @@ export function CheckoutModal({ isOpen, onClose, onComplete }: CheckoutModalProp
           productName: item.name,
           quantity: item.quantity,
           price: item.price,
+          discountAmount: item.discount ?? 0,
+          discountType: item.discountType ?? 'MANUAL',
         })),
       };
 
