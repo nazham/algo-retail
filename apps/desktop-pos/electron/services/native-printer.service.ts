@@ -70,9 +70,11 @@ export class NativePrinterService {
       // 1. Render the HTML content using the provided template and data
       const htmlContent = template(data);
 
+      const previewMode = process.env.PREVIEW_MODE === 'true';
+
       // 2. Create a hidden browser window to load the HTML
       const printWindow = new BrowserWindow({
-        show: false,
+        show: previewMode,
         webPreferences: {
           nodeIntegration: false,
           contextIsolation: true,
@@ -84,6 +86,12 @@ export class NativePrinterService {
 
       console.log('🖨️ HTML loaded, waiting for content to render...');
       await new Promise((resolve) => setTimeout(resolve, 500)); // Wait for render
+
+      if (previewMode) {
+        console.log('👁️ Preview mode enabled. Skipping actual print.');
+        // Leave the window open for preview until the user closes it manually.
+        return { success: true };
+      }
 
       console.log('🖨️ Attempting to print with native Electron API...');
 
