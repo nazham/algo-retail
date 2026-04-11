@@ -23,6 +23,7 @@ export function usePrintReceipt() {
         productName: item.productName,
         unitPrice: item.unitPrice,
         quantity: item.quantity,
+        discountAmount: item.discountAmount || 0,
         subtotal: item.unitPrice * item.quantity,
       })),
       paymentDetails: {
