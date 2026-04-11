@@ -88,6 +88,8 @@ export interface PrintReceiptDto {
   items: {
     productName: string;
     quantity: number;
+    unitPrice: number;
+    discountAmount: number;
     subtotal: number;
   }[];
   paymentDetails: {
