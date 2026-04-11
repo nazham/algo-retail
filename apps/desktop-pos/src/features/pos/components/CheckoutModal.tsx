@@ -172,6 +172,7 @@ export function CheckoutModal({ isOpen, onClose, onComplete }: CheckoutModalProp
             productName: item.name,
             unitPrice: item.price,
             quantity: item.quantity,
+            discountAmount: item.discount || 0,
             subtotal: item.price * item.quantity,
           })),
           paymentDetails: {
