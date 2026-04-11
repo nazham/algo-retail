@@ -47,17 +47,22 @@ export function OrderDetailsDialog({ order, open, onOpenChange }: OrderDetailsDi
       <div className="relative z-50 bg-white w-full max-w-90 shadow-2xl animate-in fade-in zoom-in-95 rounded-sm flex flex-col max-h-[90vh] print:shadow-none print:w-auto print:max-w-none print:max-h-none print:fixed print:inset-0 print:flex print:justify-center print:pt-0">
         {/* SCROLLABLE CONTENT AREA */}
         <div className="overflow-y-auto p-4 text-black font-mono leading-tight print:overflow-visible print:p-0 print:w-[76mm] print:mx-auto">
-          {/* --- HEADER --- 
-          <div className="text-center border-b-2 border-black pb-3 mb-3">
-            <h1 className="text-[18px] font-bold tracking-wide mb-2 uppercase">Algo Retail</h1>
+          {/* --- HEADER --- */}
+          <div className="text-center mb-4">
+            <h1 className="text-[20px] font-bold tracking-tight mb-1">
+              {storeConfig?.name || 'Algo Retail'}
+            </h1>
             <div className="text-[10px] space-y-0.5 leading-snug">
-              <p>123 Market St</p>
-              <p>Colombo, Sri Lanka</p>
-              <p>Tel: 077-1234567 / 032-1234567</p>
-              <p>Email: info@algoretail.com</p>
+              <p>{storeConfig?.addressLine1}</p>
+              <p>{storeConfig?.addressLine2}</p>
+              <p>
+                {storeConfig?.phone1 && `Tel: ${storeConfig.phone1}`}
+                {storeConfig?.phone2 && ` / ${storeConfig.phone2}`}
+              </p>
             </div>
           </div>
-*/}
+
+          <div className="border-t-2 border-black mb-3"></div>
           {/* --- METADATA --- */}
           <div className="mb-3 text-[11px] space-y-1">
             <div className="flex justify-between">
@@ -131,24 +136,28 @@ export function OrderDetailsDialog({ order, open, onOpenChange }: OrderDetailsDi
           <div className="border-t-2 border-black mb-2"></div>
 
           {/* --- TOTALS --- */}
-          <div className="space-y-1.5 text-[11px] mb-2">
-            <div className="flex justify-between">
-              <span>Subtotal:</span>
-              <span className="font-medium">{formatCurrency(order.subtotal)}</span>
-            </div>
-
-            <div className="flex justify-between">
-              <span>Discount:</span>
-              <span className="font-medium">- {formatCurrency(order.discountTotal)}</span>
-            </div>
-          </div>
-
-          <div className="border-t-2 border-black mb-2"></div>
-
-          <div className="flex justify-between text-[16px] font-bold mb-4">
-            <span>TOTAL:</span>
-            <span>{formatCurrency(order.grandTotal)}</span>
-          </div>
+          <table className="w-full text-[11px] mb-2 border-collapse">
+            <tbody>
+              <tr>
+                <td className="py-1">Subtotal:</td>
+                <td className="text-right py-1 font-medium">{formatCurrency(order.subtotal)}</td>
+              </tr>
+              <tr>
+                <td className="py-1">Discount:</td>
+                <td className="text-right py-1 font-medium">
+                  - {formatCurrency(order.discountTotal)}
+                </td>
+              </tr>
+              <tr>
+                <td colSpan={2} className="border-t-2 border-black pt-2 pb-1">
+                  <div className="flex justify-between text-[16px] font-bold">
+                    <span>TOTAL:</span>
+                    <span>{formatCurrency(order.grandTotal)}</span>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
 
           {/* Payment Info */}
           <div className="text-right space-y-1 text-[11px] mb-4">
