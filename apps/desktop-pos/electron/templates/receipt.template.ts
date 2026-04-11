@@ -196,8 +196,8 @@ export function generateReceipt(data: ReceiptTemplateData): string {
           <thead>
             <tr>
               <th width="15%" class="th-center">QTY</th>
-              <th width="35%">AMOUNT</th>
-              <th width="20%" class="th-center">DISC</th>
+              <th width="35%">MRP</th>
+              <th width="20%" class="th-center">Price</th>
               <th width="30%" class="th-right">TOTAL</th>
             </tr>
             <tr>
@@ -217,11 +217,17 @@ export function generateReceipt(data: ReceiptTemplateData): string {
                   minimumFractionDigits: 2,
                   maximumFractionDigits: 2,
                 })}</td>
-                <td class="disc">${((item.discountAmount || 0) / 100).toLocaleString('en-US', {
+                <td class="disc">${(
+                  ((item.unitPrice || 0) - (item.discountAmount || 0)) /
+                  100
+                ).toLocaleString('en-US', {
                   minimumFractionDigits: 2,
                   maximumFractionDigits: 2,
                 })}</td>
-                <td class="total">${((item.subtotal || 0) / 100).toLocaleString('en-US', {
+                <td class="total">${(
+                  (item.quantity * ((item.unitPrice || 0) - (item.discountAmount || 0))) /
+                  100
+                ).toLocaleString('en-US', {
                   minimumFractionDigits: 2,
                   maximumFractionDigits: 2,
                 })}</td>
