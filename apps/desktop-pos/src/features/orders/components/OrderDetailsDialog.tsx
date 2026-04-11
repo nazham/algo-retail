@@ -90,9 +90,9 @@ export function OrderDetailsDialog({ order, open, onOpenChange }: OrderDetailsDi
           <table className="w-full text-[10px] mb-2 border-collapse">
             <thead>
               <tr className="uppercase font-bold">
-                <th className="text-left w-[35%] py-1">AMOUNT</th>
                 <th className="text-center w-[15%] py-1">QTY</th>
-                <th className="text-center w-[20%] py-1">DISC</th>
+                <th className="text-left w-[35%] py-1">MRP</th>
+                <th className="text-center w-[20%] py-1">Price</th>
                 <th className="text-right w-[30%] py-1">TOTAL</th>
               </tr>
               <tr>
@@ -108,21 +108,27 @@ export function OrderDetailsDialog({ order, open, onOpenChange }: OrderDetailsDi
                     </td>
                   </tr>
                   <tr className="border-b border-dashed border-gray-200 last:border-0">
+                    <td className="text-center pb-2">{item.quantity}</td>
                     <td className="pb-2">
                       {((item.unitPrice || 0) / 100).toLocaleString('en-US', {
                         minimumFractionDigits: 2,
                         maximumFractionDigits: 2,
                       })}
                     </td>
-                    <td className="text-center pb-2">{item.quantity}</td>
                     <td className="text-center pb-2">
-                      {((item.discountAmount || 0) / 100).toLocaleString('en-US', {
-                        minimumFractionDigits: 2,
-                        maximumFractionDigits: 2,
-                      })}
+                      {(((item.unitPrice || 0) - (item.discountAmount || 0)) / 100).toLocaleString(
+                        'en-US',
+                        {
+                          minimumFractionDigits: 2,
+                          maximumFractionDigits: 2,
+                        },
+                      )}
                     </td>
                     <td className="text-right pb-2 font-medium">
-                      {((item.unitPrice * item.quantity) / 100).toLocaleString('en-US', {
+                      {(
+                        (item.quantity * ((item.unitPrice || 0) - (item.discountAmount || 0))) /
+                        100
+                      ).toLocaleString('en-US', {
                         minimumFractionDigits: 2,
                         maximumFractionDigits: 2,
                       })}
@@ -132,7 +138,6 @@ export function OrderDetailsDialog({ order, open, onOpenChange }: OrderDetailsDi
               ))}
             </tbody>
           </table>
-
           <div className="border-t-2 border-black mb-2"></div>
 
           {/* --- TOTALS --- */}
