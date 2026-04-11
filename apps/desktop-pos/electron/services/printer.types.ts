@@ -17,6 +17,8 @@ export interface PaymentDetails {
 export interface ReceiptItem {
   productName: string;
   quantity: number;
+  unitPrice: number;
+  discountAmount: number;
   subtotal: number;
 }
 
