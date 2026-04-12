@@ -150,6 +150,14 @@ export function generateReceipt(data: ReceiptTemplateData): string {
   const { shop, receiptData, items, customerName, cashierName, paymentDetails } = data;
   const fmt = formatCurrency;
 
+  // Calculate totals to ensure consistency
+  const totalDiscount = items.reduce(
+    (sum, item) => sum + item.quantity * (item.discountAmount || 0),
+    0,
+  );
+  const subTotal = items.reduce((sum, item) => sum + item.quantity * (item.unitPrice || 0), 0);
+  const grandTotal = subTotal - totalDiscount;
+
   return `
       <!DOCTYPE html>
       <html>
@@ -245,15 +253,11 @@ export function generateReceipt(data: ReceiptTemplateData): string {
           <table width="100%" style="font-size: 11px; margin-bottom: 1mm;">
             <tr>
               <td style="text-align: left; padding: 0.5mm 0;">Subtotal:</td>
-              <td style="text-align: right; padding: 0.5mm 0;">${fmt(
-                receiptData.subtotal || receiptData.grandTotal,
-              )}</td>
+              <td style="text-align: right; padding: 0.5mm 0;">${fmt(subTotal)}</td>
             </tr>
             <tr>
               <td style="text-align: left; padding: 0.5mm 0;">Discount:</td>
-              <td style="text-align: right; padding: 0.5mm 0;">- ${fmt(
-                items.reduce((sum, item) => sum + item.quantity * (item.discountAmount || 0), 0),
-              )}</td>
+              <td style="text-align: right; padding: 0.5mm 0;">- ${fmt(totalDiscount)}</td>
             </tr>
           </table>
         </div>
@@ -264,14 +268,14 @@ export function generateReceipt(data: ReceiptTemplateData): string {
           <table width="100%" style="font-size: 16px; font-weight: bold;">
             <tr>
               <td style="text-align: left;">TOTAL:</td>
-              <td style="text-align: right;">${fmt(receiptData.grandTotal)}</td>
+              <td style="text-align: right;">${fmt(grandTotal)}</td>
             </tr>
           </table>
         </div>
 
         <div class="payment-info">
           Payment: ${paymentDetails?.method || receiptData.paymentMethod || 'CASH'}<br>
-          Received: ${fmt(paymentDetails?.tenderedAmount || receiptData.grandTotal)}<br>
+          Received: ${fmt(paymentDetails?.tenderedAmount || grandTotal)}<br>
           Change: ${fmt(paymentDetails?.changeDue || 0)}
         </div>
 
