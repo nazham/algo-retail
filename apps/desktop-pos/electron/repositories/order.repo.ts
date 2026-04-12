@@ -18,24 +18,27 @@ export class OrderRepository {
   async create(data: CreateOrderDto): Promise<OrderResultDto> {
     return this.db.transaction((tx) => {
       // A. Insert Main Order
+      const calculatedDiscountTotal = data.items.reduce(
+        (sum, item) => sum + item.quantity * (item.discountAmount || 0),
+        0,
+      );
+      const calculatedGrandTotal = data.subtotal - calculatedDiscountTotal + (data.taxTotal || 0);
+
       tx.insert(schema.orders)
         .values({
           id: data.id, // Matches schema id (text)
           orderNumber: data.orderNumber, // Matches schema orderNumber (text)
-          // Schema expects 'timestamp_ms' (Date or Integer), but DTO has ISO String.
-          // We convert it here so Drizzle handles the integer math.
           createdAt: new Date(data.createdAt),
 
           status: 'COMPLETED',
           paymentMethod: data.paymentMethod,
           subtotal: data.subtotal,
           taxTotal: data.taxTotal,
-          discountTotal: data.discountTotal,
-          grandTotal: data.grandTotal,
+          discountTotal: calculatedDiscountTotal,
+          grandTotal: calculatedGrandTotal,
           isSynced: false,
         })
-        .run(); // explicit .run() is sometimes needed in raw BS3, but Drizzle handles it usually.
-      // With Drizzle + BS3, just calling the method synchronously works.
+        .run();
 
       // B. Insert Items & Update Stock
       for (const item of data.items) {
@@ -59,7 +62,7 @@ export class OrderRepository {
             costPrice: currentCost, // 🟢 SNAPSHOT
             discountAmount: item.discountAmount ?? 0, // this is the discount applied to this item, if any. It can be used to calculate the discountTotal for the order.
             discountType: item.discountType ?? 'MANUAL', // This indicates how the discountAmount should be applied (e.g., 'PERCENTAGE' or 'FIXED'). This is optional and can be used for reference when calculating the order totals.
-            subtotal: item.price * item.quantity - (item.discountAmount ?? 0), // Calculate subtotal for this item after discount
+            subtotal: (item.price - (item.discountAmount ?? 0)) * item.quantity, // Calculate subtotal for this item after discount
           })
           .run();
 
