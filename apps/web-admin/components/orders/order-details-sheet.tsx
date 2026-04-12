@@ -72,10 +72,17 @@ export function OrderDetailsSheet({ orderId, onClose }: OrderDetailsSheetProps) 
                         <div className="font-medium">{item.productName}</div>
                         <div className="text-muted-foreground">
                           {item.quantity} x {formatCurrency(item.unitPrice)}
+                          {(item.discountAmount ?? 0) > 0 && (
+                            <span className="text-destructive ml-1">
+                              (- {formatCurrency(item.discountAmount!)})
+                            </span>
+                          )}
                         </div>
                       </div>
                       <div className="font-medium text-right">
-                        {formatCurrency(item.quantity * item.unitPrice)}
+                        {formatCurrency(
+                          item.quantity * ((item.unitPrice || 0) - (item.discountAmount || 0)),
+                        )}
                       </div>
                     </div>
                   ))}
