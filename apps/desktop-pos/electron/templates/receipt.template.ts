@@ -252,7 +252,7 @@ export function generateReceipt(data: ReceiptTemplateData): string {
             <tr>
               <td style="text-align: left; padding: 0.5mm 0;">Discount:</td>
               <td style="text-align: right; padding: 0.5mm 0;">- ${fmt(
-                receiptData.discount || 0,
+                items.reduce((sum, item) => sum + item.quantity * (item.discountAmount || 0), 0),
               )}</td>
             </tr>
           </table>
