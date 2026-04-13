@@ -271,7 +271,7 @@ export default function PosPage() {
                   </div>
                   <div className="font-bold text-base text-foreground whitespace-nowrap">
                     <span className="text-primary">
-                      {formatCurrency(item.price * item.quantity - (item.discount || 0))}
+                      {formatCurrency((item.price - (item.discount || 0)) * item.quantity)}
                     </span>
                   </div>
                 </div>
@@ -283,7 +283,7 @@ export default function PosPage() {
                   </span>
                   {(item.discount || 0) > 0 && (
                     <span className="text-green-600 font-medium">
-                      -{formatCurrency(item.discount || 0)}
+                      -{formatCurrency((item.discount || 0) * item.quantity)}
                     </span>
                   )}
                 </div>
@@ -336,7 +336,7 @@ export default function PosPage() {
                   <div className="flex items-center gap-1">
                     <CartItemDiscount
                       currentDiscount={item.discount || 0}
-                      maxDiscount={Math.min(item.price, item.price * item.quantity)}
+                      maxDiscount={item.price}
                       onUpdate={(val) => setDiscount(item.productId, val)}
                     />
 

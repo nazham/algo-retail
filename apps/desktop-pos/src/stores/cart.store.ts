@@ -91,9 +91,8 @@ export const useCartStore = create<CartState>((set, get) => ({
           // Basic sanity check - UI should prevent negative values
           if (newQty <= 0) return item;
 
-          const lineTotal = item.price * newQty;
-          // Ensure existing discount doesn't exceed unit price or new line total
-          const maxAllowed = Math.min(item.price, lineTotal);
+          // Per-unit discount remains valid as long as it's <= item.price
+          const maxAllowed = item.price;
           const validDiscount = item.discount ? Math.min(item.discount, maxAllowed) : 0;
           return { ...item, quantity: newQty, discount: validDiscount };
         }
@@ -109,9 +108,8 @@ export const useCartStore = create<CartState>((set, get) => ({
     set({
       items: items.map((item) => {
         if (item.productId === productId) {
-          const lineTotal = item.price * roundedQty;
-          // Ensure existing discount doesn't exceed unit price or new line total
-          const maxAllowed = Math.min(item.price, lineTotal);
+          // Per-unit discount remains valid as long as it's <= item.price
+          const maxAllowed = item.price;
           const validDiscount = item.discount ? Math.min(item.discount, maxAllowed) : 0;
           return { ...item, quantity: roundedQty, discount: validDiscount };
         }
@@ -166,9 +164,8 @@ export const useCartStore = create<CartState>((set, get) => ({
     set({
       items: items.map((item) => {
         if (item.productId === productId) {
-          const lineTotal = item.price * item.quantity;
-          // Discount capped at Unit Price (item.price) AND Line Total (to avoid negative)
-          const maxDiscount = Math.min(item.price, lineTotal);
+          // Discount is now per-unit, so it's capped at just the unit price
+          const maxDiscount = item.price;
           const validDiscount = Math.max(0, Math.min(discount, maxDiscount));
           return { ...item, discount: validDiscount };
         }
@@ -187,11 +184,9 @@ export const useCartStore = create<CartState>((set, get) => ({
       const lineTotal = item.price * item.quantity;
       subtotal += lineTotal;
       // Tax Logic: (Price * Qty * Rate) / 100
-      // Note: In real world, handle inclusive/exclusive tax carefully here.
-      // We assume EXCLUSIVE tax for this calculation example.
       tax += (lineTotal * item.taxRate) / 100;
-      // Discount Logic
-      discountTotal += item.discount || 0;
+      // Discount Logic: (Discount Per Unit * Quantity)
+      discountTotal += (item.discount || 0) * item.quantity;
     });
 
     return {
