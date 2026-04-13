@@ -4,16 +4,21 @@ import { useNumericInput } from '../../../hooks/use-numeric-input';
 
 interface CartItemDiscountProps {
   currentDiscount: number;
+  maxDiscount: number; // in cents
   onUpdate: (discount: number) => void;
 }
 
-export function CartItemDiscount({ currentDiscount, onUpdate }: CartItemDiscountProps) {
+export function CartItemDiscount({
+  currentDiscount,
+  maxDiscount,
+  onUpdate,
+}: CartItemDiscountProps) {
   const inputRef = useRef<HTMLInputElement>(null);
 
   const { displayValue, isEditing, handleChange, handleBlur, startEditing, cancelEditing } =
     useNumericInput({
       min: 0,
-      max: 1000000,
+      max: maxDiscount / 100, // Convert cents to currency units for the UI
       decimalPlaces: 2,
       onValidChange: (val) => onUpdate(val * 100), // Convert back to cents
     });

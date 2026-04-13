@@ -336,6 +336,7 @@ export default function PosPage() {
                   <div className="flex items-center gap-1">
                     <CartItemDiscount
                       currentDiscount={item.discount || 0}
+                      maxDiscount={Math.min(item.price, item.price * item.quantity)}
                       onUpdate={(val) => setDiscount(item.productId, val)}
                     />
 

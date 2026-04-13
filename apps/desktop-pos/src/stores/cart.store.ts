@@ -92,8 +92,9 @@ export const useCartStore = create<CartState>((set, get) => ({
           if (newQty <= 0) return item;
 
           const lineTotal = item.price * newQty;
-          // Ensure existing discount doesn't exceed new line total
-          const validDiscount = item.discount ? Math.min(item.discount, lineTotal) : 0;
+          // Ensure existing discount doesn't exceed unit price or new line total
+          const maxAllowed = Math.min(item.price, lineTotal);
+          const validDiscount = item.discount ? Math.min(item.discount, maxAllowed) : 0;
           return { ...item, quantity: newQty, discount: validDiscount };
         }
         return item;
@@ -109,8 +110,9 @@ export const useCartStore = create<CartState>((set, get) => ({
       items: items.map((item) => {
         if (item.productId === productId) {
           const lineTotal = item.price * roundedQty;
-          // Ensure existing discount doesn't exceed new line total
-          const validDiscount = item.discount ? Math.min(item.discount, lineTotal) : 0;
+          // Ensure existing discount doesn't exceed unit price or new line total
+          const maxAllowed = Math.min(item.price, lineTotal);
+          const validDiscount = item.discount ? Math.min(item.discount, maxAllowed) : 0;
           return { ...item, quantity: roundedQty, discount: validDiscount };
         }
         return item;
@@ -165,7 +167,8 @@ export const useCartStore = create<CartState>((set, get) => ({
       items: items.map((item) => {
         if (item.productId === productId) {
           const lineTotal = item.price * item.quantity;
-          const maxDiscount = lineTotal; // Discount cannot exceed line total
+          // Discount capped at Unit Price (item.price) AND Line Total (to avoid negative)
+          const maxDiscount = Math.min(item.price, lineTotal);
           const validDiscount = Math.max(0, Math.min(discount, maxDiscount));
           return { ...item, discount: validDiscount };
         }
