@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, memo } from 'react';
 import { Search, Trash2, ShoppingCart, Plus, Minus, PauseCircle, RotateCcw } from 'lucide-react';
 import { useCartStore, type CartItem } from '../stores/cart.store';
 import { Button } from '@repo/ui/components/ui/button';
@@ -10,6 +10,41 @@ import RecallOrderModal from '../features/pos/components/RecallOrderModal';
 import { CartItemDiscount } from '../features/pos/components/CartItemDiscount';
 import { formatCurrency } from '../lib/utils';
 import { useNumericInput } from '../hooks/use-numeric-input';
+import { type ProductWithCategoryDto } from '@algo/types';
+
+/**
+ * ⚡ Bolt Performance Optimization:
+ * Extracted ProductGridItem to a memoized component.
+ * This prevents the entire product grid (potentially hundreds of items)
+ * from re-rendering every time the cart state updates (e.g., when adding an item or changing quantities).
+ * The `onAdd` prop (addToCart from Zustand store) is stable, so this component only re-renders
+ * if its specific `product` data changes.
+ */
+const ProductGridItem = memo(function ProductGridItem({
+  product,
+  onAdd
+}: {
+  product: ProductWithCategoryDto;
+  onAdd: (product: ProductWithCategoryDto) => void;
+}) {
+  return (
+    <Button
+      variant="outline"
+      className="h-32 flex-col items-start justify-between whitespace-normal"
+      onClick={() => onAdd(product)}
+    >
+      <div className="text-left">
+        <h3 className="font-bold text-card-foreground line-clamp-2 leading-tight">
+          {product.name}
+        </h3>
+        <span className="text-xs text-muted-foreground font-mono mt-1 block">
+          {product.sku}
+        </span>
+      </div>
+      <div className="font-bold text-primary">{formatCurrency(product.price)}</div>
+    </Button>
+  );
+});
 
 export default function PosPage() {
   const [searchQuery, setSearchQuery] = useState('');
@@ -180,22 +215,11 @@ export default function PosPage() {
         <div className="flex-1 overflow-y-auto p-4">
           <div className="grid grid-cols-3 lg:grid-cols-4 gap-4">
             {filteredProducts.map((product) => (
-              <Button
+              <ProductGridItem
                 key={product.id}
-                variant="outline"
-                className="h-32 flex-col items-start justify-between whitespace-normal"
-                onClick={() => addToCart(product)}
-              >
-                <div className="text-left">
-                  <h3 className="font-bold text-card-foreground line-clamp-2 leading-tight">
-                    {product.name}
-                  </h3>
-                  <span className="text-xs text-muted-foreground font-mono mt-1 block">
-                    {product.sku}
-                  </span>
-                </div>
-                <div className="font-bold text-primary">{formatCurrency(product.price)}</div>
-              </Button>
+                product={product}
+                onAdd={addToCart}
+              />
             ))}
           </div>
         </div>
