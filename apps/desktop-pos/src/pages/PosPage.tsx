@@ -54,17 +54,29 @@ export default function PosPage() {
   const totals = getTotals();
 
   // Combined filtering: category + search
+  // ⚡ Bolt Optimization: Extracted searchQuery.toLowerCase() to run once per render
+  // and added early returns to skip expensive string operations when category doesn't match
+  // or when search query is empty.
   const filteredProducts = useMemo(() => {
+    const lowerQuery = searchQuery.trim().toLowerCase();
+
     return products.filter((p) => {
-      // Category filter (if a category is selected)
-      const matchesCategory = selectedCategoryId === null || p.categoryId === selectedCategoryId;
+      // Fast path 1: Category filter mismatch
+      if (selectedCategoryId !== null && p.categoryId !== selectedCategoryId) {
+        return false;
+      }
 
-      // Search filter
-      const matchesSearch =
-        p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        p.sku.toLowerCase().includes(searchQuery.toLowerCase());
+      // Fast path 2: Empty search query
+      if (!lowerQuery) {
+        return true;
+      }
 
-      return matchesCategory && matchesSearch;
+      // String operations only run for products that pass category check
+      // and when there is an active search query
+      return (
+        p.name.toLowerCase().includes(lowerQuery) ||
+        p.sku.toLowerCase().includes(lowerQuery)
+      );
     });
   }, [products, selectedCategoryId, searchQuery]);
 
