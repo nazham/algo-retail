@@ -1,0 +1,3 @@
+## 2025-02-28 - Optimizing React Filter Loops
+**Learning:** We identified a performance bottleneck in `apps/desktop-pos/src/pages/PosPage.tsx` where `.toLowerCase()` and string `.includes()` operations were repeatedly called inside a `useMemo` filter array mapping. For large catalogs, evaluating these inside the filter loop is slow and blocks the main thread.
+**Action:** Always hoist invariant derivations (like `searchQuery.toLowerCase()`) outside mapping/filtering loops, and use short-circuit boolean conditions (e.g., `if (!matchesCategory) return false;`) to avoid executing heavy string checks on obviously-excluded items.
