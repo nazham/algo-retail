@@ -55,16 +55,23 @@ export default function PosPage() {
 
   // Combined filtering: category + search
   const filteredProducts = useMemo(() => {
+    // ⚡ Bolt: Hoist toLowerCase() outside the loop to avoid O(N) redundant string operations
+    const query = searchQuery.toLowerCase();
+
     return products.filter((p) => {
       // Category filter (if a category is selected)
       const matchesCategory = selectedCategoryId === null || p.categoryId === selectedCategoryId;
+      // ⚡ Bolt: Early return skips expensive string comparisons for unmatching categories
+      if (!matchesCategory) return false;
+
+      if (!query) return true;
 
       // Search filter
       const matchesSearch =
-        p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        p.sku.toLowerCase().includes(searchQuery.toLowerCase());
+        p.name.toLowerCase().includes(query) ||
+        p.sku.toLowerCase().includes(query);
 
-      return matchesCategory && matchesSearch;
+      return matchesSearch;
     });
   }, [products, selectedCategoryId, searchQuery]);
 
