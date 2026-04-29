@@ -60,7 +60,7 @@ export class OrderRepository {
             quantity: item.quantity,
             unitPrice: item.price,
             costPrice: currentCost, // 🟢 SNAPSHOT
-            discountAmount: item.discountAmount ?? 0, // this is the discount applied to this item, if any. It can be used to calculate the discountTotal for the order.
+            discountAmount: (item.discountAmount ?? 0) * item.quantity, // this is the total discount applied to this line item based on quantity.
             discountType: item.discountType ?? 'MANUAL', // This indicates how the discountAmount should be applied (e.g., 'PERCENTAGE' or 'FIXED'). This is optional and can be used for reference when calculating the order totals.
             subtotal: (item.price - (item.discountAmount ?? 0)) * item.quantity, // Calculate subtotal for this item after discount
           })
