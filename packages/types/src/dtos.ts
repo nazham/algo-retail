@@ -17,7 +17,7 @@ export type PaymentMethod = 'CASH' | 'BANK_TRANSFER' | 'CARD';
 export class CreateOrderItemDto {
   productId!: string;
   productName!: string;
-  quantity!: number;
+  quantity!: number; // Allows negative values for refund mirror orders (Immutable Ledger Pattern)
   price!: number;
   costPrice?: number;
 }
@@ -29,10 +29,10 @@ export class CreateOrderDto {
   createdAt!: string; // When it actually happened (ISO String)
 
   // 🟢 FINANCIALS
-  subtotal!: number;
-  taxTotal!: number;
-  discountTotal!: number;
-  grandTotal!: number;
+  subtotal!: number; // Allows negative values for refund mirror orders (Immutable Ledger Pattern)
+  taxTotal!: number; // Allows negative values for refund mirror orders (Immutable Ledger Pattern)
+  discountTotal!: number; // Allows negative values for refund mirror orders (Immutable Ledger Pattern)
+  grandTotal!: number; // Allows negative values for refund mirror orders (Immutable Ledger Pattern)
   paymentMethod!: PaymentMethod;
   status?: string; // 🟢 From Desktop (e.g., COMPLETED, REFUNDED)
   items!: CreateOrderItemDto[]; // Array of the class above
