@@ -54,7 +54,7 @@ export default function OrderPage() {
     return f;
   }, [debouncedSearchTerm, date, status, currentPage]);
 
-  const { orders, total, page, totalPages, isLoading, error } = useOrders(filters);
+  const { orders, total, page, totalPages, isLoading, error, refetch } = useOrders(filters);
 
   // Reset to page 1 when date or status filters change (not search - that's debounced)
   useEffect(() => {
@@ -91,6 +91,7 @@ export default function OrderPage() {
       total={total}
       onPageChange={setCurrentPage}
       isLoading={isLoading}
+      onRefresh={refetch}
     />
   );
 }

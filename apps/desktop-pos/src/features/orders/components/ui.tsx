@@ -131,6 +131,7 @@ type MenuProps = {
   activeMenu: string | null;
   toggleMenu: (id: string) => void;
   onViewDetails: () => void;
+  onRefund: () => void;
 };
 
 export function OrderActionsMenu({
@@ -139,6 +140,7 @@ export function OrderActionsMenu({
   activeMenu,
   toggleMenu,
   onViewDetails,
+  onRefund,
 }: MenuProps) {
   const { printFromOrder } = usePrintReceipt();
 
@@ -174,7 +176,15 @@ export function OrderActionsMenu({
             />
             <MenuItem icon={Printer} label="Reprint Receipt" onClick={handlePrintReceipt} />
             <div className="h-px bg-border my-1"></div>
-            <MenuItem icon={RefreshCcw} label="Refund" variant="destructive" />
+            <MenuItem
+              icon={RefreshCcw}
+              label="Refund"
+              variant="destructive"
+              onClick={() => {
+                onRefund();
+                toggleMenu(orderId);
+              }}
+            />
           </div>
         </div>
       )}

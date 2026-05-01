@@ -25,6 +25,7 @@ type OrderPageLayoutProps = {
   total: number;
   onPageChange: (page: number) => void;
   isLoading: boolean;
+  onRefresh: () => void;
 };
 
 export function OrderPageLayout({
@@ -40,6 +41,7 @@ export function OrderPageLayout({
   total,
   onPageChange,
   isLoading,
+  onRefresh,
 }: OrderPageLayoutProps) {
   const totalSales = orders.reduce((sum, order) => sum + order.grandTotal, 0);
   const avgTicket = orders.length > 0 ? totalSales / total : 0;
@@ -122,6 +124,7 @@ export function OrderPageLayout({
           totalPages={totalPages}
           onPageChange={onPageChange}
           isLoading={isLoading}
+          onRefresh={onRefresh}
         />
       </div>
     </div>

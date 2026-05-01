@@ -3,6 +3,7 @@ import type { OrderDto, PaymentMethod } from '@algo/types';
 import { Wallet, ChevronLeft, ChevronRight, Loader2 } from 'lucide-react';
 import { TableHeader, PaymentBadge, StatusBadge, OrderActionsMenu } from './ui';
 import { OrderDetailsDialog } from './OrderDetailsDialog';
+import { RefundOrderModal } from './RefundOrderModal';
 import { formatCurrency, formatDate } from '../../../lib/utils';
 import { Button } from '@repo/ui/components/ui/button';
 
@@ -12,6 +13,7 @@ type OrderTableProps = {
   totalPages: number;
   onPageChange: (page: number) => void;
   isLoading: boolean;
+  onRefresh?: () => void;
 };
 
 export function OrderTable({
@@ -20,10 +22,14 @@ export function OrderTable({
   totalPages,
   onPageChange,
   isLoading,
+  onRefresh,
 }: OrderTableProps) {
   const [activeMenu, setActiveMenu] = useState<string | null>(null);
   const [selectedOrder, setSelectedOrder] = useState<OrderDto | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+
+  const [refundOrderId, setRefundOrderId] = useState<string | null>(null);
+  const [isRefundModalOpen, setIsRefundModalOpen] = useState(false);
 
   const toggleMenu = (id: string) => {
     setActiveMenu(activeMenu === id ? null : id);
@@ -32,6 +38,11 @@ export function OrderTable({
   const handleViewDetails = (order: OrderDto) => {
     setSelectedOrder(order);
     setIsDialogOpen(true);
+  };
+
+  const handleRefundClick = (orderId: string) => {
+    setRefundOrderId(orderId);
+    setIsRefundModalOpen(true);
   };
 
   const handlePageChange = (newPage: number) => {
@@ -107,6 +118,7 @@ export function OrderTable({
                         activeMenu={activeMenu}
                         toggleMenu={toggleMenu}
                         onViewDetails={() => handleViewDetails(order)}
+                        onRefund={() => handleRefundClick(order.id)}
                       />
                     </td>
                   </tr>
@@ -157,6 +169,16 @@ export function OrderTable({
         order={selectedOrder}
         open={isDialogOpen}
         onOpenChange={setIsDialogOpen}
+      />
+
+      <RefundOrderModal
+        orderId={refundOrderId}
+        isOpen={isRefundModalOpen}
+        onClose={() => setIsRefundModalOpen(false)}
+        onSuccess={() => {
+          setIsRefundModalOpen(false);
+          if (onRefresh) onRefresh();
+        }}
       />
     </>
   );
