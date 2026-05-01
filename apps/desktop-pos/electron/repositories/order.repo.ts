@@ -73,6 +73,83 @@ export class OrderRepository {
     });
   }
 
+  async refundOrder(
+    originalOrderId: string,
+    refundData: { id: string; orderNumber: string; createdAt: string },
+  ): Promise<OrderResultDto> {
+    return this.db.transaction((tx) => {
+      // 1. Fetch original order
+      const originalOrder = tx
+        .select()
+        .from(schema.orders)
+        .where(eq(schema.orders.id as any, originalOrderId) as any)
+        .get();
+
+      if (!originalOrder) {
+        throw new Error('Original order not found');
+      }
+
+      // 2. Fetch original order items
+      const originalItems = tx
+        .select()
+        .from(schema.orderItems)
+        .where(eq(schema.orderItems.orderId as any, originalOrderId) as any)
+        .all();
+
+      // 3. Create Mirror Order with negative financial values
+      tx.insert(schema.orders)
+        .values({
+          id: refundData.id,
+          orderNumber: refundData.orderNumber,
+          createdAt: new Date(refundData.createdAt),
+          status: 'REFUNDED',
+          paymentMethod: originalOrder.paymentMethod,
+          // Negative values for Immutable Ledger Pattern
+          subtotal: -Math.abs(originalOrder.subtotal),
+          taxTotal: -Math.abs(originalOrder.taxTotal),
+          discountTotal: -Math.abs(originalOrder.discountTotal),
+          grandTotal: -Math.abs(originalOrder.grandTotal),
+          isSynced: false,
+        })
+        .run();
+
+      // 4. Create Mirror Order Items & Revert Stock
+      for (const item of originalItems) {
+        // Enforce negative quantity for mirror order item
+        const refundQuantity = -Math.abs(item.quantity);
+
+        tx.insert(schema.orderItems)
+          .values({
+            id: randomUUID(),
+            orderId: refundData.id,
+            productId: item.productId,
+            productName: item.productName,
+            quantity: refundQuantity,
+            unitPrice: item.unitPrice,
+            costPrice: item.costPrice,
+            subtotal: refundQuantity * item.unitPrice,
+          })
+          .run();
+
+        // 5. Revert inventory stock
+        tx.update(schema.products)
+          .set({
+            stock: sql`${schema.products.stock} + ${Math.abs(item.quantity)}` as any,
+          })
+          .where(eq(schema.products.id as any, item.productId) as any)
+          .run();
+      }
+
+      // 6. Update the original order's status to REFUNDED to reflect its state
+      tx.update(schema.orders)
+        .set({ status: 'REFUNDED' })
+        .where(eq(schema.orders.id as any, originalOrderId) as any)
+        .run();
+
+      return { orderId: refundData.id, orderNumber: refundData.orderNumber };
+    });
+  }
+
   async findAll(filters?: {
     page?: number;
     limit?: number;
