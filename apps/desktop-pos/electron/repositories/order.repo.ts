@@ -105,10 +105,10 @@ export class OrderRepository {
           status: 'REFUNDED',
           paymentMethod: originalOrder.paymentMethod,
           // Negative values for Immutable Ledger Pattern
-          subtotal: -Math.abs(originalOrder.subtotal),
-          taxTotal: -Math.abs(originalOrder.taxTotal),
-          discountTotal: -Math.abs(originalOrder.discountTotal),
-          grandTotal: -Math.abs(originalOrder.grandTotal),
+          subtotal: -Math.abs(originalOrder.subtotal ?? 0),
+          taxTotal: -Math.abs(originalOrder.taxTotal ?? 0),
+          discountTotal: -Math.abs(originalOrder.discountTotal ?? 0),
+          grandTotal: -Math.abs(originalOrder.grandTotal ?? 0),
           isSynced: false,
         })
         .run();
