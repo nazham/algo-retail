@@ -50,8 +50,8 @@ export interface OrderItemDto {
   productName: string;
   quantity: number;
   unitPrice: number;
-  discountAmount?: number; // This is the discount applied to this item, if any. It can be used to calculate the discountTotal for the order.
-  discountType?: string; // This indicates how the discountAmount should be applied (e.g., 'PERCENTAGE' or 'FIXED'). This is optional and can be used for reference when calculating the order totals.
+  discountAmount?: number;
+  discountType?: string;
 }
 
 export interface OrderDto {

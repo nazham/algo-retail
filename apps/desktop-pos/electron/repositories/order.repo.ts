@@ -28,6 +28,8 @@ export class OrderRepository {
         .values({
           id: data.id, // Matches schema id (text)
           orderNumber: data.orderNumber, // Matches schema orderNumber (text)
+          // Schema expects 'timestamp_ms' (Date or Integer), but DTO has ISO String.
+          // We convert it here so Drizzle handles the integer math.
           createdAt: new Date(data.createdAt),
 
           status: 'COMPLETED',
@@ -39,6 +41,7 @@ export class OrderRepository {
           isSynced: false,
         })
         .run(); // explicit .run() is sometimes needed in raw BS3, but Drizzle handles it usually.
+      // With Drizzle + BS3, just calling the method synchronously works.
 
       // B. Insert Items & Update Stock
       for (const item of data.items) {
