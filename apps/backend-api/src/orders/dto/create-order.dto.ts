@@ -34,7 +34,7 @@ export class CreateOrderItemDto {
   @IsNumber()
   @Min(0)
   @IsOptional()
-  discountAmount?: number; // ← ADD
+  discountAmount?: number;
 
   @IsString()
   @IsOptional()
