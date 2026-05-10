@@ -20,8 +20,8 @@ export class CreateOrderItemDto {
   quantity!: number;
   price!: number;
   costPrice?: number;
-  discountAmount?: number; // This code will be used to calculate the discountTotal in the order, but we can also store it here for reference
-  discountType?: string; // e.g., 'PERCENTAGE' or 'FIXED', this is optional and can be used to determine how the discountAmount should be applied when calculating the order totals
+  discountAmount?: number;
+  discountType?: string;
 }
 
 export class CreateOrderDto {

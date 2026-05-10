@@ -38,7 +38,7 @@ export class OrderRepository {
           grandTotal: calculatedGrandTotal,
           isSynced: false,
         })
-        .run();
+        .run(); // explicit .run() is sometimes needed in raw BS3, but Drizzle handles it usually.
 
       // B. Insert Items & Update Stock
       for (const item of data.items) {

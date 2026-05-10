@@ -21,16 +21,27 @@ export const registerPrintHandlers = () => {
     // Use provided shop config or fall back to defaults
     const shopConfig = providedShopConfig || getShopConfig();
 
+    // Calculate totals based on items to ensure consistency
+    const calculatedSubTotal = items.reduce(
+      (sum, item) => sum + item.quantity * (item.unitPrice || 0),
+      0,
+    );
+    const calculatedTotalDiscount = items.reduce(
+      (sum, item) => sum + item.quantity * (item.discountAmount || 0),
+      0,
+    );
+    const calculatedGrandTotal = calculatedSubTotal - calculatedTotalDiscount;
+
     const templateData: ReceiptTemplateData = {
       shop: shopConfig,
       receiptData: {
         orderNumber: order.orderNumber,
-        grandTotal: order.grandTotal,
-        subtotal: order.subtotal,
-        discount: order.discountTotal,
+        grandTotal: calculatedGrandTotal,
+        subtotal: calculatedSubTotal,
+        discount: calculatedTotalDiscount,
         paymentMethod: order.paymentMethod,
       },
-      items: items,
+      items: items as any,
       customerName: customerName || 'Walk-in',
       cashierName: cashierName || 'Admin',
       paymentDetails: paymentDetails,

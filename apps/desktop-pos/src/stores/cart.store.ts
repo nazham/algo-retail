@@ -183,6 +183,8 @@ export const useCartStore = create<CartState>((set, get) => ({
     items.forEach((item) => {
       const lineTotal = item.price * item.quantity;
       subtotal += lineTotal;
+      // Note: In real world, handle inclusive/exclusive tax carefully here.
+      // We assume EXCLUSIVE tax for this calculation example.
       // Tax Logic: (Price * Qty * Rate) / 100
       tax += (lineTotal * item.taxRate) / 100;
       // Discount Logic: (Discount Per Unit * Quantity)

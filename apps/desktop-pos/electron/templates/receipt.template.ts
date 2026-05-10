@@ -150,13 +150,10 @@ export function generateReceipt(data: ReceiptTemplateData): string {
   const { shop, receiptData, items, customerName, cashierName, paymentDetails } = data;
   const fmt = formatCurrency;
 
-  // Calculate totals to ensure consistency
-  const totalDiscount = items.reduce(
-    (sum, item) => sum + item.quantity * (item.discountAmount || 0),
-    0,
-  );
-  const subTotal = items.reduce((sum, item) => sum + item.quantity * (item.unitPrice || 0), 0);
-  const grandTotal = subTotal - totalDiscount;
+  // Totals are now calculated in the service/controller layer and passed via receiptData
+  const totalDiscount = receiptData.discount || 0;
+  const subTotal = receiptData.subtotal || 0;
+  const grandTotal = receiptData.grandTotal || 0;
 
   return `
       <!DOCTYPE html>

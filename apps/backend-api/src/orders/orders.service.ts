@@ -97,9 +97,9 @@ export class OrdersService {
           productName: item.productName,
           quantity: item.quantity,
           unitPrice: item.price,
-          discountAmount: item.discountAmount ?? 0, // Pass discount info if available
-          discountType: item.discountType ?? 'MANUAL', // Pass discount type if available
-          subtotal: item.price * item.quantity - (item.discountAmount ?? 0), // Calculate item subtotal after discount
+          discountAmount: item.discountAmount ?? 0,
+          discountType: item.discountType ?? 'MANUAL',
+          subtotal: item.price * item.quantity - (item.discountAmount ?? 0),
         });
 
         // 📉 Stock Adjustment (Logged Movement)
