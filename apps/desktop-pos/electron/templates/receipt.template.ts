@@ -203,7 +203,7 @@ export function generateReceipt(data: ReceiptTemplateData): string {
               <th width="15%" class="th-center">QTY</th>
               <th width="35%">MRP</th>
               <th width="20%" class="th-center">Price</th>
-              <th width="30%" class="th-right">TOTAL</th>
+              <th width="30%" class="th-right">Amount</th>
             </tr>
             <tr>
               <td colspan="4" style="border-bottom: 1px dashed #666; padding-bottom: 1mm;"></td>

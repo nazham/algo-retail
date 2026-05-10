@@ -43,8 +43,8 @@ export interface PrintReceiptRequest {
     productName: string;
     quantity: number;
     subtotal: number;
-    unitPrice?: number;
-    discountAmount?: number;
+    unitPrice: number;
+    discountAmount: number;
   }[];
   paymentDetails: {
     method: string;

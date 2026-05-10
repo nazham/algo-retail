@@ -7,7 +7,7 @@ export interface CartItem {
   quantity: number;
   taxRate: number;
   discount?: number; // amount in cents
-  discountType?: 'MANUAL' | 'PROMOTION'; // Optional field to indicate how the discount was applied
+  discountType?: 'MANUAL' | 'PROMOTION';
 }
 
 export interface ProductInput {
