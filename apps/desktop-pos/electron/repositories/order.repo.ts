@@ -177,11 +177,33 @@ export class OrderRepository {
         .where(eq(schema.orderItems.orderId as any, originalOrderId) as any)
         .all();
 
+      // Find all past mirror orders to prevent duplicate refunds for the same items
+      // We look for any order number containing REF-<originalOrderNumber>
+      const mirrorOrders = tx
+        .select({ id: schema.orders.id })
+        .from(schema.orders)
+        .where(like(schema.orders.orderNumber as any, `%REF-${originalOrder.orderNumber}%`) as any)
+        .all();
+
+      const pastRefundedQuantities: Record<string, number> = {};
+      for (const mirror of mirrorOrders) {
+        const pastItems = tx
+          .select()
+          .from(schema.orderItems)
+          .where(eq(schema.orderItems.orderId as any, mirror.id) as any)
+          .all();
+        for (const item of pastItems) {
+          // Accumulate the absolute value since refund items have negative quantities
+          pastRefundedQuantities[item.productId] =
+            (pastRefundedQuantities[item.productId] || 0) + Math.abs(item.quantity);
+        }
+      }
+
       // 3. Prepare data for mirror order
       const refundOrderId = randomUUID();
       const newOrderNumber = `PREF-${originalOrder.orderNumber}`;
 
-      let refundGrandTotal = 0;
+      let refundSubtotalAmount = 0;
       const refundItemsData = [];
 
       for (const refundItem of refundData.items) {
@@ -189,36 +211,38 @@ export class OrderRepository {
         if (!originalItem) {
           throw new Error(`Item ${refundItem.productId} not found in original order`);
         }
-        if (refundItem.quantity > originalItem.quantity) {
+
+        // Calculate the actual remaining quantity that can still be refunded
+        const alreadyRefundedQty = pastRefundedQuantities[refundItem.productId] || 0;
+        const remainingQty = originalItem.quantity - alreadyRefundedQty;
+
+        if (refundItem.quantity > remainingQty) {
           throw new Error(
-            `Refund quantity cannot exceed original quantity for item ${refundItem.productId}`,
+            `Refund quantity cannot exceed remaining refundable quantity (${remainingQty}) for item ${refundItem.productId}`,
           );
         }
 
-        const refundSubtotal = -(refundItem.quantity * originalItem.unitPrice);
-        refundGrandTotal += refundSubtotal;
+        // Calculate positive subtotal for this item
+        const itemRefundSubtotal = refundItem.quantity * originalItem.unitPrice;
+        refundSubtotalAmount += itemRefundSubtotal;
 
         refundItemsData.push({
           originalItem,
           refundQuantity: -refundItem.quantity,
-          refundSubtotal,
+          refundSubtotal: -itemRefundSubtotal,
         });
       }
 
       // Proportional calculation for subtotal, tax, discount
-      const ratio = Math.abs(refundGrandTotal) / Math.abs(originalOrder.grandTotal || 1);
+      // Correct mathematical logic: Ratio should be derived from Subtotal, not Grand Total
+      const originalSubtotal = Math.abs(originalOrder.subtotal || 1);
+      const ratio = refundSubtotalAmount / originalSubtotal;
 
-      const subtotal = originalOrder.subtotal
-        ? -Math.abs(Math.round(originalOrder.subtotal * ratio))
-        : 0;
-      const taxTotal = originalOrder.taxTotal
-        ? -Math.abs(Math.round(originalOrder.taxTotal * ratio))
-        : 0;
-      const discountTotal = originalOrder.discountTotal
-        ? -Math.abs(Math.round(originalOrder.discountTotal * ratio))
-        : 0;
+      const proportionalTax = Math.round((originalOrder.taxTotal || 0) * ratio);
+      const proportionalDiscount = Math.round((originalOrder.discountTotal || 0) * ratio);
+      const calculatedGrandTotal = refundSubtotalAmount + proportionalTax - proportionalDiscount;
 
-      // 4. Insert new partial refund order
+      // 4. Insert new partial refund order (using negative values for Immutable Ledger Pattern)
       tx.insert(schema.orders)
         .values({
           id: refundOrderId,
@@ -226,10 +250,10 @@ export class OrderRepository {
           createdAt: new Date(),
           status: 'REFUNDED',
           paymentMethod: originalOrder.paymentMethod,
-          subtotal,
-          taxTotal,
-          discountTotal,
-          grandTotal: refundGrandTotal,
+          subtotal: -refundSubtotalAmount,
+          taxTotal: -proportionalTax,
+          discountTotal: -proportionalDiscount,
+          grandTotal: -calculatedGrandTotal,
           isSynced: false,
         })
         .run();
@@ -264,6 +288,23 @@ export class OrderRepository {
         // but that table does not exist in the current schema.local.ts.
         // We are skipping that insertion to prevent SQL errors, matching the existing `refundOrder` behavior.
       }
+
+      // 6. Update the original order's status
+      let isFullyRefunded = true;
+      for (const originalItem of originalItems) {
+        const refundedQty = pastRefundedQuantities[originalItem.productId] || 0;
+        const currentRefundQty =
+          refundData.items.find((i) => i.productId === originalItem.productId)?.quantity || 0;
+        if (refundedQty + currentRefundQty < originalItem.quantity) {
+          isFullyRefunded = false;
+          break;
+        }
+      }
+
+      tx.update(schema.orders)
+        .set({ status: isFullyRefunded ? 'REFUNDED' : 'PARTIALLY_REFUNDED' })
+        .where(eq(schema.orders.id as any, originalOrderId) as any)
+        .run();
 
       return { orderId: refundOrderId, orderNumber: newOrderNumber };
     });

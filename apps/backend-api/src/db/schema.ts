@@ -35,6 +35,7 @@ export const adjustmentReasonEnum = pgEnum('adjustment_reason', [
 export const orderStatusEnum = pgEnum('order_status', [
   'COMPLETED',
   'REFUNDED',
+  'PARTIALLY_REFUNDED',
   'PENDING',
   'CANCELLED',
 ]);

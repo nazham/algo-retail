@@ -1,13 +1,20 @@
 // packages/types/src/dtos.ts
 import { z } from 'zod';
 
-export const ORDER_STATUSES = ['COMPLETED', 'REFUNDED', 'PENDING', 'CANCELLED'] as const;
+export const ORDER_STATUSES = [
+  'COMPLETED',
+  'REFUNDED',
+  'PARTIALLY_REFUNDED',
+  'PENDING',
+  'CANCELLED',
+] as const;
 export type OrderStatusType = (typeof ORDER_STATUSES)[number];
 
 // Standard Enum for class-validator and frontend form usage
 export enum OrderStatus {
   COMPLETED = 'COMPLETED',
   REFUNDED = 'REFUNDED',
+  PARTIALLY_REFUNDED = 'PARTIALLY_REFUNDED',
   PENDING = 'PENDING',
   CANCELLED = 'CANCELLED',
 }
@@ -182,12 +189,14 @@ export const PartialRefundSchema = z.object({
   originalOrderId: z.string(),
   adminPin: z.string(),
   reason: z.string().optional(),
-  items: z.array(
-    z.object({
-      productId: z.string(),
-      quantity: z.number().min(1),
-    }),
-  ),
+  items: z
+    .array(
+      z.object({
+        productId: z.string(),
+        quantity: z.number().min(1),
+      }),
+    )
+    .min(1, 'Must select at least one item'),
 });
 
 export type PartialRefundDto = z.infer<typeof PartialRefundSchema>;
