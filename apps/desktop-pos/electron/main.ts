@@ -105,7 +105,7 @@ const reportService = new ReportService(reportRepo);
 // 4. Define API Handlers
 registerProductHandlers(productRepo);
 registerCategoryHandlers(categoryRepo);
-registerOrderHandlers(orderRepo);
+registerOrderHandlers(orderRepo, userRepo);
 registerUserHandlers(userRepo);
 registerPrintHandlers();
 registerConfigHandlers(syncService);

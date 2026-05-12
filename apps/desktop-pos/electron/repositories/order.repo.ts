@@ -150,6 +150,125 @@ export class OrderRepository {
     });
   }
 
+  async partialRefundOrder(
+    originalOrderId: string,
+    refundData: { items: { productId: string; quantity: number }[]; reason?: string },
+  ): Promise<OrderResultDto> {
+    return this.db.transaction((tx) => {
+      // 1. Fetch original order
+      const originalOrder = tx
+        .select()
+        .from(schema.orders)
+        .where(eq(schema.orders.id as any, originalOrderId) as any)
+        .get();
+
+      if (!originalOrder) {
+        throw new Error('Original order not found');
+      }
+
+      if (originalOrder.status === 'REFUNDED') {
+        throw new Error('Order is already fully refunded');
+      }
+
+      // 2. Fetch original order items
+      const originalItems = tx
+        .select()
+        .from(schema.orderItems)
+        .where(eq(schema.orderItems.orderId as any, originalOrderId) as any)
+        .all();
+
+      // 3. Prepare data for mirror order
+      const refundOrderId = randomUUID();
+      const newOrderNumber = `PREF-${originalOrder.orderNumber}`;
+
+      let refundGrandTotal = 0;
+      const refundItemsData = [];
+
+      for (const refundItem of refundData.items) {
+        const originalItem = originalItems.find((i) => i.productId === refundItem.productId);
+        if (!originalItem) {
+          throw new Error(`Item ${refundItem.productId} not found in original order`);
+        }
+        if (refundItem.quantity > originalItem.quantity) {
+          throw new Error(
+            `Refund quantity cannot exceed original quantity for item ${refundItem.productId}`,
+          );
+        }
+
+        const refundSubtotal = -(refundItem.quantity * originalItem.unitPrice);
+        refundGrandTotal += refundSubtotal;
+
+        refundItemsData.push({
+          originalItem,
+          refundQuantity: -refundItem.quantity,
+          refundSubtotal,
+        });
+      }
+
+      // Proportional calculation for subtotal, tax, discount
+      const ratio = Math.abs(refundGrandTotal) / Math.abs(originalOrder.grandTotal || 1);
+
+      const subtotal = originalOrder.subtotal
+        ? -Math.abs(Math.round(originalOrder.subtotal * ratio))
+        : 0;
+      const taxTotal = originalOrder.taxTotal
+        ? -Math.abs(Math.round(originalOrder.taxTotal * ratio))
+        : 0;
+      const discountTotal = originalOrder.discountTotal
+        ? -Math.abs(Math.round(originalOrder.discountTotal * ratio))
+        : 0;
+
+      // 4. Insert new partial refund order
+      tx.insert(schema.orders)
+        .values({
+          id: refundOrderId,
+          orderNumber: newOrderNumber,
+          createdAt: new Date(),
+          status: 'REFUNDED',
+          paymentMethod: originalOrder.paymentMethod,
+          subtotal,
+          taxTotal,
+          discountTotal,
+          grandTotal: refundGrandTotal,
+          isSynced: false,
+        })
+        .run();
+
+      // 5. For each selected item
+      for (const itemData of refundItemsData) {
+        const { originalItem, refundQuantity, refundSubtotal } = itemData;
+
+        // Insert negative orderItem
+        tx.insert(schema.orderItems)
+          .values({
+            id: randomUUID(),
+            orderId: refundOrderId,
+            productId: originalItem.productId,
+            productName: originalItem.productName,
+            quantity: refundQuantity,
+            unitPrice: originalItem.unitPrice,
+            costPrice: originalItem.costPrice,
+            subtotal: refundSubtotal,
+          })
+          .run();
+
+        // Increment stock
+        tx.update(schema.products)
+          .set({
+            stock: sql`${schema.products.stock} + ${Math.abs(refundQuantity)}` as any,
+          })
+          .where(eq(schema.products.id as any, originalItem.productId) as any)
+          .run();
+
+        // Note: The prompt requested inserting into an `inventoryMovements` table,
+        // but that table does not exist in the current schema.local.ts.
+        // We are skipping that insertion to prevent SQL errors, matching the existing `refundOrder` behavior.
+      }
+
+      return { orderId: refundOrderId, orderNumber: newOrderNumber };
+    });
+  }
+
   async findAll(filters?: {
     page?: number;
     limit?: number;

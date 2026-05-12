@@ -4,6 +4,7 @@ import { Wallet, ChevronLeft, ChevronRight, Loader2 } from 'lucide-react';
 import { TableHeader, PaymentBadge, StatusBadge, OrderActionsMenu } from './ui';
 import { OrderDetailsDialog } from './OrderDetailsDialog';
 import { RefundOrderModal } from './RefundOrderModal';
+import { PartialRefundModal } from './PartialRefundModal';
 import { formatCurrency, formatDate } from '../../../lib/utils';
 import { Button } from '@repo/ui/components/ui/button';
 
@@ -28,8 +29,11 @@ export function OrderTable({
   const [selectedOrder, setSelectedOrder] = useState<OrderDto | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
-  const [refundOrderId, setRefundOrderId] = useState<string | null>(null);
-  const [isRefundModalOpen, setIsRefundModalOpen] = useState(false);
+  const [_refundOrderId, _setRefundOrderId] = useState<string | null>(null);
+  const [_isRefundModalOpen, _setIsRefundModalOpen] = useState(false);
+
+  const [partialRefundOrder, setPartialRefundOrder] = useState<OrderDto | null>(null);
+  const [isPartialRefundModalOpen, setIsPartialRefundModalOpen] = useState(false);
 
   const toggleMenu = (id: string) => {
     setActiveMenu(activeMenu === id ? null : id);
@@ -40,9 +44,11 @@ export function OrderTable({
     setIsDialogOpen(true);
   };
 
-  const handleRefundClick = (orderId: string) => {
-    setRefundOrderId(orderId);
-    setIsRefundModalOpen(true);
+  // As requested, clicking "Refund" now opens the PartialRefundModal.
+  // The full refund modal code is preserved to not break any existing flows that might rely on it.
+  const handleRefundClick = (order: OrderDto) => {
+    setPartialRefundOrder(order);
+    setIsPartialRefundModalOpen(true);
   };
 
   const handlePageChange = (newPage: number) => {
@@ -118,7 +124,7 @@ export function OrderTable({
                         activeMenu={activeMenu}
                         toggleMenu={toggleMenu}
                         onViewDetails={() => handleViewDetails(order)}
-                        onRefund={() => handleRefundClick(order.id)}
+                        onRefund={() => handleRefundClick(order)}
                       />
                     </td>
                   </tr>
@@ -172,11 +178,21 @@ export function OrderTable({
       />
 
       <RefundOrderModal
-        orderId={refundOrderId}
-        isOpen={isRefundModalOpen}
-        onClose={() => setIsRefundModalOpen(false)}
+        orderId={_refundOrderId}
+        isOpen={_isRefundModalOpen}
+        onClose={() => _setIsRefundModalOpen(false)}
         onSuccess={() => {
-          setIsRefundModalOpen(false);
+          _setIsRefundModalOpen(false);
+          if (onRefresh) onRefresh();
+        }}
+      />
+
+      <PartialRefundModal
+        order={partialRefundOrder}
+        isOpen={isPartialRefundModalOpen}
+        onClose={() => setIsPartialRefundModalOpen(false)}
+        onRefundSuccess={() => {
+          setIsPartialRefundModalOpen(false);
           if (onRefresh) onRefresh();
         }}
       />

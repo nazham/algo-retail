@@ -1,4 +1,5 @@
 // packages/types/src/dtos.ts
+import { z } from 'zod';
 
 export const ORDER_STATUSES = ['COMPLETED', 'REFUNDED', 'PENDING', 'CANCELLED'] as const;
 export type OrderStatusType = (typeof ORDER_STATUSES)[number];
@@ -45,6 +46,7 @@ export interface OrderResultDto {
 
 export interface OrderItemDto {
   id: string;
+  productId: string;
   productName: string;
   quantity: number;
   unitPrice: number;
@@ -175,3 +177,17 @@ export interface PaginatedOrderResponse {
   limit: number;
   totalPages: number;
 }
+
+export const PartialRefundSchema = z.object({
+  originalOrderId: z.string(),
+  adminPin: z.string(),
+  reason: z.string().optional(),
+  items: z.array(
+    z.object({
+      productId: z.string(),
+      quantity: z.number().min(1),
+    }),
+  ),
+});
+
+export type PartialRefundDto = z.infer<typeof PartialRefundSchema>;

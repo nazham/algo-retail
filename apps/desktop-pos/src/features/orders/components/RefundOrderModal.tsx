@@ -11,16 +11,17 @@ import {
   DialogDescription,
 } from '@repo/ui/components/ui/dialog';
 import { toast } from 'sonner';
+import { ORDER_CHANNELS } from '../ipc-channels';
 
 // Custom hook for IPC communication (Architectural Rule: No direct window.api in components)
 function useRefundOrder() {
   const [isLoading, setIsLoading] = useState(false);
 
-  const processRefund = async (originalOrderId: string, adminPin: string, reason: string) => {
+  const processRefund = async (originalOrderId: string, adminPin: string, _reason: string) => {
     setIsLoading(true);
     try {
       // Reason is collected but currently only logged or discarded as backend doesn't take it yet
-      const result = await window.api.invoke('orders:refund', { originalOrderId, adminPin });
+      const result = await window.api.invoke(ORDER_CHANNELS.REFUND, { originalOrderId, adminPin });
       return result;
     } finally {
       setIsLoading(false);
