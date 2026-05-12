@@ -46,6 +46,20 @@ export class OrdersService {
       );
     }
 
+    const calculatedDiscountTotal = dto.items.reduce(
+      (sum, item) => sum + (item.discountAmount ?? 0) * item.quantity,
+      0,
+    );
+
+    if (Math.abs(calculatedDiscountTotal - dto.discountTotal) > 0.05) {
+      this.logger.warn(
+        `🚨 Discount Mismatch detected for Order ${dto.orderNumber}. POS: ${dto.discountTotal}, Calc: ${calculatedDiscountTotal}`,
+      );
+      throw new BadRequestException(
+        `Order integrity check failed: Discount mismatch. POS: ${dto.discountTotal}, Server: ${calculatedDiscountTotal}`,
+      );
+    }
+
     // Verify Grand Total Math: Subtotal + Tax - Discount = GrandTotal
     const calculatedGrand = dto.subtotal + dto.taxTotal - dto.discountTotal;
     if (Math.abs(calculatedGrand - dto.grandTotal) > 0.05) {

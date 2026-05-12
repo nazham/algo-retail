@@ -164,7 +164,7 @@ export const useCartStore = create<CartState>((set, get) => ({
     set({
       items: items.map((item) => {
         if (item.productId === productId) {
-          // Discount is now per-unit, so it's capped at just the unit price
+          // Discount is per-unit, so it's capped at just the unit price
           const maxDiscount = item.price;
           const validDiscount = Math.max(0, Math.min(discount, maxDiscount));
           return { ...item, discount: validDiscount };
