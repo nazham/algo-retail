@@ -99,7 +99,7 @@ export class OrdersService {
           unitPrice: item.price,
           discountAmount: item.discountAmount ?? 0,
           discountType: item.discountType ?? 'MANUAL',
-          subtotal: item.price * item.quantity - (item.discountAmount ?? 0),
+          subtotal: (item.price - (item.discountAmount ?? 0)) * item.quantity,
         });
 
         // 📉 Stock Adjustment (Logged Movement)

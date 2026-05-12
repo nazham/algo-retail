@@ -63,7 +63,7 @@ export class OrderRepository {
             quantity: item.quantity,
             unitPrice: item.price,
             costPrice: currentCost, // 🟢 SNAPSHOT
-            discountAmount: (item.discountAmount ?? 0) * item.quantity,
+            discountAmount: item.discountAmount ?? 0,
             discountType: item.discountType ?? 'MANUAL',
             subtotal: (item.price - (item.discountAmount ?? 0)) * item.quantity,
           })
