@@ -46,6 +46,12 @@ interface CartState {
   getTotals: () => { subtotal: number; tax: number; discount: number; total: number };
 }
 
+// Helper to cap discount at line total
+const calculateValidDiscount = (price: number, quantity: number, currentDiscount?: number) => {
+  const lineTotal = price * quantity;
+  return currentDiscount ? Math.min(currentDiscount, lineTotal) : 0;
+};
+
 export const useCartStore = create<CartState>((set, get) => ({
   items: [],
   heldOrders: [], // Initialize empty list
@@ -90,9 +96,7 @@ export const useCartStore = create<CartState>((set, get) => ({
           // Basic sanity check - UI should prevent negative values
           if (newQty <= 0) return item;
 
-          const lineTotal = item.price * newQty;
-          // Ensure existing discount doesn't exceed new line total
-          const validDiscount = item.discount ? Math.min(item.discount, lineTotal) : 0;
+          const validDiscount = calculateValidDiscount(item.price, newQty, item.discount);
           return { ...item, quantity: newQty, discount: validDiscount };
         }
         return item;
@@ -107,9 +111,7 @@ export const useCartStore = create<CartState>((set, get) => ({
     set({
       items: items.map((item) => {
         if (item.productId === productId) {
-          const lineTotal = item.price * roundedQty;
-          // Ensure existing discount doesn't exceed new line total
-          const validDiscount = item.discount ? Math.min(item.discount, lineTotal) : 0;
+          const validDiscount = calculateValidDiscount(item.price, roundedQty, item.discount);
           return { ...item, quantity: roundedQty, discount: validDiscount };
         }
         return item;

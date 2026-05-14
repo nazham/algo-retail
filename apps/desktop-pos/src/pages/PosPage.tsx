@@ -51,7 +51,8 @@ export default function PosPage() {
     discardHeldOrder,
   } = useCartStore();
 
-  const totals = getTotals();
+  // Memoize the totals to isolate search-driven re-renders from cart calculations
+  const totals = useMemo(() => getTotals(), [items, getTotals]);
 
   // Combined filtering: category + search
   const filteredProducts = useMemo(() => {

@@ -348,6 +348,7 @@ export class SyncService {
     } catch (error) {
       // Config pull is non-critical — don't break the sync cycle
       console.warn('⚠️ Failed to pull tenant config:', error);
+      this.notify('ERROR', 'Failed to pull updated tenant config. Settings might be stale.');
     }
   }
 
