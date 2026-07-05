@@ -1,19 +1,19 @@
-import { useState, useEffect } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 
 export function useProducts() {
   const [products, setProducts] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  useEffect(() => {
-    const fetchProducts = () => {
-      setIsLoading(true);
-      window.api
-        .invoke('products:get-all')
-        .then(setProducts)
-        .catch((err) => console.error('Failed to fetch products', err))
-        .finally(() => setIsLoading(false));
-    };
+  const fetchProducts = useCallback(() => {
+    setIsLoading(true);
+    window.api
+      .invoke('products:get-all')
+      .then(setProducts)
+      .catch((err) => console.error('Failed to fetch products', err))
+      .finally(() => setIsLoading(false));
+  }, []);
 
+  useEffect(() => {
     // Initial Fetch
     fetchProducts();
 
@@ -48,9 +48,9 @@ export function useProducts() {
     return () => {
       removeListener();
     };
-  }, []);
+  }, [fetchProducts]);
 
-  return { products, isLoading };
+  return { products, isLoading, refreshProducts: fetchProducts };
 }
 
 export { useCategories } from './use-categories';
