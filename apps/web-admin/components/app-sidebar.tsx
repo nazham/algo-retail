@@ -14,6 +14,7 @@ import {
   ChevronLeft,
   ChevronRight,
   Store,
+  BarChart3,
 } from 'lucide-react';
 import { cn } from '@repo/ui/lib/utils';
 import { Button } from '@repo/ui/components/ui/button';
@@ -55,6 +56,11 @@ const sidebarItems = [
     title: 'Orders',
     href: '/dashboard/orders',
     icon: FileText,
+  },
+  {
+    title: 'Reports',
+    href: '/dashboard/reports',
+    icon: BarChart3,
   },
   {
     title: 'Settings',
