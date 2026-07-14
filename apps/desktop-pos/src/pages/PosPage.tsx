@@ -187,7 +187,7 @@ export default function PosPage() {
 
         {/* Scrollable Grid */}
         <div className="flex-1 overflow-y-auto p-4">
-          <div className="grid grid-cols-3 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-auto-fill-pos gap-4">
             {filteredProducts.map((product) => {
               const inCartQty = cartQuantities.get(product.id) || 0;
               const availableStock = (product.stock ?? 0) - inCartQty;
@@ -211,21 +211,23 @@ export default function PosPage() {
                 <Button
                   key={product.id}
                   variant="outline"
-                  className="h-32 flex-col items-start justify-between whitespace-normal"
+                  className="h-32 flex-col items-start justify-between whitespace-normal p-3 relative overflow-hidden group hover:border-primary/50 transition-all duration-200"
                   onClick={() => addToCart(product)}
                 >
-                  <div className="text-left">
-                    <h3 className="font-bold text-card-foreground line-clamp-2 leading-tight">
+                  <div className="text-left w-full">
+                    <h3 className="font-bold text-card-foreground line-clamp-2 leading-tight text-sm">
                       {product.name}
                     </h3>
-                    <span className="text-xs text-muted-foreground font-mono mt-1 block">
+                    <span className="text-[10px] text-muted-foreground font-mono mt-1 block">
                       {product.sku}
                     </span>
                   </div>
-                  <div className="w-full flex justify-between items-center mt-auto pt-2 border-t border-border/50">
-                    <div className="font-bold text-primary">{formatCurrency(product.price)}</div>
+                  <div className="w-full flex flex-wrap justify-between items-center mt-auto pt-2 border-t border-border/50 gap-1.5">
+                    <div className="font-bold text-primary text-sm sm:text-base">
+                      {formatCurrency(product.price)}
+                    </div>
                     <span
-                      className={`text-[10px] font-semibold px-2 py-0.5 rounded border whitespace-nowrap ${badgeClasses}`}
+                      className={`text-[9px] font-semibold px-1.5 py-0.5 rounded border whitespace-nowrap ${badgeClasses}`}
                     >
                       {badgeText}
                     </span>
