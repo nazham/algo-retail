@@ -87,14 +87,15 @@ function SalesTab({ from, to }: { from?: string; to?: string }) {
       </div>
 
       {/* Daily Revenue Chart */}
-      <ReportCard title="Revenue Trend" icon={TrendingUp} isLoading={isLoading}>
+      <ReportCard title="Revenue Trend" icon={TrendingUp}>
         <ReportChart
           type="area"
           data={data?.dailySeries ?? []}
           xAxisKey="date"
-          series={[{ dataKey: 'revenue', name: 'Revenue', color: 'hsl(var(--primary))' }]}
+          series={[{ dataKey: 'revenue', name: 'Revenue', color: 'var(--primary)' }]}
           formatValue={formatCurrency}
           formatXAxis={formatShortDate}
+          isLoading={isLoading}
         />
       </ReportCard>
 
@@ -139,14 +140,15 @@ function SalesTab({ from, to }: { from?: string; to?: string }) {
         </ReportCard>
 
         {/* Payment Breakdown Chart */}
-        <ReportCard title="Payment Methods" icon={Layers} isLoading={isLoading}>
+        <ReportCard title="Payment Methods" icon={Layers}>
           <ReportChart
             type="bar"
             data={data?.paymentBreakdown ?? []}
             xAxisKey="method"
-            series={[{ dataKey: 'revenue', name: 'Revenue', color: 'hsl(var(--primary))' }]}
+            series={[{ dataKey: 'revenue', name: 'Revenue', color: 'var(--primary)' }]}
             formatValue={formatCurrency}
             height={300}
+            isLoading={isLoading}
           />
         </ReportCard>
       </div>
@@ -205,7 +207,7 @@ function ProfitLossTab({ from, to }: { from?: string; to?: string }) {
       </div>
 
       {/* Revenue vs COGS Chart */}
-      <ReportCard title="Revenue vs Cost of Goods" icon={TrendingUp} isLoading={isLoading}>
+      <ReportCard title="Revenue vs Cost of Goods" icon={TrendingUp}>
         <ReportChart
           type="area"
           data={data?.dailySeries ?? []}
@@ -213,11 +215,12 @@ function ProfitLossTab({ from, to }: { from?: string; to?: string }) {
           series={[
             { dataKey: 'revenue', name: 'Revenue', color: 'hsl(142, 71%, 45%)' },
             { dataKey: 'cogs', name: 'COGS', color: 'hsl(0, 84%, 60%)' },
-            { dataKey: 'profit', name: 'Profit', color: 'hsl(var(--primary))' },
+            { dataKey: 'profit', name: 'Profit', color: 'var(--primary)' },
           ]}
           formatValue={formatCurrency}
           formatXAxis={formatShortDate}
           height={350}
+          isLoading={isLoading}
         />
       </ReportCard>
 
@@ -317,20 +320,21 @@ function InventoryTab({ from, to }: { from?: string; to?: string }) {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Category Breakdown */}
-        <ReportCard title="Stock Value by Category" icon={BarChart3} isLoading={isLoading}>
+        <ReportCard title="Stock Value by Category" icon={BarChart3}>
           <ReportChart
-            type="bar"
+            type="pie"
             data={data?.categoryBreakdown ?? []}
             xAxisKey="categoryName"
             series={[
               {
                 dataKey: 'stockValue',
                 name: 'Stock Value',
-                color: 'hsl(var(--primary))',
+                color: 'var(--primary)',
               },
             ]}
             formatValue={formatCurrency}
             height={300}
+            isLoading={isLoading}
           />
         </ReportCard>
 
