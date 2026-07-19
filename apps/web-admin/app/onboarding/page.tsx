@@ -8,6 +8,7 @@ import { Loader2, Store } from 'lucide-react';
 import { toast } from 'sonner';
 import { apiClient } from '@/lib/api-client';
 import { invalidateSessionCache } from '@/lib/api-client';
+import { useSession } from '@/lib/auth-client';
 
 interface ProvisionResponse {
   tenant: {
@@ -19,6 +20,7 @@ interface ProvisionResponse {
 
 export default function OnboardingPage() {
   const router = useRouter();
+  const { refetch } = useSession();
   const [loading, setLoading] = useState(false);
 
   // Form state
@@ -55,6 +57,9 @@ export default function OnboardingPage() {
 
       // Invalidate session cache so the next API call picks up the new tenantId
       invalidateSessionCache();
+
+      // Refetch the Better Auth session so useSession() hooks get the updated tenantId
+      await refetch();
 
       // Redirect to dashboard
       router.push('/dashboard');
