@@ -6,16 +6,25 @@ import { AppSidebar } from '@/components/app-sidebar';
 import { useSession } from '@/lib/auth-client';
 import { cn } from '@repo/ui/lib/utils';
 
+interface SessionUser {
+  role?: string;
+  tenantId?: string;
+}
+
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const { data: session, isPending } = useSession();
-  const [isAuthorized, setIsAuthorized] = useState(false);
   const [isSidebarCollapsed, setSidebarCollapsed] = useState(false);
+
+  const user = session?.user as SessionUser | undefined;
+  const isAuthorized = !isPending && !!user && user.role !== 'waitlist' && !!user.tenantId;
 
   // Load persisted state on mount
   useEffect(() => {
     const saved = localStorage.getItem('sidebar-collapsed');
-    if (saved) setSidebarCollapsed(saved === 'true');
+    if (saved) {
+      setTimeout(() => setSidebarCollapsed(saved === 'true'), 0);
+    }
   }, []);
 
   const toggleSidebar = (value?: boolean) => {
@@ -33,7 +42,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     }
 
     // Verify role from actual session (server source of truth)
-    const user = session.user as any;
     const role = user?.role || 'waitlist';
 
     if (role === 'waitlist') {
@@ -46,9 +54,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       router.replace('/onboarding');
       return;
     }
-
-    setIsAuthorized(true);
-  }, [session, isPending, router]);
+  }, [session, user, isPending, router]);
 
   // Show loading while verifying authorization
   if (isPending || !isAuthorized) {
