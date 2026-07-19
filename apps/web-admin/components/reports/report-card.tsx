@@ -30,7 +30,7 @@ export function ReportCard({
         {Icon && <Icon className="h-4.5 w-4.5 text-primary" />}
         <h3 className="font-semibold">{title}</h3>
       </div>
-      <div className="p-5 flex-1 flex flex-col justify-between">
+      <div className="p-5 flex-1 flex flex-col">
         {isLoading ? <Skeleton className={cn('w-full flex-1', skeletonHeight)} /> : children}
       </div>
     </div>
