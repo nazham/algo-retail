@@ -1,6 +1,4 @@
 import Link from 'next/link';
-import { cookies } from 'next/headers';
-import { redirect } from 'next/navigation';
 import { Metadata } from 'next';
 import { Button } from '@repo/ui/components/ui/button';
 import {
@@ -39,21 +37,7 @@ export const metadata: Metadata = {
     'Empowering small businesses to step into the digital age. Unified POS, Inventory, and Customer Management designed for the local Sri Lankan market.',
 };
 
-export default async function Home() {
-  // Check if user is already registered and signed in
-  const cookieStore = await cookies();
-  const sessionTokenNames = [
-    'better-auth.session_token',
-    '__Secure-better-auth.session_token',
-    'session_token',
-  ];
-  const hasSession = sessionTokenNames.some((name) => cookieStore.get(name));
-
-  // If signed in already, redirect straight to dashboard
-  if (hasSession) {
-    redirect('/dashboard');
-  }
-
+export default function Home() {
   // Calculate formatted currency for the Pro plan
   const proPrice = formatCurrency(1500000); // 15,000.00 Rupees
 
@@ -161,14 +145,12 @@ export default async function Home() {
               </p>
             </div>
             <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-8 items-center justify-items-center opacity-60 grayscale hover:grayscale-0 transition-all duration-500 text-muted-foreground">
-              {['City Mart', 'Lanka Fashion', 'Green Grocers', 'Tech Zone', 'Style Hub'].map(
-                (brand) => (
-                  <div key={brand} className="text-xl font-bold flex items-center gap-2">
-                    <div className="h-8 w-8 bg-current rounded-full opacity-20"></div>
-                    {brand}
-                  </div>
-                ),
-              )}
+              {['Asian Hardware', 'Dineops'].map((brand) => (
+                <div key={brand} className="text-xl font-bold flex items-center gap-2">
+                  <div className="h-8 w-8 bg-current rounded-full opacity-20"></div>
+                  {brand}
+                </div>
+              ))}
             </div>
           </div>
         </section>
