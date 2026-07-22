@@ -1,0 +1,3 @@
+## 2024-04-17 - React useMemo String Operation Bottlenecks
+**Learning:** In list filtering components like POS interfaces, calculating derived strings (like `.toLowerCase()`) inside `.filter()` callbacks can cause massive unnecessary garbage collection and main-thread blocking when rendering many products. Additionally, evaluating secondary filter conditions before the primary condition (e.g., evaluating search before category mismatch) prevents short-circuiting.
+**Action:** Always hoist invariant string operations (like `searchQuery.toLowerCase()`) outside of `.filter()` loops, and use early returns to short-circuit expensive checks as soon as a fast-path condition (like category mismatch) fails.
