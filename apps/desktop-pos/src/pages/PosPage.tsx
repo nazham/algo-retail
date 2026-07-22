@@ -64,16 +64,20 @@ export default function PosPage() {
 
   // Combined filtering: category + search
   const filteredProducts = useMemo(() => {
+    // OPTIMIZATION: Convert search query to lower case once, outside the loop
+    // This prevents allocating strings and calling .toLowerCase() on every single product
+    const query = searchQuery.toLowerCase();
+
     return products.filter((p) => {
-      // Category filter (if a category is selected)
-      const matchesCategory = selectedCategoryId === null || p.categoryId === selectedCategoryId;
+      // OPTIMIZATION: Early return. If category doesn't match, we don't need to do slow string matching.
+      if (selectedCategoryId !== null && p.categoryId !== selectedCategoryId) {
+        return false;
+      }
 
-      // Search filter
-      const matchesSearch =
-        p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        p.sku.toLowerCase().includes(searchQuery.toLowerCase());
+      // If category matches, but no search query is entered, it's a match.
+      if (!query) return true;
 
-      return matchesCategory && matchesSearch;
+      return p.name.toLowerCase().includes(query) || p.sku.toLowerCase().includes(query);
     });
   }, [products, selectedCategoryId, searchQuery]);
 
