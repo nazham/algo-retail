@@ -13,8 +13,18 @@ import { useCartStore, type CartItem } from '../stores/cart.store';
 
 export default function PosPage() {
   const [searchQuery, setSearchQuery] = useState('');
+  const [debouncedSearchQuery, setDebouncedSearchQuery] = useState('');
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
   const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(null);
+
+  // Debounce search input - wait 300ms after user stops typing
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearchQuery(searchQuery);
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
 
   // Editable Quantity - using generic numeric input hook
   const [editingItemId, setEditingItemId] = useState<string | null>(null);
@@ -64,18 +74,19 @@ export default function PosPage() {
 
   // Combined filtering: category + search
   const filteredProducts = useMemo(() => {
+    const normalizedSearch = debouncedSearchQuery.toLowerCase();
     return products.filter((p) => {
       // Category filter (if a category is selected)
       const matchesCategory = selectedCategoryId === null || p.categoryId === selectedCategoryId;
 
       // Search filter
       const matchesSearch =
-        p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        p.sku.toLowerCase().includes(searchQuery.toLowerCase());
+        p.name.toLowerCase().includes(normalizedSearch) ||
+        p.sku.toLowerCase().includes(normalizedSearch);
 
       return matchesCategory && matchesSearch;
     });
-  }, [products, selectedCategoryId, searchQuery]);
+  }, [products, selectedCategoryId, debouncedSearchQuery]);
 
   // Barcode Scanner
   useBarcodeScanner((scannedSku) => {
