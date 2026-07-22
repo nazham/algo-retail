@@ -27,9 +27,15 @@ export function Combobox({
   const [open, setOpen] = React.useState(false);
   const [search, setSearch] = React.useState('');
 
-  const filteredOptions = options.filter((option) =>
-    option.label.toLowerCase().includes(search.toLowerCase()),
-  );
+  // ⚡ Bolt: Memoize filtered options to prevent unnecessary recalculations,
+  // and hoist toLowerCase() out of the loop.
+  const filteredOptions = React.useMemo(() => {
+    const query = search.toLowerCase();
+    if (!query) return options;
+    return options.filter((option) =>
+      option.label.toLowerCase().includes(query),
+    );
+  }, [options, search]);
 
   const selectedOption = options.find((opt) => opt.value === value);
 
