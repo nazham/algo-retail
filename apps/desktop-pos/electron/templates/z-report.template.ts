@@ -45,8 +45,8 @@ export function zReportTemplate(data: ZReportData): string {
             body {
                 font-family: 'Consolas', 'Courier New', monospace;
                 width: 68mm;
-                margin: 0 2mm 0 2mm;
-                padding: 0;
+                margin: 0 auto;
+                padding: 10px 0;
                 font-size: 12px;
                 line-height: 1.5;
             }

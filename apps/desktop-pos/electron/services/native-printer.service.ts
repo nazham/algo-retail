@@ -72,9 +72,14 @@ export class NativePrinterService {
 
       const previewMode = process.env.PREVIEW_MODE === 'true';
 
-      // 2. Create a hidden browser window to load the HTML
+      // 2. Create a browser window to load the HTML with narrow receipt dimensions
       const printWindow = new BrowserWindow({
+        width: 360,
+        height: 640,
+        title: 'Print Preview',
         show: previewMode,
+        autoHideMenuBar: true,
+        useContentSize: true,
         webPreferences: {
           nodeIntegration: false,
           contextIsolation: true,

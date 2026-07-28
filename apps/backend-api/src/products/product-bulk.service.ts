@@ -40,11 +40,18 @@ export class ProductBulkService {
 
     // 1. Gather Unique Categories and SKUs
     const batchCategories = new Set<string>();
+    const originalCategoryNames = new Map<string, string>();
     const batchSkus = new Set<string>();
 
     items.forEach((item) => {
       const cat = this.sanitizeInput(item['Category'] || item['category']);
-      if (cat) batchCategories.add(cat.toLowerCase());
+      if (cat) {
+        const lowerCat = cat.toLowerCase();
+        batchCategories.add(lowerCat);
+        if (!originalCategoryNames.has(lowerCat)) {
+          originalCategoryNames.set(lowerCat, cat);
+        }
+      }
 
       const sku = this.sanitizeInput(
         item['Barcode/SKU'] || item['sku'] || item['SKU'],
@@ -86,16 +93,18 @@ export class ProductBulkService {
         );
       existingCats.forEach((c) => categoryMap.set(c.name.toLowerCase(), c.id));
 
-      // Create Missing Categories
+      // Create Missing Categories with proper casing
       const missingCats = Array.from(batchCategories).filter(
         (c) => !categoryMap.has(c),
       );
-      for (const missingName of missingCats) {
+      for (const missingLowerName of missingCats) {
+        const displayName =
+          originalCategoryNames.get(missingLowerName) || missingLowerName;
         const [newCat] = await this.db
           .insert(schema.categories)
-          .values({ tenantId, name: missingName }) // Capitalization lost, using input as-is would be better if we mapped it back
+          .values({ tenantId, name: displayName })
           .returning({ id: schema.categories.id });
-        categoryMap.set(missingName, newCat.id);
+        categoryMap.set(missingLowerName, newCat.id);
       }
     }
 

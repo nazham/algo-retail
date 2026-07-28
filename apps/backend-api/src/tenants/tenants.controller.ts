@@ -67,6 +67,17 @@ export class TenantsController {
   }
 
   /**
+   * POST /tenants/:id/wipe
+   * Super admin endpoint to wipe clean all transactional/catalog data for a tenant
+   * while keeping user data & tenant metadata.
+   */
+  @Post(':id/wipe')
+  @UseGuards(UniversalAuthGuard, SuperadminGuard)
+  async wipeTenant(@Param('id') tenantId: string) {
+    return this.tenantsService.wipeTenant(tenantId);
+  }
+
+  /**
    * DELETE /tenants/:id
    * Reusable super admin endpoint to safely delete a tenant and all its associated data.
    */
