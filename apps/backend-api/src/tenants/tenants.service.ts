@@ -1073,6 +1073,65 @@ export class TenantsService {
   }
 
   /**
+   * Safely wipes clean all transactional and catalog data for a tenant
+   * while keeping user data (Better-Auth user, cashier users) and tenant metadata intact.
+   */
+  async wipeTenant(tenantId: string) {
+    if (!tenantId) {
+      throw new BadRequestException('Tenant ID is required.');
+    }
+
+    // Verify tenant exists
+    const [tenant] = await this.db
+      .select({ id: schema.tenants.id })
+      .from(schema.tenants)
+      .where(eq(schema.tenants.id, tenantId))
+      .limit(1);
+
+    if (!tenant) {
+      throw new NotFoundException('Tenant not found.');
+    }
+
+    // Delete transactional and catalog data in a transaction to satisfy FK dependencies
+    await this.db.transaction(async (tx) => {
+      // 1. Delete audit logs
+      await tx
+        .delete(schema.auditLogs)
+        .where(eq(schema.auditLogs.tenantId, tenantId));
+
+      // 2. Delete inventory movements
+      await tx
+        .delete(schema.inventoryMovements)
+        .where(eq(schema.inventoryMovements.tenantId, tenantId));
+
+      // 3. Delete order items
+      await tx
+        .delete(schema.orderItems)
+        .where(eq(schema.orderItems.tenantId, tenantId));
+
+      // 4. Delete orders
+      await tx
+        .delete(schema.orders)
+        .where(eq(schema.orders.tenantId, tenantId));
+
+      // 5. Delete products
+      await tx
+        .delete(schema.products)
+        .where(eq(schema.products.tenantId, tenantId));
+
+      // 6. Delete categories
+      await tx
+        .delete(schema.categories)
+        .where(eq(schema.categories.tenantId, tenantId));
+    });
+
+    return {
+      success: true,
+      message: `Tenant ${tenantId} transactional and catalog data wiped successfully. User and tenant records preserved.`,
+    };
+  }
+
+  /**
    * Safely deletes a tenant and all its associated business and auth data.
    */
   async deleteTenant(tenantId: string) {

@@ -12,6 +12,7 @@ export default function UploadPage() {
     const headers = [
       'Product Name',
       'Barcode/SKU',
+      'Category',
       'MRP',
       'Stock Quantity',
       'Batch NO',
@@ -32,6 +33,7 @@ export default function UploadPage() {
     const sample = [
       'Sample Product',
       '', // Empty SKU for auto-generation
+      'Grocery', // Category
       '150.00', // Price
       '50', // Stock
       'BATCH001', // Batch
@@ -100,6 +102,11 @@ export default function UploadPage() {
                 <span className="font-medium text-foreground">Auto-SKU:</span> Leave{' '}
                 <code className="bg-muted px-1 py-0.5 rounded text-xs font-mono">Barcode/SKU</code>{' '}
                 empty to auto-generate proper barcodes.
+              </li>
+              <li>
+                <span className="font-medium text-foreground">Categories:</span> Include{' '}
+                <code className="bg-muted px-1 py-0.5 rounded text-xs font-mono">Category</code>{' '}
+                name; missing categories will be created automatically.
               </li>
               <li>
                 <span className="font-medium text-foreground">Batches:</span> Different batches for
