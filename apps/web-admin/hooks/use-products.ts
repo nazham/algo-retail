@@ -1,11 +1,13 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiClient } from '@/lib/api-client';
 import {
+  DeleteProductResponse,
   PaginatedProductResponse,
+  ProductDeleteCheckResponse,
   ProductQueryFilters,
-  UpdateProductRequest,
   ProductWithCategoryDto,
+  UpdateProductRequest,
 } from '@algo/types';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 
 export type UseProductsOptions = ProductQueryFilters & {
@@ -99,14 +101,14 @@ export function useProducts(options: UseProductsOptions = {}) {
     },
   });
 
-  // Mutation: Delete product (soft delete)
+  // Mutation: Delete product (safely)
   const deleteProductMutation = useMutation({
     mutationFn: (id: string) =>
-      apiClient(`/products/${id}`, {
+      apiClient<DeleteProductResponse>(`/products/${id}`, {
         method: 'DELETE',
       }),
-    onSuccess: () => {
-      toast.success('Product deleted successfully');
+    onSuccess: (data) => {
+      toast.success(data?.message || 'Product deleted successfully');
       queryClient.invalidateQueries({ queryKey: ['products'] });
     },
     onError: (error: Error) => {
@@ -129,8 +131,20 @@ export function useProducts(options: UseProductsOptions = {}) {
     isUpdating: updateProductMutation.isPending,
 
     deleteProduct: deleteProductMutation.mutate,
+    deleteProductAsync: deleteProductMutation.mutateAsync,
     isDeleting: deleteProductMutation.isPending,
   };
+}
+
+export function useDeleteCheck(productId: string | null, enabled = true) {
+  return useQuery({
+    queryKey: ['products', productId, 'delete-check'],
+    queryFn: () => {
+      if (!productId) return null;
+      return apiClient<ProductDeleteCheckResponse>(`/products/${productId}/delete-check`);
+    },
+    enabled: !!productId && enabled,
+  });
 }
 
 export function useProductBatches(parentId: string | null) {
