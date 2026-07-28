@@ -1,13 +1,13 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { Inject, Injectable, NotFoundException } from '@nestjs/common';
+import { and, count, eq, gt, gte, ilike, or, sql } from 'drizzle-orm';
+import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import { DB_CONNECTION } from '../db/database.module';
 import * as schema from '../db/schema';
-import { NodePgDatabase } from 'drizzle-orm/node-postgres';
-import { and, eq, gt, gte, sql, ilike, or, count } from 'drizzle-orm';
 import {
+  CreateProductDto,
+  ExportProductsDto,
   ProductQueryDto,
   UpdateProductDto,
-  ExportProductsDto,
-  CreateProductDto,
 } from './dto/product.dto';
 
 import { AuditService } from '../audit/audit.service';
@@ -32,7 +32,7 @@ export class ProductsService {
 
     return await this.db.transaction(async (tx) => {
       // 1. Try to lock/get existing row
-      let row = await tx
+      const row = await tx
         .select()
         .from(schema.skuSequence)
         .where(eq(schema.skuSequence.id, 1))
@@ -305,20 +305,140 @@ export class ProductsService {
     });
   }
 
-  async softDeleteProduct(id: string, tenantId: string) {
-    // Soft delete - set isActive to false
-    const [product] = await this.db
-      .update(schema.products)
-      .set({
-        isActive: false,
-        updatedAt: new Date(),
-      })
-      .where(
-        and(eq(schema.products.id, id), eq(schema.products.tenantId, tenantId)),
-      )
-      .returning();
+  async checkDeleteSafety(id: string, tenantId: string, _tx?: any) {
+    const tx = (_tx || this.db) as NodePgDatabase<typeof schema>;
 
-    return product;
+    const [orderItemsRes, movementsRes, batchesRes] = await Promise.all([
+      tx
+        .select({ value: count() })
+        .from(schema.orderItems)
+        .where(
+          and(
+            eq(schema.orderItems.productId, id),
+            eq(schema.orderItems.tenantId, tenantId),
+          ),
+        ),
+      tx
+        .select({ value: count() })
+        .from(schema.inventoryMovements)
+        .where(
+          and(
+            eq(schema.inventoryMovements.productId, id),
+            eq(schema.inventoryMovements.tenantId, tenantId),
+          ),
+        ),
+      tx
+        .select({ value: count() })
+        .from(schema.products)
+        .where(
+          and(
+            eq(schema.products.parentId, id),
+            eq(schema.products.tenantId, tenantId),
+          ),
+        ),
+    ]);
+
+    const orderCount = orderItemsRes[0]?.value || 0;
+    const movementCount = movementsRes[0]?.value || 0;
+    const batchCount = batchesRes[0]?.value || 0;
+    const transactionCount = orderCount + movementCount + batchCount;
+
+    return {
+      hasTransactions: transactionCount > 0,
+      transactionCount,
+      orderCount,
+      movementCount,
+      batchCount,
+    };
+  }
+
+  async deleteProduct(id: string, tenantId: string, userId?: string) {
+    return await this.db.transaction(async (tx) => {
+      // 1. Lock the product row to prevent concurrent modifications
+      const [existingProduct] = await tx
+        .select()
+        .from(schema.products)
+        .where(
+          and(
+            eq(schema.products.id, id),
+            eq(schema.products.tenantId, tenantId),
+          ),
+        )
+        .for('update');
+
+      if (!existingProduct) {
+        throw new NotFoundException(`Product ${id} not found`);
+      }
+
+      // 2. Perform safety check within the same transaction lock
+      const safetyCheck = await this.checkDeleteSafety(id, tenantId, tx);
+
+      if (safetyCheck.hasTransactions) {
+        // Product has transactions or child batches: soft delete (deactivate) to preserve historical logs
+        await tx
+          .update(schema.products)
+          .set({
+            isActive: false,
+            updatedAt: new Date(),
+          })
+          .where(
+            and(
+              eq(schema.products.id, id),
+              eq(schema.products.tenantId, tenantId),
+            ),
+          )
+          .returning();
+
+        await this.auditService.logChange(
+          tenantId,
+          userId || 'system',
+          'PRODUCT',
+          id,
+          'DELETE',
+          {
+            softDeleted: true,
+            reason: 'Associated with existing transactions or child batches',
+            transactionCount: safetyCheck.transactionCount,
+          },
+          tx,
+        );
+
+        return {
+          success: true,
+          isSoftDeleted: true,
+          message: `Product has ${safetyCheck.transactionCount} associated transaction(s) or child batch(es). It was safely soft-deleted/deactivated.`,
+        };
+      } else {
+        // Product has no transactions: hard delete from database
+        await tx
+          .delete(schema.products)
+          .where(
+            and(
+              eq(schema.products.id, id),
+              eq(schema.products.tenantId, tenantId),
+            ),
+          );
+
+        await this.auditService.logChange(
+          tenantId,
+          userId || 'system',
+          'PRODUCT',
+          id,
+          'DELETE',
+          {
+            softDeleted: false,
+            reason: 'No associated transactions or child batches',
+          },
+          tx,
+        );
+
+        return {
+          success: true,
+          isSoftDeleted: false,
+          message: 'Product permanently deleted.',
+        };
+      }
+    });
   }
 
   findAll() {

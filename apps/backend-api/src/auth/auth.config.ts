@@ -84,7 +84,7 @@ export const auth = betterAuth({
 
         // Fallback to request body
         if (!user) {
-          const body = ctx.body as any;
+          const body = ctx.body;
           user = body?.user;
         }
 
