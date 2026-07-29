@@ -1,19 +1,10 @@
 'use client';
 
-import * as React from 'react';
-import {
-  ColumnDef,
-  flexRender,
-  getCoreRowModel,
-  useReactTable,
-  getPaginationRowModel,
-  SortingState,
-  getSortedRowModel,
-  ColumnFiltersState,
-  getFilteredRowModel,
-  ExpandedState,
-  getExpandedRowModel,
-} from '@tanstack/react-table';
+import { useProductBatches, useProducts } from '@/hooks/use-products';
+import { ProductWithCategoryDto } from '@algo/types';
+import { Badge } from '@repo/ui/components/ui/badge';
+import { Button } from '@repo/ui/components/ui/button';
+import { Switch } from '@repo/ui/components/ui/switch';
 import {
   Table,
   TableBody,
@@ -22,47 +13,37 @@ import {
   TableHeader,
   TableRow,
 } from '@repo/ui/components/ui/table';
-import { Button } from '@repo/ui/components/ui/button';
-import { Input } from '@repo/ui/components/ui/input';
-import { Badge } from '@repo/ui/components/ui/badge';
-import { Switch } from '@repo/ui/components/ui/switch';
+import { cn } from '@repo/ui/lib/utils';
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@repo/ui/components/ui/select';
+  ColumnDef,
+  ExpandedState,
+  flexRender,
+  getCoreRowModel,
+  getExpandedRowModel,
+  useReactTable,
+} from '@tanstack/react-table';
 import {
+  ArrowDown,
+  ArrowUp,
+  ArrowUpDown,
   ChevronDown,
   ChevronRight,
-  MoreHorizontal,
-  Search,
-  Plus,
+  Clock,
   Loader2,
   Package,
-  ArrowUpDown,
-  ArrowUp,
-  ArrowDown,
-  Filter,
-  Pencil,
   PackagePlus,
+  Pencil,
   Scale,
-  AlertTriangle,
-  Clock,
+  Trash2,
 } from 'lucide-react';
-import { z } from 'zod';
+import * as React from 'react';
 import { toast } from 'sonner';
-import { useProducts, useProductBatches } from '@/hooks/use-products';
-import { useCategories } from '@/hooks/use-categories';
-import { ProductWithCategoryDto, CategoryDto } from '@algo/types';
-import { EditableCell } from './editable-cell';
-import { cn } from '@repo/ui/lib/utils';
-import { Combobox } from '../ui/combobox';
-import { ProductGridToolbar } from './product-grid-toolbar';
-import { ProductFormDialog } from './product-form-dialog';
+import { z } from 'zod';
 import { AddStockDialog } from '../inventory/add-stock-dialog';
 import { AdjustStockDialog } from '../inventory/adjust-stock-dialog';
+import { DeleteProductDialog } from './delete-product-dialog';
+import { EditableCell } from './editable-cell';
+import { ProductGridToolbar } from './product-grid-toolbar';
 import { ProductHistoryModal } from './product-history-modal';
 
 // Helper for sortable headers
@@ -192,6 +173,8 @@ export function ProductGrid({ onEdit }: ProductGridProps) {
     null,
   );
   const [historyProduct, setHistoryProduct] = React.useState<ProductWithCategoryDto | null>(null);
+  const [deleteTargetProduct, setDeleteTargetProduct] =
+    React.useState<ProductWithCategoryDto | null>(null);
 
   // Debounce search
   React.useEffect(() => {
@@ -425,15 +408,24 @@ export function ProductGrid({ onEdit }: ProductGridProps) {
       },
       {
         accessorKey: 'isActive',
-        header: 'Active',
+        header: () => <div className="text-right pr-2">Active</div>,
         cell: ({ row }) => (
-          <div className="flex items-center justify-center">
+          <div className="flex items-center justify-end gap-1.5 pr-1">
             <Switch
               checked={row.original.isActive}
               onCheckedChange={(checked) => {
                 updateProduct({ id: row.original.id, data: { isActive: checked } });
               }}
             />
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-6 w-6 text-destructive hover:bg-destructive/10"
+              onClick={() => setDeleteTargetProduct(row.original)}
+              title="Delete product"
+            >
+              <Trash2 className="h-3.5 w-3.5 text-red-600" />
+            </Button>
           </div>
         ),
       },
@@ -607,6 +599,11 @@ export function ProductGrid({ onEdit }: ProductGridProps) {
         product={historyProduct}
         open={!!historyProduct}
         onOpenChange={(open) => !open && setHistoryProduct(null)}
+      />
+      <DeleteProductDialog
+        product={deleteTargetProduct}
+        open={!!deleteTargetProduct}
+        onOpenChange={(open) => !open && setDeleteTargetProduct(null)}
       />
     </div>
   );

@@ -5,7 +5,8 @@ import { useRouter } from 'next/navigation';
 import { Button } from '@repo/ui/components/ui/button';
 import { RefreshCw, LogOut, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
-import { signOutAndRedirect, getCurrentRole } from '@/lib/auth-utils';
+import { signOutAndRedirect, getCurrentRole, redirectByRole } from '@/lib/auth-utils';
+import { invalidateSessionCache } from '@/lib/api-client';
 
 export default function WaitlistPage() {
   const [refreshing, setRefreshing] = useState(false);
@@ -15,14 +16,13 @@ export default function WaitlistPage() {
   const handleRefreshStatus = async () => {
     setRefreshing(true);
     try {
+      // Invalidate frontend cache to force request to go to server
+      invalidateSessionCache();
       const role = await getCurrentRole();
 
       if (role !== 'waitlist') {
-        toast.success(
-          'Your account has been approved! Please log out and log back in to access the dashboard.',
-        );
-        // Note: The HTTP-only cookie is set during login. To get the updated cookie,
-        // the user needs to logout and login again.
+        toast.success('Your account has been approved!');
+        await redirectByRole(router);
       } else {
         toast.info('Still on waitlist. Please check back later.');
       }

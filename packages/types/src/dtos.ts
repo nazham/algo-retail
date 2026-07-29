@@ -164,6 +164,20 @@ export interface UpdateProductRequest {
   categoryId?: string;
 }
 
+export interface ProductDeleteCheckResponse {
+  hasTransactions: boolean;
+  transactionCount: number;
+  orderCount: number;
+  movementCount: number;
+  batchCount: number;
+}
+
+export interface DeleteProductResponse {
+  success: boolean;
+  isSoftDeleted: boolean;
+  message: string;
+}
+
 // Order Filtering & Pagination
 export interface OrderFilters {
   page?: number;

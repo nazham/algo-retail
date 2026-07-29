@@ -21,8 +21,8 @@ function getReceiptCSS(): string {
       body {
         font-family: 'Consolas', 'Courier New', monospace;
         width: 68mm;
-        margin: 0;
-        padding: 0;
+        margin: 0 auto;
+        padding: 10px 0;
         box-sizing: border-box;
         font-size: 12px;
         line-height: 1.4;
@@ -30,21 +30,28 @@ function getReceiptCSS(): string {
       .header {
         text-align: center;
         width: 100%;
+        border-bottom: 1px solid #000;
+        padding-bottom: 2.5mm;
         margin-bottom: 3mm;
       }
       .store-name {
-        font-size: 20px;
+        font-size: 18px;
         font-weight: bold;
         letter-spacing: -0.5px;
         margin-bottom: 1mm;
       }
-      .store-info { 
-        font-size: 10px; 
-        line-height: 1.3; 
-      }
       .bold-divider {
         border-top: 2px solid #000;
         margin: 2mm 0;
+        text-transform: uppercase;
+        letter-spacing: 0.8px;
+        margin-bottom: 1.5mm;
+        word-break: break-word;
+      }
+      .store-info { 
+        font-size: 10px; 
+        line-height: 1.45; 
+        color: #222;
       }
       .section-divider { 
         border-top: 1px dashed #666; 
@@ -155,6 +162,15 @@ export function generateReceipt(data: ReceiptTemplateData): string {
   const subTotal = receiptData.subtotal || 0;
   const grandTotal = receiptData.grandTotal || 0;
 
+  // Format address lines cleanly
+  const addressLines = [shop.addressLine1, shop.addressLine2].map((a) => a?.trim()).filter(Boolean);
+
+  // Format phone numbers dynamically without trailing slash
+  const phoneNumbers = [shop.phone1, shop.phone2]
+    .map((p) => p?.trim())
+    .filter(Boolean)
+    .join(' / ');
+
   return `
       <!DOCTYPE html>
       <html>
@@ -167,9 +183,9 @@ export function generateReceipt(data: ReceiptTemplateData): string {
         <div class="header">
           <div class="store-name">${shop.name || 'Algo Retail'}</div>
           <div class="store-info">
-            ${shop.addressLine1 || ''}<br>
-            ${shop.addressLine2 || ''}<br>
-            ${shop.phone1 ? `Tel: ${shop.phone1}` : ''} ${shop.phone2 ? `/ ${shop.phone2}` : ''}
+            ${addressLines.length > 0 ? addressLines.join('<br>') + '<br>' : ''}
+            ${phoneNumbers ? `Tel: ${phoneNumbers}` : ''}
+            ${shop.email ? `<br>${shop.email}` : ''}
           </div>
         </div>
 

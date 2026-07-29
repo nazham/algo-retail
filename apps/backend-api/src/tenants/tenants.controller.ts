@@ -3,12 +3,15 @@ import {
   Post,
   Get,
   Patch,
+  Delete,
+  Param,
   Body,
   UseGuards,
   Req,
 } from '@nestjs/common';
 import { TenantsService } from './tenants.service';
 import { UniversalAuthGuard } from '../auth/universal-auth.guard';
+import { SuperadminGuard } from '../auth/superadmin.guard';
 import { CurrentTenant } from '../auth/current-tenant.decorator';
 import { ShopConfigDto, ProvisionTenantDto } from './dto/shop-config.dto';
 
@@ -50,5 +53,37 @@ export class TenantsController {
     @Body() body: ShopConfigDto,
   ) {
     return this.tenantsService.updateConfig(tenantId, body);
+  }
+
+  /**
+   * POST /tenants/:id/seed-demo
+   * Reusable super admin endpoint for populating mock demo data for a tenant.
+   */
+  @Post(':id/seed-demo')
+  @UseGuards(UniversalAuthGuard, SuperadminGuard)
+  async seedDemo(@Param('id') tenantId: string, @Req() req: any) {
+    const seederUserId = req.user?.id;
+    return this.tenantsService.seedDemoData(tenantId, seederUserId);
+  }
+
+  /**
+   * POST /tenants/:id/wipe
+   * Super admin endpoint to wipe clean all transactional/catalog data for a tenant
+   * while keeping user data & tenant metadata.
+   */
+  @Post(':id/wipe')
+  @UseGuards(UniversalAuthGuard, SuperadminGuard)
+  async wipeTenant(@Param('id') tenantId: string) {
+    return this.tenantsService.wipeTenant(tenantId);
+  }
+
+  /**
+   * DELETE /tenants/:id
+   * Reusable super admin endpoint to safely delete a tenant and all its associated data.
+   */
+  @Delete(':id')
+  @UseGuards(UniversalAuthGuard, SuperadminGuard)
+  async deleteTenant(@Param('id') tenantId: string) {
+    return this.tenantsService.deleteTenant(tenantId);
   }
 }

@@ -37,7 +37,7 @@ export function useBulkUpload() {
             setProgress(0);
 
             const BATCH_SIZE = 50; // Smaller batches for better feedback
-            let consolidatedResult: BulkUploadResult = {
+            const consolidatedResult: BulkUploadResult = {
               success: 0,
               skipped: 0,
               errors: 0,

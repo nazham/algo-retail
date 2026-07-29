@@ -1,21 +1,21 @@
 'use client';
 
-import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
-import { useForm, FieldErrors, useWatch } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { useProducts } from '@/hooks/use-products';
 import { useCategories } from '@/hooks/use-categories';
+import { useProducts } from '@/hooks/use-products';
 import { ProductWithCategoryDto } from '@algo/types';
-import { toast } from 'sonner';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { format } from 'date-fns';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { FieldErrors, useForm, useWatch } from 'react-hook-form';
+import { toast } from 'sonner';
 
 // Schema, types, and converters
 import {
-  productFormSchema,
-  ProductFormData,
   INITIAL_FORM_VALUES,
-  productToFormData,
+  ProductFormData,
   formDataToPayload,
+  productFormSchema,
+  productToFormData,
 } from '@/lib/product-form.schema';
 
 // Utilities
@@ -24,10 +24,15 @@ import {
   UOM_OPTIONS,
   calculateExpiryDate,
   formatDateForInput,
-  getApiErrorMessage,
 } from '@/lib/product-form.utils';
 
 // UI Components
+import { Combobox } from '@/components/ui/combobox';
+import { FormField, FormSection, ReadOnlyField } from '@/components/ui/form-field';
+import { useProductFormDraftStore } from '@/stores/product-form-draft.store';
+import { Button } from '@repo/ui/components/ui/button';
+import { Calendar } from '@repo/ui/components/ui/calendar';
+import { Checkbox } from '@repo/ui/components/ui/checkbox';
 import {
   Dialog,
   DialogContent,
@@ -37,9 +42,10 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@repo/ui/components/ui/dialog';
-import { Button } from '@repo/ui/components/ui/button';
 import { Input } from '@repo/ui/components/ui/input';
 import { Label } from '@repo/ui/components/ui/label';
+import { Popover, PopoverContent, PopoverTrigger } from '@repo/ui/components/ui/popover';
+import { ScrollArea } from '@repo/ui/components/ui/scroll-area';
 import {
   Select,
   SelectContent,
@@ -48,15 +54,9 @@ import {
   SelectValue,
 } from '@repo/ui/components/ui/select';
 import { Switch } from '@repo/ui/components/ui/switch';
-import { Checkbox } from '@repo/ui/components/ui/checkbox';
-import { Calendar } from '@repo/ui/components/ui/calendar';
-import { Popover, PopoverContent, PopoverTrigger } from '@repo/ui/components/ui/popover';
-import { Plus, Loader2, CalendarIcon } from 'lucide-react';
-import { ScrollArea } from '@repo/ui/components/ui/scroll-area';
-import { Combobox } from '@/components/ui/combobox';
 import { cn } from '@repo/ui/lib/utils';
-import { FormField, FormSection, ReadOnlyField } from '@/components/ui/form-field';
-import { useProductFormDraftStore } from '@/stores/product-form-draft.store';
+import { CalendarIcon, Loader2, Trash2 } from 'lucide-react';
+import { DeleteProductDialog } from './delete-product-dialog';
 
 // ============================================================================
 // COMPONENT PROPS
@@ -88,6 +88,7 @@ export function ProductFormDialog({
   // ========================================================================
   const [internalOpen, setInternalOpen] = useState(false);
   const [expiryCalendarOpen, setExpiryCalendarOpen] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 
   const isOpen = controlledOpen ?? internalOpen;
   const setIsOpen = onOpenChange ?? setInternalOpen;
@@ -343,7 +344,7 @@ export function ProductFormDialog({
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       {trigger && <DialogTrigger asChild>{trigger}</DialogTrigger>}
 
-      <DialogContent className="sm:max-w-[700px] h-[90vh] flex flex-col p-0">
+      <DialogContent className="sm:max-w-175 h-[90vh] flex flex-col p-0">
         <DialogHeader className="flex flex-row justify-between items-start px-6 pt-6 gap-4">
           <div className="space-y-1">
             <DialogTitle>{isEditMode ? 'Edit Product' : 'Add New Product'}</DialogTitle>
@@ -595,29 +596,44 @@ export function ProductFormDialog({
                   <ReadOnlyField label="Batch No" value={product?.batchNo} />
                 </div>
 
-                {/* Active Status Toggle */}
-                <div className="flex items-center space-x-2 pt-2">
-                  <Switch
-                    id="isActive"
-                    checked={watchIsActive}
-                    onCheckedChange={(checked) => form.setValue('isActive', checked)}
-                    disabled={watchStock === 0}
-                  />
-                  <Label htmlFor="isActive">
-                    Product is Active (Visible on POS)
-                    {watchStock === 0 && (
-                      <span className="text-xs text-muted-foreground ml-2">
-                        (Auto-disabled: stock is 0)
-                      </span>
-                    )}
-                  </Label>
+                {/* Active Status Toggle & Delete Action */}
+                <div className="flex items-center justify-between pt-2">
+                  <div className="flex items-center space-x-2">
+                    <Switch
+                      id="isActive"
+                      checked={watchIsActive}
+                      onCheckedChange={(checked) => form.setValue('isActive', checked)}
+                      disabled={watchStock === 0}
+                    />
+                    <Label htmlFor="isActive" className="cursor-pointer">
+                      Product is Active (Visible on POS)
+                      {watchStock === 0 && (
+                        <span className="text-xs text-muted-foreground ml-2">
+                          (Auto-disabled: stock is 0)
+                        </span>
+                      )}
+                    </Label>
+                  </div>
+                  {isEditMode && product && (
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="text-destructive hover:bg-destructive/10 hover:text-destructive h-8 px-2"
+                      onClick={() => setIsDeleteDialogOpen(true)}
+                      title="Delete Product"
+                    >
+                      <Trash2 className="mr-1.5 h-4 w-4 text-red-600" />
+                      <span className="text-xs">Delete</span>
+                    </Button>
+                  )}
                 </div>
               </FormSection>
             </form>
           </ScrollArea>
         </div>
 
-        <DialogFooter className="px-6 pb-6 pt-4">
+        <DialogFooter className="px-6 pb-6 pt-4 flex flex-row justify-end items-center gap-2 w-full">
           <Button type="button" variant="outline" onClick={() => setIsOpen(false)}>
             Cancel
           </Button>
@@ -627,6 +643,12 @@ export function ProductFormDialog({
           </Button>
         </DialogFooter>
       </DialogContent>
+      <DeleteProductDialog
+        product={product || null}
+        open={isDeleteDialogOpen}
+        onOpenChange={(open) => setIsDeleteDialogOpen(open)}
+        onSuccess={() => setIsOpen(false)}
+      />
     </Dialog>
   );
 }

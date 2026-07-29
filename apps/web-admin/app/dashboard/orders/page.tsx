@@ -20,6 +20,19 @@ export default function OrdersPage() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
 
+  // Helper to update URL
+  function updateUrl(updates: Record<string, string | number | undefined>) {
+    const params = new URLSearchParams(searchParams.toString());
+    Object.entries(updates).forEach(([key, value]) => {
+      if (value === undefined || value === '' || value === null) {
+        params.delete(key);
+      } else {
+        params.set(key, String(value));
+      }
+    });
+    router.replace(`${pathname}?${params.toString()}`);
+  }
+
   // --- STATE ---
   // 1. URL State (Source of Truth)
   const page = Number(searchParams.get('page')) || 1;
@@ -70,19 +83,6 @@ export default function OrdersPage() {
       updateUrl({ from: undefined, to: undefined, page: 1 });
     }
   }, [date]);
-
-  // Helper to update URL
-  const updateUrl = (updates: Record<string, string | number | undefined>) => {
-    const params = new URLSearchParams(searchParams.toString());
-    Object.entries(updates).forEach(([key, value]) => {
-      if (value === undefined || value === '' || value === null) {
-        params.delete(key);
-      } else {
-        params.set(key, String(value));
-      }
-    });
-    router.replace(`${pathname}?${params.toString()}`);
-  };
 
   // --- DATA FETCHING ---
   const { orders, total, totalPages, isLoading, isError, refetch } = useOrders({
