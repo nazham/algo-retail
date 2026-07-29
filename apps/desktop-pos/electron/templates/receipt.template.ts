@@ -37,13 +37,14 @@ function getReceiptCSS(): string {
       .store-name {
         font-size: 18px;
         font-weight: bold;
-        letter-spacing: -0.5px;
-        margin-bottom: 1mm;
+        text-transform: uppercase;
+        letter-spacing: 0.8px;
+        margin-bottom: 1.5mm;
+        word-break: break-word;
       }
       .bold-divider {
         border-top: 2px solid #000;
         margin: 2mm 0;
-        text-transform: uppercase;
         letter-spacing: 0.8px;
         margin-bottom: 1.5mm;
         word-break: break-word;
@@ -188,8 +189,6 @@ export function generateReceipt(data: ReceiptTemplateData): string {
             ${shop.email ? `<br>${shop.email}` : ''}
           </div>
         </div>
-
-        <div class="bold-divider"></div>
 
         <!-- Order Metadata -->
         <div class="meta-info">
