@@ -7,24 +7,82 @@ if (process.env.CI) {
   process.exit(0);
 }
 
+function getProcessInfoWin32(pid) {
+  try {
+    const cmd = `powershell -NoProfile -NonInteractive -Command "try { $p = Get-CimInstance Win32_Process -Filter 'ProcessId = ${pid}'; if (-not $p) { $p = Get-WmiObject Win32_Process -Filter 'ProcessId = ${pid}' }; if ($p) { @{ ppid = $p.ParentProcessId; command = $p.CommandLine } | ConvertTo-Json -Compress } } catch {}"`;
+    const out = execSync(cmd, { stdio: ['ignore', 'pipe', 'ignore'], timeout: 3000 })
+      .toString()
+      .trim();
+    if (out) {
+      const data = JSON.parse(out);
+      if (data && data.ppid) {
+        return { ppid: Number(data.ppid), command: data.command || '' };
+      }
+    }
+  } catch (e) {}
+
+  try {
+    const out = execSync(
+      `wmic process where processid=${pid} get commandline,parentprocessid /format:csv`,
+      {
+        stdio: ['ignore', 'pipe', 'ignore'],
+        timeout: 3000,
+      },
+    )
+      .toString()
+      .trim();
+    const lines = out.split(/\r?\n/).filter(Boolean);
+    if (lines.length >= 2) {
+      const lastLine = lines[lines.length - 1];
+      const parts = lastLine.split(',');
+      if (parts.length >= 3) {
+        const ppid = parseInt(parts[parts.length - 1], 10);
+        const command = parts.slice(1, -1).join(',');
+        if (!isNaN(ppid)) {
+          return { ppid, command };
+        }
+      }
+    }
+  } catch (e) {}
+
+  return null;
+}
+
 // 0.5. Bypass wait if the command is running with a pnpm filter (e.g. pnpm --filter desktop-pos dev)
 function isPnpmFiltered() {
+  if (process.env.npm_config_filter || process.env.npm_config_F) {
+    return true;
+  }
+
   let pid = process.pid;
-  const regex = /(?:^|\s)(--filter|-F)(?:\s|=|$)/;
-  while (pid) {
+  const regex = /(?:^|\s|["'])(--filter|-F)(?:\s|=|["']|$)/;
+  while (pid && pid > 0) {
     try {
-      const out = execSync(`ps -p ${pid} -o ppid= -o args=`, {
-        stdio: ['ignore', 'pipe', 'ignore'],
-      })
-        .toString()
-        .trim();
-      const match = out.match(/^(\d+)\s+(.+)$/);
-      if (!match) break;
-      const ppid = parseInt(match[1], 10);
-      const command = match[2];
-      if (command.includes('pnpm') && regex.test(command)) {
+      let ppid = null;
+      let command = '';
+
+      if (process.platform === 'win32') {
+        const info = getProcessInfoWin32(pid);
+        if (!info) break;
+        ppid = info.ppid;
+        command = info.command;
+      } else {
+        const out = execSync(`ps -p ${pid} -o ppid= -o args=`, {
+          stdio: ['ignore', 'pipe', 'ignore'],
+        })
+          .toString()
+          .trim();
+        const match = out.match(/^(\d+)\s+(.+)$/);
+        if (!match) break;
+        ppid = parseInt(match[1], 10);
+        command = match[2];
+      }
+
+      if (command.toLowerCase().includes('pnpm') && regex.test(command)) {
         return true;
       }
+
+      if (!ppid || ppid === pid) break;
       pid = ppid;
     } catch (e) {
       break;
