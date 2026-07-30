@@ -145,12 +145,14 @@ export default function Home() {
               </p>
             </div>
             <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-8 items-center justify-items-center opacity-60 grayscale hover:grayscale-0 transition-all duration-500 text-muted-foreground">
-              {['Asian Hardware', 'Dineops'].map((brand) => (
-                <div key={brand} className="text-xl font-bold flex items-center gap-2">
-                  <div className="h-8 w-8 bg-current rounded-full opacity-20"></div>
-                  {brand}
-                </div>
-              ))}
+              {['Asian Hardware', 'Mums Food', 'ClothStory', 'GreenTouch Cosmetics'].map(
+                (brand) => (
+                  <div key={brand} className="text-xl font-bold flex items-center gap-2">
+                    <div className="h-8 w-8 bg-current rounded-full opacity-20"></div>
+                    {brand}
+                  </div>
+                ),
+              )}
             </div>
           </div>
         </section>
