@@ -146,14 +146,18 @@ export default function Home() {
               </p>
             </div>
             <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-8 items-center justify-items-center opacity-60 grayscale hover:grayscale-0 transition-all duration-500 text-muted-foreground">
-              {['Asian Hardware', 'Mums Food', 'ClothStory', 'GreenTouch Cosmetics'].map(
-                (brand) => (
-                  <div key={brand} className="text-xl font-bold flex items-center gap-2">
-                    <div className="h-8 w-8 bg-current rounded-full opacity-20"></div>
-                    {brand}
-                  </div>
-                ),
-              )}
+              {[
+                'Asian Hardware',
+                'Mums Food',
+                'ClothStory',
+                'GreenTouch Cosmetics',
+                'Streamlinetech.lk',
+              ].map((brand) => (
+                <div key={brand} className="text-xl font-bold flex items-center gap-2">
+                  <div className="h-8 w-8 bg-current rounded-full opacity-20"></div>
+                  {brand}
+                </div>
+              ))}
             </div>
           </div>
         </section>
@@ -321,7 +325,7 @@ export default function Home() {
                   Electronics
                 </TabsTrigger>
               </TabsList>
-              <div className="mt-8 min-h-[300px]">
+              <div className="mt-8 min-h-75">
                 <TabsContent value="retail" className="space-y-4">
                   <Card className="py-4">
                     <CardHeader>
