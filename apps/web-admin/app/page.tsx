@@ -22,6 +22,7 @@ import {
   BarChart3,
   CheckCircle2,
   ShoppingCart,
+  Sparkles,
   Store,
   Users,
   Box,
@@ -39,15 +40,15 @@ export const metadata: Metadata = {
 
 export default function Home() {
   // Calculate formatted currency for the Pro plan
-  const proPrice = formatCurrency(1500000); // 15,000.00 Rupees
+  const proPrice = formatCurrency(350000); // 3,500.00 Rupees
 
   return (
     <div className="flex flex-col min-h-screen bg-background">
       {/* Header */}
       <header className="px-4 lg:px-6 h-16 flex items-center border-b border-border bg-background/95 backdrop-blur sticky top-0 z-50">
-        <Link className="flex items-center justify-center" href="#">
-          <div className="bg-primary rounded-lg p-1.5 mr-2">
-            <Store className="h-5 w-5 text-primary-foreground" />
+        <Link className="flex items-center justify-center gap-2" href="#">
+          <div className="bg-primary rounded-xl p-2 flex items-center justify-center shadow-sm">
+            <Sparkles className="h-5 w-5 text-primary-foreground" />
           </div>
           <span className="font-bold text-xl tracking-tight text-foreground">Algo Retail</span>
         </Link>
@@ -565,19 +566,19 @@ export default function Home() {
                 <CardContent className="flex-1 mt-4">
                   <ul className="space-y-3 text-sm">
                     <li className="flex items-center gap-2 text-foreground">
-                      <CheckCircle2 className="h-4 w-4 text-primary" /> 3 Registers
+                      <CheckCircle2 className="h-4 w-4 text-primary" /> 10 Users
                     </li>
                     <li className="flex items-center gap-2 text-foreground">
                       <CheckCircle2 className="h-4 w-4 text-primary" /> Unlimited Products
                     </li>
                     <li className="flex items-center gap-2 text-foreground">
-                      <CheckCircle2 className="h-4 w-4 text-primary" /> Advanced Analytics
+                      <CheckCircle2 className="h-4 w-4 text-primary" /> Basic Reporting
                     </li>
                     <li className="flex items-center gap-2 text-foreground">
-                      <CheckCircle2 className="h-4 w-4 text-primary" /> Loyalty Program
+                      <CheckCircle2 className="h-4 w-4 text-primary" /> Loyalty Points
                     </li>
                     <li className="flex items-center gap-2 text-foreground">
-                      <CheckCircle2 className="h-4 w-4 text-primary" /> Multi-store (up to 3)
+                      <CheckCircle2 className="h-4 w-4 text-primary" /> Multi-store (up to 2)
                     </li>
                   </ul>
                 </CardContent>
@@ -590,7 +591,7 @@ export default function Home() {
 
               <Card className="flex flex-col py-4">
                 <CardHeader>
-                  <CardTitle className="text-foreground">Enterprise</CardTitle>
+                  <CardTitle className="text-foreground">Ultra</CardTitle>
                   <CardDescription>For chains and franchises</CardDescription>
                   <div className="text-4xl font-bold mt-4 text-foreground">Custom</div>
                   <div className="text-sm text-muted-foreground mt-1">Tailored package</div>
@@ -599,6 +600,9 @@ export default function Home() {
                   <ul className="space-y-3 text-sm">
                     <li className="flex items-center gap-2 text-foreground">
                       <CheckCircle2 className="h-4 w-4 text-primary" /> Unlimited Registers
+                    </li>
+                    <li className="flex items-center gap-2 text-foreground">
+                      <CheckCircle2 className="h-4 w-4 text-primary" /> E-Commerce Integration
                     </li>
                     <li className="flex items-center gap-2 text-foreground">
                       <CheckCircle2 className="h-4 w-4 text-primary" /> Dedicated Support
@@ -717,8 +721,8 @@ export default function Home() {
         <div className="container px-4 md:px-6 mx-auto grid gap-8 md:grid-cols-4">
           <div className="space-y-4">
             <div className="flex items-center gap-2">
-              <div className="bg-primary rounded-lg p-1.5">
-                <Store className="h-5 w-5 text-primary-foreground" />
+              <div className="bg-primary rounded-xl p-2 flex items-center justify-center shadow-sm">
+                <Sparkles className="h-5 w-5 text-primary-foreground" />
               </div>
               <span className="font-bold text-xl text-foreground">Algo Retail</span>
             </div>
@@ -776,7 +780,7 @@ export default function Home() {
           </div>
         </div>
         <div className="container px-4 md:px-6 mx-auto mt-12 pt-8 border-t border-border text-center text-sm text-muted-foreground">
-          © 2026 Algo Retail Inc. All rights reserved.
+          © 2026 AlgoDig Inc. All rights reserved.
         </div>
       </footer>
     </div>
