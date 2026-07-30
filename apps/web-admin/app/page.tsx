@@ -94,8 +94,8 @@ export default function Home() {
       <main className="flex-1">
         {/* Hero Section */}
         <section className="relative w-full py-12 md:py-24 lg:py-32 overflow-hidden border-b border-border bg-background">
-          <div className="absolute inset-0 bg-[linear-gradient(to_right,var(--border)_1px,transparent_1px),linear-gradient(to_bottom,var(--border)_1px,transparent_1px)] bg-[size:24px_24px] opacity-15"></div>
-          <div className="absolute left-0 right-0 top-0 -z-10 m-auto h-[310px] w-[310px] rounded-full bg-primary/20 opacity-20 blur-[100px]"></div>
+          <div className="absolute inset-0 bg-[linear-gradient(to_right,var(--border)_1px,transparent_1px),linear-gradient(to_bottom,var(--border)_1px,transparent_1px)] bg-size-[24px_24px] opacity-15"></div>
+          <div className="absolute left-0 right-0 top-0 -z-10 m-auto h-77.5 w-77.5 rounded-full bg-primary/20 opacity-20 blur-[100px]"></div>
           <div className="container px-4 md:px-6 mx-auto relative z-10">
             <div className="flex flex-col items-center text-center space-y-8">
               <Badge
@@ -109,7 +109,7 @@ export default function Home() {
                   The Digital Operating System for{' '}
                   <span className="text-primary">Sri Lankan Retail</span>
                 </h1>
-                <p className="mx-auto max-w-[800px] text-muted-foreground md:text-xl leading-relaxed text-balance text-center">
+                <p className="mx-auto max-w-200 text-muted-foreground md:text-xl leading-relaxed text-balance text-center">
                   Empowering small businesses to step into the digital age. Unified POS, Inventory,
                   and Customer Management designed for the local market.
                 </p>
@@ -172,14 +172,14 @@ export default function Home() {
               <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl text-foreground">
                 Everything You Need to Run Your Store
               </h2>
-              <p className="max-w-[900px] mx-auto text-muted-foreground md:text-xl/relaxed">
+              <p className="max-w-225 mx-auto text-muted-foreground md:text-xl/relaxed">
                 Powerful features wrapped in a simple, intuitive interface designed for modern
                 retail workflows.
               </p>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8 max-w-5xl mx-auto">
               {/* Feature 1 */}
-              <Card className="md:col-span-2 bg-gradient-to-br from-background to-muted/30 border-primary/10 py-4">
+              <Card className="md:col-span-2 bg-linear-to-br from-background to-muted/30 border-primary/10 py-4">
                 <CardHeader>
                   <div className="p-2 w-fit rounded-lg bg-primary/10 mb-4">
                     <ShoppingCart className="h-6 w-6 text-primary" />
@@ -190,7 +190,7 @@ export default function Home() {
                     split payments, and held orders. Works offline.
                   </CardDescription>
                 </CardHeader>
-                <CardContent className="relative h-[200px] overflow-hidden">
+                <CardContent className="relative h-50 overflow-hidden">
                   <div className="absolute right-0 bottom-0 w-[80%] h-[90%] bg-card border border-border rounded-tl-xl shadow-lg p-4">
                     <div className="flex justify-between items-center mb-4">
                       <div className="h-4 w-24 bg-muted rounded"></div>
@@ -229,7 +229,7 @@ export default function Home() {
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <div className="h-[150px] w-full bg-muted/20 rounded-lg flex items-end justify-between p-4 gap-2">
+                  <div className="h-37.5 w-full bg-muted/20 rounded-lg flex items-end justify-between p-4 gap-2">
                     {[40, 70, 50, 90, 60, 80].map((h, i) => (
                       <div
                         key={i}
@@ -267,7 +267,7 @@ export default function Home() {
               </Card>
 
               {/* Feature 4 */}
-              <Card className="md:col-span-2 bg-gradient-to-br from-muted/30 to-background border-primary/10 py-4">
+              <Card className="md:col-span-2 bg-linear-to-br from-muted/30 to-background border-primary/10 py-4">
                 <CardHeader>
                   <div className="p-2 w-fit rounded-lg bg-purple-500/10 mb-4">
                     <Users className="h-6 w-6 text-purple-500" />
@@ -304,7 +304,7 @@ export default function Home() {
               <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl mb-4 text-foreground">
                 Tailored for Your Industry
               </h2>
-              <p className="text-muted-foreground max-w-[700px] mx-auto">
+              <p className="text-muted-foreground max-w-175 mx-auto">
                 One platform, multiple configurations. Select your business type to see how Algo
                 Retail adapts.
               </p>
@@ -516,7 +516,7 @@ export default function Home() {
               <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl mb-4 text-foreground">
                 Simple, Transparent Pricing
               </h2>
-              <p className="text-muted-foreground max-w-[700px] mx-auto">
+              <p className="text-muted-foreground max-w-175 mx-auto">
                 Start for free and scale as you grow. No hidden fees.
               </p>
             </div>
