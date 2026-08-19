@@ -167,6 +167,20 @@ export interface UpdateProductRequest {
   categoryId?: string;
 }
 
+export interface ProductDeleteCheckResponse {
+  hasTransactions: boolean;
+  transactionCount: number;
+  orderCount: number;
+  movementCount: number;
+  batchCount: number;
+}
+
+export interface DeleteProductResponse {
+  success: boolean;
+  isSoftDeleted: boolean;
+  message: string;
+}
+
 // Order Filtering & Pagination
 export interface OrderFilters {
   page?: number;
@@ -200,3 +214,88 @@ export const PartialRefundSchema = z.object({
 });
 
 export type PartialRefundDto = z.infer<typeof PartialRefundSchema>;
+// ─── Report DTOs ─────────────────────────────────────────────
+
+export interface SalesReportDto {
+  kpis: {
+    totalRevenue: number;
+    totalOrders: number;
+    avgOrderValue: number;
+    totalUnitsSold: number;
+  };
+  dailySeries: { date: string; revenue: number; orders: number }[];
+  topProducts: {
+    productName: string;
+    totalRevenue: number;
+    totalQuantity: number;
+  }[];
+  paymentBreakdown: { method: string; revenue: number; count: number }[];
+}
+
+export interface ProfitLossReportDto {
+  kpis: {
+    revenue: number;
+    cogs: number;
+    grossProfit: number;
+    grossMarginPercent: number;
+    taxCollected: number;
+    discountsGiven: number;
+  };
+  dailySeries: {
+    date: string;
+    revenue: number;
+    cogs: number;
+    profit: number;
+  }[];
+}
+
+export interface InventoryReportDto {
+  kpis: {
+    totalStockValue: number;
+    totalRetailValue: number;
+    activeSkus: number;
+    inactiveSkus: number;
+    lowStockCount: number;
+    outOfStockCount: number;
+  };
+  categoryBreakdown: {
+    categoryName: string;
+    stockValue: number;
+    itemCount: number;
+  }[];
+  lowStockItems: {
+    id: string;
+    name: string;
+    sku: string | null;
+    stock: number;
+    reorderPoint: number;
+    costPrice: number;
+    price: number;
+  }[];
+  lowStockTotal: number;
+  lowStockPage: number;
+  lowStockLimit: number;
+  lowStockTotalPages: number;
+  movementSummary: {
+    type: string;
+    totalQuantity: number;
+    totalValue: number;
+    count: number;
+  }[];
+  movements: {
+    id: string;
+    type: string;
+    quantity: number;
+    costPrice: number;
+    reason: string | null;
+    remarks: string | null;
+    createdAt: string;
+    productName: string;
+    productSku: string | null;
+    userName: string | null;
+  }[];
+  movementsTotal: number;
+  movementsPage: number;
+  movementsLimit: number;
+  movementsTotalPages: number;
+}

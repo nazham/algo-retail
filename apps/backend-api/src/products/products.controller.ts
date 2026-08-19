@@ -1,22 +1,23 @@
 import {
-  Controller,
-  Post,
   Body,
-  Get,
-  UseGuards,
-  Query,
+  Controller,
   Delete,
+  Get,
+  Param,
+  Patch,
+  Post,
+  Query,
+  UseGuards,
 } from '@nestjs/common';
-import { ProductsService } from './products.service';
-import { UniversalAuthGuard } from 'src/auth/universal-auth.guard';
 import { CurrentTenant } from 'src/auth/current-tenant.decorator';
+import { UniversalAuthGuard } from 'src/auth/universal-auth.guard';
 import {
+  CreateProductDto,
+  ExportProductsDto,
   ProductQueryDto,
   UpdateProductDto,
-  ExportProductsDto,
-  CreateProductDto,
 } from './dto/product.dto';
-import { Param, Patch, HttpCode, HttpStatus } from '@nestjs/common';
+import { ProductsService } from './products.service';
 
 import { CurrentUser } from 'src/auth/current-user.decorator';
 
@@ -64,10 +65,22 @@ export class ProductsController {
     return this.productsService.updateProduct(id, tenantId, body, userId);
   }
 
+  @Get(':id/delete-check')
+  checkDeleteSafety(
+    @CurrentTenant() tenantId: string,
+    @Param('id') id: string,
+  ) {
+    return this.productsService.checkDeleteSafety(id, tenantId);
+  }
+
   @Delete(':id')
-  @HttpCode(HttpStatus.NO_CONTENT)
-  async delete(@CurrentTenant() tenantId: string, @Param('id') id: string) {
-    await this.productsService.softDeleteProduct(id, tenantId);
+  async delete(
+    @CurrentTenant() tenantId: string,
+    @CurrentUser() user: any,
+    @Param('id') id: string,
+  ) {
+    const userId = user?.id || 'system';
+    return this.productsService.deleteProduct(id, tenantId, userId);
   }
 
   @Get('sync')

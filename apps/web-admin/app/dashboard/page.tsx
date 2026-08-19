@@ -4,6 +4,7 @@ import { useSession } from '@/lib/auth-client';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 import { DashboardContainer } from '@/components/dashboard-container';
+import { StatCard, Skeleton } from '@/components/reports/stat-card';
 import { useDashboard } from '@/hooks/use-dashboard';
 import { DollarSign, ShoppingCart, Package, AlertTriangle, TrendingUp, Clock } from 'lucide-react';
 import { cn } from '@repo/ui/lib/utils';
@@ -27,12 +28,7 @@ function formatDate(isoDate: string): string {
   });
 }
 
-// Skeleton component for loading states
-function Skeleton({ className }: { className?: string }) {
-  return <div className={cn('animate-pulse rounded-md bg-muted', className)} />;
-}
-
-// Status badge component
+// Status badge for order table
 function StatusBadge({ status }: { status: string }) {
   const styles: Record<string, string> = {
     COMPLETED: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400',
@@ -50,47 +46,6 @@ function StatusBadge({ status }: { status: string }) {
     >
       {status}
     </span>
-  );
-}
-
-// KPI Card component
-function StatCard({
-  title,
-  value,
-  icon: Icon,
-  description,
-  variant = 'default',
-  isLoading,
-}: {
-  title: string;
-  value: string | number;
-  icon: React.ElementType;
-  description?: string;
-  variant?: 'default' | 'warning';
-  isLoading?: boolean;
-}) {
-  return (
-    <div className="rounded-lg border border-border bg-card p-5 space-y-3">
-      <div className="flex items-center justify-between">
-        <p className="text-sm font-medium text-muted-foreground">{title}</p>
-        <div
-          className={cn(
-            'h-9 w-9 rounded-lg flex items-center justify-center',
-            variant === 'warning' ? 'bg-amber-500/10' : 'bg-primary/10',
-          )}
-        >
-          <Icon
-            className={cn('h-4.5 w-4.5', variant === 'warning' ? 'text-amber-500' : 'text-primary')}
-          />
-        </div>
-      </div>
-      {isLoading ? (
-        <Skeleton className="h-8 w-24" />
-      ) : (
-        <p className="text-2xl font-bold tracking-tight">{value}</p>
-      )}
-      {description && <p className="text-xs text-muted-foreground">{description}</p>}
-    </div>
   );
 }
 

@@ -21,8 +21,8 @@ function getReceiptCSS(): string {
       body {
         font-family: 'Consolas', 'Courier New', monospace;
         width: 68mm;
-        margin: 0 0mm 0 0mm;
-        padding: 0;
+        margin: 0 auto;
+        padding: 10px 0;
         box-sizing: border-box;
         font-size: 12px;
         line-height: 1.5;
@@ -30,19 +30,22 @@ function getReceiptCSS(): string {
       .header {
         text-align: center;
         width: 100%;
-        border-bottom: 2px solid #000;
-        padding-bottom: 3mm;
+        border-bottom: 1px solid #000;
+        padding-bottom: 2.5mm;
         margin-bottom: 3mm;
       }
       .store-name {
-        font-size: 20px;
+        font-size: 18px;
         font-weight: bold;
-        letter-spacing: 0.5px;
-        margin-bottom: 2mm;
+        text-transform: uppercase;
+        letter-spacing: 0.8px;
+        margin-bottom: 1.5mm;
+        word-break: break-word;
       }
       .store-info { 
         font-size: 10px; 
-        line-height: 1.4; 
+        line-height: 1.45; 
+        color: #222;
       }
       .section-divider { 
         border-top: 1px dashed #666; 
@@ -165,6 +168,15 @@ export function generateReceipt(data: ReceiptTemplateData): string {
   const { shop, receiptData, items, customerName, cashierName, paymentDetails } = data;
   const fmt = formatCurrency;
 
+  // Format address lines cleanly
+  const addressLines = [shop.addressLine1, shop.addressLine2].map((a) => a?.trim()).filter(Boolean);
+
+  // Format phone numbers dynamically without trailing slash
+  const phoneNumbers = [shop.phone1, shop.phone2]
+    .map((p) => p?.trim())
+    .filter(Boolean)
+    .join(' / ');
+
   // Calculate totals
   const subtotal = receiptData.subtotal || receiptData.grandTotal;
   const discount = receiptData.discount || 0;
@@ -182,9 +194,9 @@ export function generateReceipt(data: ReceiptTemplateData): string {
         <div class="header">
           <div class="store-name">${shop.name}</div>
           <div class="store-info">
-            ${shop.addressLine1}<br>
-            ${shop.addressLine2}<br>
-            Tel: ${shop.phone1} / ${shop.phone2}
+            ${addressLines.length > 0 ? addressLines.join('<br>') + '<br>' : ''}
+            ${phoneNumbers ? `Tel: ${phoneNumbers}` : ''}
+            ${shop.email ? `<br>${shop.email}` : ''}
           </div>
         </div>
 

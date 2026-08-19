@@ -49,20 +49,60 @@ export const auth = betterAuth({
 
   hooks: {
     after: createAuthMiddleware(async (ctx) => {
-      // Set HTTP-only auth-role cookie on sign-in and sign-up
-      if (ctx.path.includes('/sign-in') || ctx.path.includes('/sign-up')) {
-        const body = ctx.body as any;
-        const user = body?.user;
+      const cookieOptions = {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax' as const,
+        path: '/',
+      };
+
+      // Set/update HTTP-only auth-role cookie on sign-in, sign-up, and get-session
+      if (
+        ctx.path.includes('/sign-in') ||
+        ctx.path.includes('/sign-up') ||
+        ctx.path.includes('/get-session')
+      ) {
+        let user: any = null;
+        const returned = ctx.context.returned;
+
+        if (returned) {
+          if (
+            typeof (returned as any).clone === 'function' &&
+            typeof (returned as any).json === 'function'
+          ) {
+            try {
+              const clone = (returned as any).clone();
+              const data = await clone.json();
+              user = data?.user;
+            } catch (e) {
+              // Ignore parsing errors
+            }
+          } else if (typeof returned === 'object') {
+            user = (returned as any).user;
+          }
+        }
+
+        // Fallback to request body
+        if (!user) {
+          const body = ctx.body;
+          user = body?.user;
+        }
+
         if (user) {
           const role = user.role || 'waitlist';
           ctx.setCookie('auth-role', role, {
-            httpOnly: true,
-            secure: process.env.NODE_ENV === 'production',
-            sameSite: 'lax',
-            path: '/',
+            ...cookieOptions,
             maxAge: 60 * 60 * 24 * 7, // 7 days
           });
         }
+      }
+
+      // Clear HTTP-only auth-role cookie on sign-out
+      if (ctx.path.includes('/sign-out')) {
+        ctx.setCookie('auth-role', '', {
+          ...cookieOptions,
+          maxAge: 0, // Expire immediately
+        });
       }
     }),
   },

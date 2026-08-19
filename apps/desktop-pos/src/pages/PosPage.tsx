@@ -1,15 +1,15 @@
-import { useState, useEffect, useMemo } from 'react';
-import { Search, Trash2, ShoppingCart, Plus, Minus, PauseCircle, RotateCcw } from 'lucide-react';
-import { useCartStore, type CartItem } from '../stores/cart.store';
 import { Button } from '@repo/ui/components/ui/button';
-import { useProducts, useCategories } from '../features/pos/hooks/use-pos-data';
+import { Minus, PauseCircle, Plus, RotateCcw, Search, ShoppingCart, Trash2 } from 'lucide-react';
+import { useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
-import { useBarcodeScanner } from '../hooks/use-barcode-scanner';
+import { CartItemDiscount } from '../features/pos/components/CartItemDiscount';
 import { CheckoutModal } from '../features/pos/components/CheckoutModal';
 import RecallOrderModal from '../features/pos/components/RecallOrderModal';
-import { CartItemDiscount } from '../features/pos/components/CartItemDiscount';
-import { formatCurrency } from '../lib/utils';
+import { useCategories, useProducts } from '../features/pos/hooks/use-pos-data';
+import { useBarcodeScanner } from '../hooks/use-barcode-scanner';
 import { useNumericInput } from '../hooks/use-numeric-input';
+import { formatCurrency } from '../lib/utils';
+import { useCartStore, type CartItem } from '../stores/cart.store';
 
 export default function PosPage() {
   const [searchQuery, setSearchQuery] = useState('');
@@ -32,7 +32,7 @@ export default function PosPage() {
   // New State for Held Orders Modal
   const [isRecallOpen, setIsRecallOpen] = useState(false);
 
-  const { products, isLoading } = useProducts();
+  const { products, isLoading, refreshProducts } = useProducts();
   const { categories } = useCategories();
 
   // Updated Store destructuring
@@ -53,6 +53,15 @@ export default function PosPage() {
 
   // Memoize the totals to isolate search-driven re-renders from cart calculations
   const totals = useMemo(() => getTotals(), [items, getTotals]);
+
+  // Memoized map of cart item quantities for O(1) lookups during product rendering
+  const cartQuantities = useMemo(() => {
+    const map = new Map<string, number>();
+    items.forEach((item) => {
+      map.set(item.productId, item.quantity);
+    });
+    return map;
+  }, [items]);
 
   // Combined filtering: category + search
   const filteredProducts = useMemo(() => {
@@ -179,25 +188,54 @@ export default function PosPage() {
 
         {/* Scrollable Grid */}
         <div className="flex-1 overflow-y-auto p-4">
-          <div className="grid grid-cols-3 lg:grid-cols-4 gap-4">
-            {filteredProducts.map((product) => (
-              <Button
-                key={product.id}
-                variant="outline"
-                className="h-32 flex-col items-start justify-between whitespace-normal"
-                onClick={() => addToCart(product)}
-              >
-                <div className="text-left">
-                  <h3 className="font-bold text-card-foreground line-clamp-2 leading-tight">
-                    {product.name}
-                  </h3>
-                  <span className="text-xs text-muted-foreground font-mono mt-1 block">
-                    {product.sku}
-                  </span>
-                </div>
-                <div className="font-bold text-primary">{formatCurrency(product.price)}</div>
-              </Button>
-            ))}
+          <div className="grid grid-cols-auto-fill-pos gap-4">
+            {filteredProducts.map((product) => {
+              const inCartQty = cartQuantities.get(product.id) || 0;
+              const availableStock = (product.stock ?? 0) - inCartQty;
+              const formattedStock = Number(availableStock.toFixed(2));
+
+              let badgeClasses = '';
+              let badgeText = '';
+              if (availableStock <= 0) {
+                badgeClasses = 'bg-destructive/10 text-destructive border-destructive/20';
+                badgeText = 'Out of stock';
+              } else if (availableStock <= 5) {
+                badgeClasses =
+                  'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20';
+                badgeText = `${formattedStock} left`;
+              } else {
+                badgeClasses = 'bg-secondary text-secondary-foreground border-border';
+                badgeText = `${formattedStock} in stock`;
+              }
+
+              return (
+                <Button
+                  key={product.id}
+                  variant="outline"
+                  className="h-32 flex-col items-start justify-between whitespace-normal p-3 relative overflow-hidden group hover:border-primary/50 transition-all duration-200"
+                  onClick={() => addToCart(product)}
+                >
+                  <div className="text-left w-full">
+                    <h3 className="font-bold text-card-foreground line-clamp-2 leading-tight text-sm">
+                      {product.name}
+                    </h3>
+                    <span className="text-[10px] text-muted-foreground font-mono mt-1 block">
+                      {product.sku}
+                    </span>
+                  </div>
+                  <div className="w-full flex flex-wrap justify-between items-center mt-auto pt-2 border-t border-border/50 gap-1.5">
+                    <div className="font-bold text-primary text-sm sm:text-base">
+                      {formatCurrency(product.price)}
+                    </div>
+                    <span
+                      className={`text-[9px] font-semibold px-1.5 py-0.5 rounded border whitespace-nowrap ${badgeClasses}`}
+                    >
+                      {badgeText}
+                    </span>
+                  </div>
+                </Button>
+              );
+            })}
           </div>
         </div>
 
@@ -392,7 +430,10 @@ export default function PosPage() {
       <CheckoutModal
         isOpen={isCheckoutOpen}
         onClose={() => setIsCheckoutOpen(false)}
-        onComplete={() => setIsCheckoutOpen(false)}
+        onComplete={() => {
+          setIsCheckoutOpen(false);
+          refreshProducts();
+        }}
       />
     </div>
   );
