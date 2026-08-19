@@ -249,8 +249,12 @@ export function DashboardPreview() {
           <Tabs defaultValue="overview" className="space-y-4">
             <TabsList className="bg-background/50 backdrop-blur border border-border">
               <TabsTrigger value="overview">Overview</TabsTrigger>
-              <TabsTrigger value="analytics">Analytics</TabsTrigger>
-              <TabsTrigger value="reports">Reports</TabsTrigger>
+              <span className="inline-flex items-center justify-center px-3 py-1.5 text-sm font-medium text-muted-foreground/50 cursor-default select-none">
+                Analytics
+              </span>
+              <span className="inline-flex items-center justify-center px-3 py-1.5 text-sm font-medium text-muted-foreground/50 cursor-default select-none">
+                Reports
+              </span>
             </TabsList>
 
             <TabsContent value="overview" className="space-y-4">
@@ -258,11 +262,11 @@ export function DashboardPreview() {
               <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
                 <Card className="py-4">
                   <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">Total Sales</CardTitle>
-                    <span className="h-4 w-4 text-muted-foreground font-semibold">Rs.</span>
+                    <CardTitle className="text-sm font-medium pb-0">Total Sales</CardTitle>
+                    <span className="h-4 w-4 text-muted-foreground font-semibold pb-1">Rs.</span>
                   </CardHeader>
                   <CardContent>
-                    <div className="text-2xl font-bold text-foreground">Rs. 145,231</div>
+                    <div className="text-2xl font-bold text-foreground pt-1">145,231</div>
                     <p className="text-xs text-muted-foreground flex items-center mt-1">
                       <ArrowUpIcon className="h-3 w-3 text-green-500 mr-1" />
                       <span className="text-green-500 font-medium">+20.1%</span>
@@ -286,7 +290,9 @@ export function DashboardPreview() {
                 </Card>
                 <Card className="py-4">
                   <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">New Customers</CardTitle>
+                    <CardTitle className="text-sm font-medium whitespace-nowrap">
+                      New Customers
+                    </CardTitle>
                     <Users className="h-4 w-4 text-muted-foreground" />
                   </CardHeader>
                   <CardContent>
