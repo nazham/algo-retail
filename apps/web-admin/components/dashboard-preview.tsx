@@ -260,59 +260,61 @@ export function DashboardPreview() {
             <TabsContent value="overview" className="space-y-4">
               {/* Stats Cards */}
               <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-                <Card className="py-4">
+                <Card className="pt-4 pb-6">
                   <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium pb-0">Total Sales</CardTitle>
-                    <span className="h-4 w-4 text-muted-foreground font-semibold pb-1">Rs.</span>
+                    <CardTitle className="text-sm font-medium">Total Sales</CardTitle>
+                    <span className="text-sm text-muted-foreground font-semibold leading-none">
+                      $
+                    </span>
                   </CardHeader>
-                  <CardContent>
-                    <div className="text-2xl font-bold text-foreground pt-1">145,231</div>
-                    <p className="text-xs text-muted-foreground flex items-center mt-1">
-                      <ArrowUpIcon className="h-3 w-3 text-green-500 mr-1" />
-                      <span className="text-green-500 font-medium">+20.1%</span>
+                  <CardContent className="pb-0">
+                    <div className="text-2xl font-bold text-foreground">145,231</div>
+                    <p className="text-xs text-muted-foreground flex items-center mt-1 whitespace-nowrap">
+                      <ArrowUpIcon className="h-3 w-3 text-green-500 mr-1 flex-shrink-0" />
+                      <span className="text-green-500 font-medium">+2.1%</span>
                       <span className="ml-1">from yesterday</span>
                     </p>
                   </CardContent>
                 </Card>
-                <Card className="py-4">
+                <Card className="pt-4 pb-6">
                   <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                     <CardTitle className="text-sm font-medium">Transactions</CardTitle>
                     <CreditCard className="h-4 w-4 text-muted-foreground" />
                   </CardHeader>
-                  <CardContent>
+                  <CardContent className="pb-0">
                     <div className="text-2xl font-bold text-foreground">142</div>
-                    <p className="text-xs text-muted-foreground flex items-center mt-1">
-                      <ArrowUpIcon className="h-3 w-3 text-green-500 mr-1" />
+                    <p className="text-xs text-muted-foreground flex items-center mt-1 whitespace-nowrap">
+                      <ArrowUpIcon className="h-3 w-3 text-green-500 mr-1 flex-shrink-0" />
                       <span className="text-green-500 font-medium">+12%</span>
                       <span className="ml-1">from yesterday</span>
                     </p>
                   </CardContent>
                 </Card>
-                <Card className="py-4">
+                <Card className="pt-4 pb-6">
                   <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                     <CardTitle className="text-sm font-medium whitespace-nowrap">
                       New Customers
                     </CardTitle>
                     <Users className="h-4 w-4 text-muted-foreground" />
                   </CardHeader>
-                  <CardContent>
+                  <CardContent className="pb-0">
                     <div className="text-2xl font-bold text-foreground">12</div>
-                    <p className="text-xs text-muted-foreground flex items-center mt-1">
-                      <ArrowUpIcon className="h-3 w-3 text-green-500 mr-1" />
+                    <p className="text-xs text-muted-foreground flex items-center mt-1 whitespace-nowrap">
+                      <ArrowUpIcon className="h-3 w-3 text-green-500 mr-1 flex-shrink-0" />
                       <span className="text-green-500 font-medium">+4%</span>
                       <span className="ml-1">from yesterday</span>
                     </p>
                   </CardContent>
                 </Card>
-                <Card className="py-4">
+                <Card className="pt-4 pb-6">
                   <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                     <CardTitle className="text-sm font-medium">Low Stock</CardTitle>
                     <Activity className="h-4 w-4 text-muted-foreground" />
                   </CardHeader>
-                  <CardContent>
+                  <CardContent className="pb-0">
                     <div className="text-2xl font-bold text-foreground">7 Items</div>
-                    <p className="text-xs text-muted-foreground flex items-center mt-1">
-                      <ArrowDownIcon className="h-3 w-3 text-destructive mr-1" />
+                    <p className="text-xs text-muted-foreground flex items-center mt-1 whitespace-nowrap">
+                      <ArrowDownIcon className="h-3 w-3 text-destructive mr-1 flex-shrink-0" />
                       <span className="text-destructive font-medium">Needs attention</span>
                     </p>
                   </CardContent>
