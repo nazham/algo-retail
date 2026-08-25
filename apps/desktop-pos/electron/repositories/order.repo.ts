@@ -16,7 +16,13 @@ export class OrderRepository {
 
   // The main function can remain async (to match the Promise interface of the Repository)
   async create(data: CreateOrderDto): Promise<OrderResultDto> {
-    return this.db.transaction((tx) => {
+    /**
+     * NOTE: This function is marked 'async' to match our repository rules,
+     * but better-sqlite3 transactions are actually synchronous.
+     * If we ever change to an async database, we MUST add 'await' here!
+     * This's same for db.transaction of (create, refundOrder, partialRefundOrder)
+     */
+    return await this.db.transaction((tx) => {
       // A. Insert Main Order
       tx.insert(schema.orders)
         .values({

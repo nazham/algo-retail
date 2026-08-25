@@ -64,7 +64,7 @@ export const registerOrderHandlers = (repo: OrderRepository, userRepo: UserRepos
     return await repo.findAll(filters);
   });
 
-  ipcMain.handle('order:partial-refund', async (_, payload: unknown) => {
+  ipcMain.handle('orders:partial-refund', async (_, payload: unknown) => {
     try {
       // 1. Validate payload
       const parsed = PartialRefundSchema.safeParse(payload);

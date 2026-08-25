@@ -11,7 +11,7 @@ export class SyncService {
   private lastPulse: string | null = null;
 
   public onStateChange?: (
-    state: 'IDLE' | 'SYNCING' | 'ERROR' | 'OFFLINE',
+    state: 'IDLE' | 'SYNCING' | 'ERROR' | 'OFFLINE' | 'WARNING',
     message?: string,
   ) => void;
 
@@ -35,7 +35,7 @@ export class SyncService {
     this.tenantId = envTenantId;
   }
 
-  private notify(state: 'IDLE' | 'SYNCING' | 'ERROR' | 'OFFLINE', message?: string) {
+  private notify(state: 'IDLE' | 'SYNCING' | 'ERROR' | 'OFFLINE' | 'WARNING', message?: string) {
     if (this.onStateChange) {
       this.onStateChange(state, message);
     }
@@ -348,7 +348,7 @@ export class SyncService {
     } catch (error) {
       // Config pull is non-critical — don't break the sync cycle
       console.warn('⚠️ Failed to pull tenant config:', error);
-      this.notify('ERROR', 'Failed to pull updated tenant config. Settings might be stale.');
+      this.notify('WARNING', 'Failed to pull updated tenant config. Settings might be stale.');
     }
   }
 
