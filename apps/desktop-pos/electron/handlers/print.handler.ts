@@ -8,80 +8,105 @@ import { getShopConfig } from '../config';
 export const registerPrintHandlers = () => {
   // Print receipt handler
   ipcMain.handle('print-receipt', async (_, data: PrintReceiptRequest) => {
-    const {
-      order,
-      items,
-      customerName,
-      cashierName,
-      paymentDetails,
-      shopConfig: providedShopConfig,
-      printOptions,
-    } = data;
+    try {
+      const {
+        order,
+        items,
+        customerName,
+        cashierName,
+        paymentDetails,
+        shopConfig: providedShopConfig,
+        printOptions,
+      } = data;
 
-    // Use provided shop config or fall back to defaults
-    const shopConfig = providedShopConfig || getShopConfig();
+      // Use provided shop config or fall back to defaults
+      const shopConfig = providedShopConfig || getShopConfig();
 
-    const templateData: ReceiptTemplateData = {
-      shop: shopConfig,
-      receiptData: {
-        orderNumber: order.orderNumber,
-        grandTotal: order.grandTotal,
-        subtotal: order.subtotal,
-        discount: order.discountTotal,
-        paymentMethod: order.paymentMethod,
-      },
-      items: items,
-      customerName: customerName || 'Walk-in',
-      cashierName: cashierName || 'Admin',
-      paymentDetails: paymentDetails,
-    };
+      const templateData: ReceiptTemplateData = {
+        shop: shopConfig,
+        receiptData: {
+          orderNumber: order.orderNumber,
+          grandTotal: order.grandTotal,
+          subtotal: order.subtotal,
+          discount: order.discountTotal,
+          paymentMethod: order.paymentMethod,
+        },
+        items: items,
+        customerName: customerName || 'Walk-in',
+        cashierName: cashierName || 'Admin',
+        paymentDetails: paymentDetails,
+      };
 
-    return await NativePrinterService.print(generateReceipt, templateData, printOptions);
+      return await NativePrinterService.print(generateReceipt, templateData, printOptions);
+    } catch (error) {
+      console.error('[IPC Handler Error] print-receipt:', error);
+      throw error;
+    }
   });
 
   // Printer discovery handlers
   ipcMain.handle('printer:get-printers', async () => {
-    return await NativePrinterService.getPrinters();
+    try {
+      return await NativePrinterService.getPrinters();
+    } catch (error) {
+      console.error('[IPC Handler Error] printer:get-printers:', error);
+      throw error;
+    }
   });
 
   ipcMain.handle('printer:validate', async (_, printerName: string) => {
-    return await NativePrinterService.validatePrinter(printerName);
+    try {
+      return await NativePrinterService.validatePrinter(printerName);
+    } catch (error) {
+      console.error('[IPC Handler Error] printer:validate:', error);
+      throw error;
+    }
   });
 
   ipcMain.handle('printer:get-default', async () => {
-    return await NativePrinterService.getDefaultPrinter();
+    try {
+      return await NativePrinterService.getDefaultPrinter();
+    } catch (error) {
+      console.error('[IPC Handler Error] printer:get-default:', error);
+      throw error;
+    }
   });
 
   // Test print handler
   ipcMain.handle(
     'printer:test-print',
     async (_, payload?: { printerName?: string; shopConfig?: ShopConfig }) => {
-      const printerName = payload?.printerName;
-      const shopConfig = payload?.shopConfig || getShopConfig();
+      try {
+        const printerName = payload?.printerName;
+        const shopConfig = payload?.shopConfig || getShopConfig();
 
-      const testData: ReceiptTemplateData = {
-        shop: shopConfig,
-        receiptData: {
-          orderNumber: 'TEST-001',
-          grandTotal: 100.0,
-          subtotal: 100.0,
-          discount: 0,
-          paymentMethod: 'Cash',
-        },
-        items: [
-          {
-            productName: 'Test Item',
-            quantity: 1,
+        const testData: ReceiptTemplateData = {
+          shop: shopConfig,
+          receiptData: {
+            orderNumber: 'TEST-001',
+            grandTotal: 100.0,
             subtotal: 100.0,
+            discount: 0,
+            paymentMethod: 'Cash',
           },
-        ],
-        customerName: 'Test Customer',
-        cashierName: 'System',
-        paymentDetails: undefined,
-      };
+          items: [
+            {
+              productName: 'Test Item',
+              quantity: 1,
+              subtotal: 100.0,
+            },
+          ],
+          customerName: 'Test Customer',
+          cashierName: 'System',
+          paymentDetails: undefined,
+        };
 
-      const options = printerName ? { deviceName: printerName } : undefined;
-      return await NativePrinterService.print(generateReceipt, testData, options);
+        const options = printerName ? { deviceName: printerName } : undefined;
+        return await NativePrinterService.print(generateReceipt, testData, options);
+      } catch (error) {
+        console.error('[IPC Handler Error] printer:test-print:', error);
+        throw error;
+      }
     },
   );
 };

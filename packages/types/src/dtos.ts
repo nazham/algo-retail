@@ -1,12 +1,20 @@
 // packages/types/src/dtos.ts
+import { z } from 'zod';
 
-export const ORDER_STATUSES = ['COMPLETED', 'REFUNDED', 'PENDING', 'CANCELLED'] as const;
+export const ORDER_STATUSES = [
+  'COMPLETED',
+  'REFUNDED',
+  'PARTIALLY_REFUNDED',
+  'PENDING',
+  'CANCELLED',
+] as const;
 export type OrderStatusType = (typeof ORDER_STATUSES)[number];
 
 // Standard Enum for class-validator and frontend form usage
 export enum OrderStatus {
   COMPLETED = 'COMPLETED',
   REFUNDED = 'REFUNDED',
+  PARTIALLY_REFUNDED = 'PARTIALLY_REFUNDED',
   PENDING = 'PENDING',
   CANCELLED = 'CANCELLED',
 }
@@ -17,7 +25,7 @@ export type PaymentMethod = 'CASH' | 'BANK_TRANSFER' | 'CARD';
 export class CreateOrderItemDto {
   productId!: string;
   productName!: string;
-  quantity!: number;
+  quantity!: number; // Allows negative values for refund mirror orders (Immutable Ledger Pattern)
   price!: number;
   costPrice?: number;
 }
@@ -29,10 +37,10 @@ export class CreateOrderDto {
   createdAt!: string; // When it actually happened (ISO String)
 
   // 🟢 FINANCIALS
-  subtotal!: number;
-  taxTotal!: number;
-  discountTotal!: number;
-  grandTotal!: number;
+  subtotal!: number; // Allows negative values for refund mirror orders (Immutable Ledger Pattern)
+  taxTotal!: number; // Allows negative values for refund mirror orders (Immutable Ledger Pattern)
+  discountTotal!: number; // Allows negative values for refund mirror orders (Immutable Ledger Pattern)
+  grandTotal!: number; // Allows negative values for refund mirror orders (Immutable Ledger Pattern)
   paymentMethod!: PaymentMethod;
   status?: string; // 🟢 From Desktop (e.g., COMPLETED, REFUNDED)
   items!: CreateOrderItemDto[]; // Array of the class above
@@ -45,6 +53,7 @@ export interface OrderResultDto {
 
 export interface OrderItemDto {
   id: string;
+  productId: string;
   productName: string;
   quantity: number;
   unitPrice: number;
@@ -190,6 +199,21 @@ export interface PaginatedOrderResponse {
   totalPages: number;
 }
 
+export const PartialRefundSchema = z.object({
+  originalOrderId: z.string(),
+  adminPin: z.string(),
+  reason: z.string().optional(),
+  items: z
+    .array(
+      z.object({
+        productId: z.string(),
+        quantity: z.number().min(1),
+      }),
+    )
+    .min(1, 'Must select at least one item'),
+});
+
+export type PartialRefundDto = z.infer<typeof PartialRefundSchema>;
 // ─── Report DTOs ─────────────────────────────────────────────
 
 export interface SalesReportDto {
