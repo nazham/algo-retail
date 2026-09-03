@@ -19,10 +19,10 @@ export class OrderRepository {
     return this.db.transaction((tx) => {
       // A. Insert Main Order
       const calculatedDiscountTotal = data.items.reduce(
-        (sum, item) => sum + item.quantity * (item.discountAmount || 0),
+        (sum, item) => sum + item.quantity * (item.discountAmount ?? 0),
         0,
       );
-      const calculatedGrandTotal = data.subtotal - calculatedDiscountTotal + (data.taxTotal || 0);
+      const calculatedGrandTotal = data.subtotal - calculatedDiscountTotal + (data.taxTotal ?? 0);
 
       tx.insert(schema.orders)
         .values({
@@ -65,7 +65,9 @@ export class OrderRepository {
             costPrice: currentCost, // 🟢 SNAPSHOT
             discountAmount: item.discountAmount ?? 0,
             discountType: item.discountType ?? 'MANUAL',
-            subtotal: (item.price - (item.discountAmount ?? 0)) * item.quantity,
+            // ⚠️ CONVENTION: subtotal = unitPrice × quantity (GROSS, before discount).
+            // Net revenue = (unitPrice - discountAmount) × quantity — computed at query time.
+            subtotal: item.price * item.quantity,
           })
           .run();
 
@@ -77,7 +79,7 @@ export class OrderRepository {
           .run();
       }
 
-      return { orderId: data.id, orderNumber: data.orderNumber };
+      return { orderId: data.id, orderNumber: data.orderNumber, createdAt: data.createdAt };
     });
   }
 

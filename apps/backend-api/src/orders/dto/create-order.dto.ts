@@ -36,8 +36,9 @@ export class CreateOrderItemDto {
   @IsOptional()
   discountAmount?: number;
 
-  @IsString()
   @IsOptional()
+  @IsString()
+  @IsIn(['MANUAL', 'PROMOTION'])
   discountType?: string;
 }
 

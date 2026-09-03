@@ -113,7 +113,9 @@ export class OrdersService {
           unitPrice: item.price,
           discountAmount: item.discountAmount ?? 0,
           discountType: item.discountType ?? 'MANUAL',
-          subtotal: (item.price - (item.discountAmount ?? 0)) * item.quantity,
+          // ⚠️ CONVENTION: subtotal = unitPrice × quantity (GROSS, before discount).
+          // Net revenue = (unitPrice - discountAmount) × quantity — computed at query time.
+          subtotal: item.price * item.quantity,
         });
 
         // 📉 Stock Adjustment (Logged Movement)
@@ -128,7 +130,11 @@ export class OrdersService {
       }
 
       this.logger.log(`✅ Synced Order: ${dto.orderNumber}`);
-      return { orderId: dto.id, orderNumber: dto.orderNumber };
+      return {
+        orderId: dto.id,
+        orderNumber: dto.orderNumber,
+        createdAt: dto.createdAt,
+      };
     });
   }
 
