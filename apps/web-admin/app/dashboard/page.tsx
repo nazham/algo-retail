@@ -1,18 +1,14 @@
 'use client';
 
+import { DashboardContainer } from '@/components/dashboard-container';
+import { Skeleton, StatCard } from '@/components/reports/stat-card';
+import { useDashboard } from '@/hooks/use-dashboard';
 import { useSession } from '@/lib/auth-client';
+import { formatCurrency } from '@/lib/utils';
+import { cn } from '@repo/ui/lib/utils';
+import { AlertTriangle, Clock, DollarSign, Package, ShoppingCart, TrendingUp } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
-import { DashboardContainer } from '@/components/dashboard-container';
-import { StatCard, Skeleton } from '@/components/reports/stat-card';
-import { useDashboard } from '@/hooks/use-dashboard';
-import { DollarSign, ShoppingCart, Package, AlertTriangle, TrendingUp, Clock } from 'lucide-react';
-import { cn } from '@repo/ui/lib/utils';
-
-// Format cents to currency string
-function formatCurrency(cents: number): string {
-  return `Rs. ${(cents / 100).toLocaleString('en-US', { minimumFractionDigits: 2 })}`;
-}
 
 function formatTime(isoDate: string): string {
   return new Date(isoDate).toLocaleTimeString('en-US', {

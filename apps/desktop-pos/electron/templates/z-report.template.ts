@@ -1,3 +1,5 @@
+import { formatCurrency } from '@algo/types';
+
 export interface ZReportData {
   shopName: string;
   generatedAt: string;
@@ -15,8 +17,6 @@ export interface ZReportData {
     count: number;
   }[];
 }
-
-import { formatCurrency } from '../utils/common.utils';
 
 export function zReportTemplate(data: ZReportData): string {
   const {

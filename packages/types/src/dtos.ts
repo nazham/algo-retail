@@ -20,6 +20,8 @@ export class CreateOrderItemDto {
   quantity!: number;
   price!: number;
   costPrice?: number;
+  discountAmount?: number;
+  discountType?: string;
 }
 
 export class CreateOrderDto {
@@ -48,6 +50,8 @@ export interface OrderItemDto {
   productName: string;
   quantity: number;
   unitPrice: number;
+  discountAmount?: number;
+  discountType?: string;
 }
 
 export interface OrderDto {
@@ -76,14 +80,24 @@ export interface ShopConfig {
 export interface PrintReceiptDto {
   order: {
     orderNumber: string;
+    createdAt?: string;
     grandTotal: number;
     subtotal: number;
     discountTotal: number;
+    taxTotal?: number;
     paymentMethod: string;
   };
   items: {
     productName: string;
     quantity: number;
+    unitPrice: number;
+    discountAmount: number;
+    /**
+     * GROSS subtotal = unitPrice × quantity (before discount).
+     * The receipt template does NOT read this field — it re-derives the line total
+     * from (unitPrice - discountAmount) × quantity at render time.
+     * Kept for forward-compatibility; do not rely on it for net revenue calculations.
+     */
     subtotal: number;
   }[];
   paymentDetails: {

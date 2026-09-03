@@ -18,6 +18,12 @@ export class OrderRepository {
   async create(data: CreateOrderDto): Promise<OrderResultDto> {
     return this.db.transaction((tx) => {
       // A. Insert Main Order
+      const calculatedDiscountTotal = data.items.reduce(
+        (sum, item) => sum + item.quantity * (item.discountAmount ?? 0),
+        0,
+      );
+      const calculatedGrandTotal = data.subtotal - calculatedDiscountTotal + (data.taxTotal ?? 0);
+
       tx.insert(schema.orders)
         .values({
           id: data.id, // Matches schema id (text)
@@ -30,8 +36,8 @@ export class OrderRepository {
           paymentMethod: data.paymentMethod,
           subtotal: data.subtotal,
           taxTotal: data.taxTotal,
-          discountTotal: data.discountTotal,
-          grandTotal: data.grandTotal,
+          discountTotal: calculatedDiscountTotal,
+          grandTotal: calculatedGrandTotal,
           isSynced: false,
         })
         .run(); // explicit .run() is sometimes needed in raw BS3, but Drizzle handles it usually.
@@ -57,6 +63,10 @@ export class OrderRepository {
             quantity: item.quantity,
             unitPrice: item.price,
             costPrice: currentCost, // 🟢 SNAPSHOT
+            discountAmount: item.discountAmount ?? 0,
+            discountType: item.discountType ?? 'MANUAL',
+            // ⚠️ CONVENTION: subtotal = unitPrice × quantity (GROSS, before discount).
+            // Net revenue = (unitPrice - discountAmount) × quantity — computed at query time.
             subtotal: item.price * item.quantity,
           })
           .run();
@@ -69,7 +79,7 @@ export class OrderRepository {
           .run();
       }
 
-      return { orderId: data.id, orderNumber: data.orderNumber };
+      return { orderId: data.id, orderNumber: data.orderNumber, createdAt: data.createdAt };
     });
   }
 

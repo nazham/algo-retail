@@ -30,6 +30,16 @@ export class CreateOrderItemDto {
   @IsNumber()
   @Min(0)
   costPrice?: number;
+
+  @IsNumber()
+  @Min(0)
+  @IsOptional()
+  discountAmount?: number;
+
+  @IsOptional()
+  @IsString()
+  @IsIn(['MANUAL', 'PROMOTION'])
+  discountType?: string;
 }
 
 export class CreateOrderDto {

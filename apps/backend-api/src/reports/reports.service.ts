@@ -90,7 +90,7 @@ export class ReportsService {
         this.db
           .select({
             productName: schema.orderItems.productName,
-            totalRevenue: sql<number>`COALESCE(SUM(${schema.orderItems.subtotal}), 0)`,
+            totalRevenue: sql<number>`COALESCE(SUM((${schema.orderItems.unitPrice} - COALESCE(${schema.orderItems.discountAmount}, 0)) * ${schema.orderItems.quantity}), 0)`,
             totalQuantity: sql<number>`COALESCE(SUM(${schema.orderItems.quantity}), 0)`,
           })
           .from(schema.orderItems)
@@ -100,7 +100,11 @@ export class ReportsService {
           )
           .where(completedFilter)
           .groupBy(schema.orderItems.productName)
-          .orderBy(desc(sql`SUM(${schema.orderItems.subtotal})`))
+          .orderBy(
+            desc(
+              sql`SUM((${schema.orderItems.unitPrice} - COALESCE(${schema.orderItems.discountAmount}, 0)) * ${schema.orderItems.quantity})`,
+            ),
+          )
           .limit(10),
 
         // Payment method breakdown (all statuses for visibility)

@@ -1,9 +1,11 @@
-import type { ShopConfig } from '@algo/types';
+import type { PrintReceiptDto, ShopConfig } from '@algo/types';
 
 export interface ReceiptData {
   orderNumber: string;
+  createdAt?: string;
   grandTotal: number;
   subtotal?: number;
+  taxTotal?: number;
   discount?: number;
   paymentMethod: string;
 }
@@ -17,6 +19,8 @@ export interface PaymentDetails {
 export interface ReceiptItem {
   productName: string;
   quantity: number;
+  unitPrice: number;
+  discountAmount: number;
   subtotal: number;
 }
 
@@ -29,26 +33,7 @@ export interface ReceiptTemplateData {
   paymentDetails?: PaymentDetails;
 }
 
-export interface PrintReceiptRequest {
-  order: {
-    orderNumber: string;
-    grandTotal: number;
-    subtotal: number;
-    discountTotal: number;
-    paymentMethod: string;
-  };
-  items: {
-    productName: string;
-    quantity: number;
-    subtotal: number;
-  }[];
-  paymentDetails: {
-    method: string;
-    tenderedAmount: number;
-    changeDue: number;
-  };
-  customerName?: string;
-  cashierName?: string;
+export interface PrintReceiptRequest extends PrintReceiptDto {
   shopConfig?: ShopConfig;
   printOptions?: {
     deviceName?: string;

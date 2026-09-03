@@ -3,3 +3,4 @@ export interface AppConfig {
   version: string;
 }
 export * from './src/dtos';
+export * from './src/format';

@@ -1,5 +1,5 @@
 import type { ReceiptTemplateData } from '../services/printer.types';
-import { formatCurrency } from '../utils/common.utils';
+import { formatCurrency, formatAmount } from '@algo/types';
 
 /**
  * Generate receipt CSS
@@ -25,7 +25,7 @@ function getReceiptCSS(): string {
         padding: 10px 0;
         box-sizing: border-box;
         font-size: 12px;
-        line-height: 1.5;
+        line-height: 1.4;
       }
       .header {
         text-align: center;
@@ -42,6 +42,10 @@ function getReceiptCSS(): string {
         margin-bottom: 1.5mm;
         word-break: break-word;
       }
+      .bold-divider {
+        border-top: 2px solid #000;
+        margin: 2mm 0;
+      }
       .store-info { 
         font-size: 10px; 
         line-height: 1.45; 
@@ -49,7 +53,7 @@ function getReceiptCSS(): string {
       }
       .section-divider { 
         border-top: 1px dashed #666; 
-        margin: 3mm 0; 
+        margin: 2mm 0; 
       }
       .meta-info { 
         font-size: 11px; 
@@ -58,50 +62,43 @@ function getReceiptCSS(): string {
       .meta-row {
         display: table;
         width: 100%;
-        margin-bottom: 1mm;
+        margin-bottom: 0.5mm;
       }
-      .meta-row > div,
-      .meta-row > span {
+      .meta-row span {
         display: table-cell;
       }
-      .meta-row > div:last-child,
-      .meta-row > span:last-child {
+      .meta-row span:last-child {
         text-align: right;
       }
       table { 
         width: 100%; 
         border-collapse: collapse; 
-        margin: 2mm 0; 
+        margin-bottom: 2mm; 
       }
-      thead { 
-        border-bottom: 1px solid #000; 
+      thead th { 
+        font-size: 10px;
+        font-weight: bold;
+        text-align: left;
+        padding-bottom: 1mm;
       }
-      .item-row { 
-        border-bottom: 1px dashed #eee; 
-      }
+      thead .th-right { text-align: right; }
+      thead .th-center { text-align: center; }
+      
       .item-name-row td { 
-        padding: 1mm 0 0.5mm 0;
-        font-size: 12px;
+        padding: 1.5mm 0 0.5mm 0;
+        font-size: 11px;
         font-weight: bold;
       }
       .item-details-row td {
-        padding: 0 0 1mm 0;
+        padding: 0 0 1.5mm 0;
         font-size: 10px;
-        color: #555;
       }
-      .item-details-row .qty { 
-        text-align: left; 
-      }
-      .item-details-row .price { 
-        text-align: center; 
-      }
-      .item-details-row .amt { 
-        text-align: right; 
-      }
+      .item-details-row .qty { text-align: center; }
+      .item-details-row .disc { text-align: center; }
+      .item-details-row .total { text-align: right; }
+
       .totals { 
-        margin-top: 2mm; 
-        padding-top: 2mm; 
-        border-top: 1px solid #000; 
+        padding-top: 1mm; 
       }
       .total-row {
         display: table;
@@ -109,54 +106,44 @@ function getReceiptCSS(): string {
         margin-bottom: 1mm;
         font-size: 11px;
       }
-      .total-row > span {
-        display: table-cell;
-      }
-      .total-row > span:last-child {
+      .total-row span:last-child {
         text-align: right;
       }
       .grand-total {
         display: table;
         width: 100%;
-        font-size: 14px;
+        font-size: 16px;
         font-weight: bold;
-        border-top: 2px double #000;
-        padding-top: 2mm;
-        margin-top: 2mm;
+        margin-bottom: 3mm;
       }
-      .grand-total > span {
-        display: table-cell;
-      }
-      .grand-total > span:last-child {
+      .grand-total span:last-child {
         text-align: right;
       }
       .payment-info { 
         font-size: 11px; 
         text-align: right; 
-        margin-top: 2mm; 
+        margin-bottom: 3mm;
       }
       .footer { 
         text-align: center; 
         width: 100%;
-        margin-top: 3mm; 
-        padding-top: 2mm; 
-        border-top: 1px dashed #666; 
       }
       .thank-you { 
-        font-size: 13px; 
+        font-size: 14px; 
         font-weight: bold; 
-        margin-bottom: 1.5mm; 
+        margin-bottom: 3mm;
+        text-transform: uppercase;
       }
       .return-policy { 
         font-size: 8px; 
-        line-height: 1.4; 
+        line-height: 1.3; 
+        text-transform: uppercase;
         color: #333; 
-        margin-bottom: 1.5mm; 
+        margin-bottom: 2mm; 
       }
       .software-credit { 
         font-size: 9px; 
         color: #666; 
-        margin-top: 1mm; 
       }
     `;
 }
@@ -166,7 +153,12 @@ function getReceiptCSS(): string {
  */
 export function generateReceipt(data: ReceiptTemplateData): string {
   const { shop, receiptData, items, customerName, cashierName, paymentDetails } = data;
-  const fmt = formatCurrency;
+
+  // Totals are now calculated in the service/controller layer and passed via receiptData
+  const totalDiscount = receiptData.discount ?? 0;
+  const totalTax = receiptData.taxTotal ?? 0;
+  const subTotal = receiptData.subtotal ?? 0;
+  const grandTotal = receiptData.grandTotal ?? 0;
 
   // Format address lines cleanly
   const addressLines = [shop.addressLine1, shop.addressLine2].map((a) => a?.trim()).filter(Boolean);
@@ -176,11 +168,6 @@ export function generateReceipt(data: ReceiptTemplateData): string {
     .map((p) => p?.trim())
     .filter(Boolean)
     .join(' / ');
-
-  // Calculate totals
-  const subtotal = receiptData.subtotal || receiptData.grandTotal;
-  const discount = receiptData.discount || 0;
-  const total = receiptData.grandTotal;
 
   return `
       <!DOCTYPE html>
@@ -192,7 +179,7 @@ export function generateReceipt(data: ReceiptTemplateData): string {
       <body>
         <!-- Header -->
         <div class="header">
-          <div class="store-name">${shop.name}</div>
+          <div class="store-name">${shop.name || 'Algo Retail'}</div>
           <div class="store-info">
             ${addressLines.length > 0 ? addressLines.join('<br>') + '<br>' : ''}
             ${phoneNumbers ? `Tel: ${phoneNumbers}` : ''}
@@ -203,43 +190,52 @@ export function generateReceipt(data: ReceiptTemplateData): string {
         <!-- Order Metadata -->
         <div class="meta-info">
           <div class="meta-row">
-            <span>#${receiptData.orderNumber}</span>
-            <span>${new Date().toLocaleString('en-US', {
+            <span style="font-weight: bold;">#${receiptData.orderNumber}</span>
+            <span>${new Date(receiptData.createdAt || Date.now()).toLocaleString('en-US', {
               year: 'numeric',
               month: 'short',
               day: 'numeric',
               hour: '2-digit',
               minute: '2-digit',
+              hour12: true,
             })}</span>
           </div>
           <div class="meta-row">
-             <div>
-                <span>Customer:</span>
-                <span>${customerName}</span>
-             </div>
-             <div>
-                <span>Cashier:</span>
-                <span>${cashierName}</span>
-             </div>
+             <span>Customer: ${customerName || 'Walk-in'}</span>
+             <span>Cashier: ${cashierName || 'Admin'}</span>
           </div>
         </div>
 
+        <!-- Items Divider -->
         <div class="section-divider"></div>
 
         <!-- Items Table -->
         <table>
+          <thead>
+            <tr>
+              <th width="15%" class="th-center">QTY</th>
+              <th width="35%">MRP</th>
+              <th width="20%" class="th-center">Price</th>
+              <th width="30%" class="th-right">Amount</th>
+            </tr>
+            <tr>
+              <td colspan="4" style="border-bottom: 1px dashed #666; padding-bottom: 1mm;"></td>
+            </tr>
+          </thead>
           <tbody>
             ${items
               .map((item) => {
-                const unitPrice = item.subtotal / item.quantity;
+                const effectiveUnitPrice = (item.unitPrice ?? 0) - (item.discountAmount ?? 0);
+                const lineTotal = item.quantity * effectiveUnitPrice;
                 return `
               <tr class="item-name-row">
-                <td colspan="3">${item.productName}</td>
+                <td colspan="4">${item.productName}</td>
               </tr>
               <tr class="item-details-row">
-                <td class="qty">${item.quantity} × ${fmt(unitPrice)}</td>
-                <td class="price"></td>
-                <td class="amt">${fmt(item.subtotal)}</td>
+                <td class="qty">${item.quantity}</td>
+                <td>${formatAmount(item.unitPrice)}</td>
+                <td class="disc">${formatAmount(effectiveUnitPrice)}</td>
+                <td class="total">${formatAmount(lineTotal)}</td>
               </tr>
             `;
               })
@@ -247,48 +243,63 @@ export function generateReceipt(data: ReceiptTemplateData): string {
           </tbody>
         </table>
 
+        <div class="bold-divider"></div>
+
         <!-- Totals -->
         <div class="totals">
-          <div class="total-row">
-            <span>Subtotal:</span>
-            <span>${fmt(subtotal)}</span>
-          </div>
-          ${
-            discount > 0
-              ? `
-          <div class="total-row">
-            <span>Discount:</span>
-            <span>- ${fmt(discount)}</span>
-          </div>
-          `
-              : ''
-          }
-          <div class="grand-total">
-            <span>TOTAL:</span>
-            <span>${fmt(total)}</span>
-          </div>
-          <div class="payment-info">
-            Payment: ${paymentDetails?.method || receiptData.paymentMethod}
+          <table width="100%" style="font-size: 11px; margin-bottom: 1mm;">
+            <tr>
+              <td style="text-align: left; padding: 0.5mm 0;">Subtotal:</td>
+              <td style="text-align: right; padding: 0.5mm 0;">${formatCurrency(subTotal)}</td>
+            </tr>
             ${
-              paymentDetails?.tenderedAmount !== undefined
-                ? `<br>Received: ${fmt(paymentDetails.tenderedAmount)}`
+              totalTax > 0
+                ? `
+            <tr>
+              <td style="text-align: left; padding: 0.5mm 0;">Tax:</td>
+              <td style="text-align: right; padding: 0.5mm 0;">${formatCurrency(totalTax)}</td>
+            </tr>
+            `
                 : ''
             }
             ${
-              paymentDetails?.changeDue !== undefined && paymentDetails.changeDue > 0
-                ? `<br>Change: ${fmt(paymentDetails.changeDue)}`
+              totalDiscount > 0
+                ? `
+            <tr>
+              <td style="text-align: left; padding: 0.5mm 0;">Discount:</td>
+              <td style="text-align: right; padding: 0.5mm 0;">- ${formatCurrency(totalDiscount)}</td>
+            </tr>
+            `
                 : ''
             }
-          </div>
+          </table>
         </div>
+
+        <div class="bold-divider"></div>
+
+        <div class="grand-total">
+          <table width="100%" style="font-size: 16px; font-weight: bold;">
+            <tr>
+              <td style="text-align: left;">TOTAL:</td>
+              <td style="text-align: right;">${formatCurrency(grandTotal)}</td>
+            </tr>
+          </table>
+        </div>
+
+        <div class="payment-info">
+          Payment: ${paymentDetails?.method || receiptData.paymentMethod || 'CASH'}<br>
+          Received: ${formatCurrency(paymentDetails?.tenderedAmount ?? grandTotal)}<br>
+          Change: ${formatCurrency(paymentDetails?.changeDue ?? 0)}
+        </div>
+
+        <div class="section-divider" style="margin-top: 0;"></div>
 
         <!-- Footer -->
         <div class="footer">
           <div class="thank-you">Thank You For Your Purchase!</div>
           
           <div class="return-policy">
-            RETURN POLICY: Returns accepted within 7 days with original receipt. Perishable, food, hygiene, clearance, and opened items are non-returnable. Defective or expired items must be reported within 24 hours.
-Refunds issued to original payment method.
+            RETURN POLICY: RETURNS ACCEPTED WITHIN 7 DAYS WITH ORIGINAL RECEIPT. PERISHABLE, FOOD, HYGIENE, CLEARANCE, AND OPENED ITEMS ARE NON-RETURNABLE. DEFECTIVE OR EXPIRED ITEMS MUST BE REPORTED WITHIN 24 HOURS. REFUNDS ISSUED TO ORIGINAL PAYMENT METHOD.
           </div>
 
           <div class="software-credit">© Software by ALGO-DIG 0779208210</div>
