@@ -1,0 +1,3 @@
+## 2024-05-18 - Array Filter Optimization in React useMemo
+**Learning:** In a `useMemo` filtering an array of items with both string searching and category matching, extracting constant evaluations (like `.toLowerCase().trim()`) outside the loop is important, but leveraging "early returns" provides the biggest win. Skipping string matching operations (using `.includes()`) via an early return when a cheaper match fails (like `matchesCategory`), or when a variable is falsy, avoids executing an O(N) evaluation path entirely.
+**Action:** When filtering collections across multiple criteria within `useMemo`, arrange validations from cheapest (e.g. strict equality, falsy checks) to most expensive (e.g. string matching, regex). Always return early if cheaper checks fail.
