@@ -28,12 +28,9 @@ import { useSalesReport, useProfitLossReport, useInventoryReport } from '@/hooks
 
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@repo/ui/components/ui/tabs';
 import { Button } from '@repo/ui/components/ui/button';
+import { formatCurrency } from '@/lib/utils';
 
 // ─── Formatting Helpers ──────────────────────────────────────
-
-function formatCurrency(cents: number): string {
-  return `Rs. ${(cents / 100).toLocaleString('en-US', { minimumFractionDigits: 2 })}`;
-}
 
 function formatShortDate(dateStr: string): string {
   const d = new Date(dateStr + 'T00:00:00');
@@ -122,9 +119,7 @@ function SalesTab({ from, to }: { from?: string; to?: string }) {
                   {data?.topProducts.map((p, i) => (
                     <tr key={p.productName} className="border-b border-border/50 last:border-0">
                       <td className="py-2 pr-4 text-muted-foreground">{i + 1}</td>
-                      <td className="py-2 pr-4 font-medium truncate max-w-[200px]">
-                        {p.productName}
-                      </td>
+                      <td className="py-2 pr-4 font-medium truncate max-w-50">{p.productName}</td>
                       <td className="py-2 pr-4 text-right text-muted-foreground">
                         {formatQuantity(p.totalQuantity)}
                       </td>
@@ -411,7 +406,7 @@ function InventoryTab({ from, to }: { from?: string; to?: string }) {
                 <tbody>
                   {data?.lowStockItems.map((item) => (
                     <tr key={item.id} className="border-b border-border/50 last:border-0">
-                      <td className="py-2 pr-4 font-medium truncate max-w-[200px]">{item.name}</td>
+                      <td className="py-2 pr-4 font-medium truncate max-w-50">{item.name}</td>
                       <td className="py-2 pr-4 text-muted-foreground font-mono text-xs">
                         {item.sku || '—'}
                       </td>
@@ -503,9 +498,7 @@ function InventoryTab({ from, to }: { from?: string; to?: string }) {
                       key={m.id}
                       className="border-b border-border/50 last:border-0 hover:bg-muted/10 transition-colors"
                     >
-                      <td className="py-2 pr-4 font-medium truncate max-w-[150px]">
-                        {m.productName}
-                      </td>
+                      <td className="py-2 pr-4 font-medium truncate max-w-37.5">{m.productName}</td>
                       <td className="py-2 pr-4 font-mono text-xs text-muted-foreground">
                         {m.productSku || '—'}
                       </td>
@@ -543,11 +536,11 @@ function InventoryTab({ from, to }: { from?: string; to?: string }) {
                           minute: '2-digit',
                         })}
                       </td>
-                      <td className="py-2 pr-4 text-muted-foreground truncate max-w-[100px]">
+                      <td className="py-2 pr-4 text-muted-foreground truncate max-w-25">
                         {m.userName || 'System'}
                       </td>
                       <td
-                        className="py-2 text-xs text-muted-foreground max-w-[150px] truncate"
+                        className="py-2 text-xs text-muted-foreground max-w-37.5 truncate"
                         title={m.remarks || m.reason || ''}
                       >
                         {m.remarks || m.reason || '—'}

@@ -3,6 +3,7 @@ import { toast } from 'sonner';
 import { Button } from '@repo/ui/components/ui/button';
 import { Loader2, Printer, XCircle } from 'lucide-react';
 import { useReport, usePrintReport } from '../../reports/hooks/use-report';
+import { formatCurrency } from '../../../lib/utils';
 
 interface ZReportData {
   shopName: string;
@@ -68,8 +69,6 @@ export const EndOfDayModal = ({ isOpen, onClose }: EndOfDayModalProps) => {
       toast.error('Printer Error: ' + result.error);
     }
   };
-
-  const formatCurrency = (cents: number) => `Rs. ${(cents / 100).toFixed(2)}`;
 
   if (!isOpen) return null;
 
