@@ -2,7 +2,7 @@ import React from 'react';
 import { X, Printer } from 'lucide-react';
 import { Button } from '@repo/ui/components/ui/button';
 import type { OrderDto } from '@algo/types';
-import { formatCurrency } from '../../../lib/utils';
+import { formatCurrency, formatAmount } from '../../../lib/utils';
 import { useEffect } from 'react';
 import { usePrintReceipt } from '../hooks/use-print-receipt';
 import { useStoreSettingsStore } from '../../../stores/store-settings.store';
@@ -100,42 +100,25 @@ export function OrderDetailsDialog({ order, open, onOpenChange }: OrderDetailsDi
               </tr>
             </thead>
             <tbody>
-              {order.items.map((item, idx) => (
-                <React.Fragment key={idx}>
-                  <tr>
-                    <td colSpan={4} className="pt-2 pb-1 font-bold text-[11px]">
-                      {item.productName}
-                    </td>
-                  </tr>
-                  <tr className="border-b border-dashed border-gray-200 last:border-0">
-                    <td className="text-center pb-2">{item.quantity}</td>
-                    <td className="pb-2">
-                      {((item.unitPrice || 0) / 100).toLocaleString('en-US', {
-                        minimumFractionDigits: 2,
-                        maximumFractionDigits: 2,
-                      })}
-                    </td>
-                    <td className="text-center pb-2">
-                      {(((item.unitPrice || 0) - (item.discountAmount || 0)) / 100).toLocaleString(
-                        'en-US',
-                        {
-                          minimumFractionDigits: 2,
-                          maximumFractionDigits: 2,
-                        },
-                      )}
-                    </td>
-                    <td className="text-right pb-2 font-medium">
-                      {(
-                        (item.quantity * ((item.unitPrice || 0) - (item.discountAmount || 0))) /
-                        100
-                      ).toLocaleString('en-US', {
-                        minimumFractionDigits: 2,
-                        maximumFractionDigits: 2,
-                      })}
-                    </td>
-                  </tr>
-                </React.Fragment>
-              ))}
+              {order.items.map((item, idx) => {
+                const effectiveUnitPrice = (item.unitPrice ?? 0) - (item.discountAmount ?? 0);
+                const lineTotal = item.quantity * effectiveUnitPrice;
+                return (
+                  <React.Fragment key={idx}>
+                    <tr>
+                      <td colSpan={4} className="pt-2 pb-1 font-bold text-[11px]">
+                        {item.productName}
+                      </td>
+                    </tr>
+                    <tr className="border-b border-dashed border-gray-200 last:border-0">
+                      <td className="text-center pb-2">{item.quantity}</td>
+                      <td className="pb-2">{formatAmount(item.unitPrice)}</td>
+                      <td className="text-center pb-2">{formatAmount(effectiveUnitPrice)}</td>
+                      <td className="text-right pb-2 font-medium">{formatAmount(lineTotal)}</td>
+                    </tr>
+                  </React.Fragment>
+                );
+              })}
             </tbody>
           </table>
           <div className="border-t-2 border-black mb-2"></div>
@@ -147,12 +130,22 @@ export function OrderDetailsDialog({ order, open, onOpenChange }: OrderDetailsDi
                 <td className="py-1">Subtotal:</td>
                 <td className="text-right py-1 font-medium">{formatCurrency(order.subtotal)}</td>
               </tr>
-              <tr>
-                <td className="py-1">Discount:</td>
-                <td className="text-right py-1 font-medium">
-                  - {formatCurrency(order.discountTotal)}
-                </td>
-              </tr>
+              {(order.taxTotal ?? 0) > 0 && (
+                <tr>
+                  <td className="py-1">Tax:</td>
+                  <td className="text-right py-1 font-medium">
+                    {formatCurrency(order.taxTotal ?? 0)}
+                  </td>
+                </tr>
+              )}
+              {(order.discountTotal ?? 0) > 0 && (
+                <tr>
+                  <td className="py-1">Discount:</td>
+                  <td className="text-right py-1 font-medium">
+                    - {formatCurrency(order.discountTotal)}
+                  </td>
+                </tr>
+              )}
               <tr>
                 <td colSpan={2} className="border-t-2 border-black pt-2 pb-1">
                   <div className="flex justify-between text-[16px] font-bold">
@@ -168,7 +161,6 @@ export function OrderDetailsDialog({ order, open, onOpenChange }: OrderDetailsDi
           <div className="text-right space-y-1 text-[11px] mb-4">
             <p>Payment: {order.paymentMethod || 'CASH'}</p>
             <p>Received: {formatCurrency(order.grandTotal)}</p>
-            <p>Change: {formatCurrency(0)}</p>
           </div>
 
           <div className="border-t border-dashed border-gray-500 pt-4 text-center">

@@ -25,7 +25,7 @@ export function OrderDetailsSheet({ orderId, onClose }: OrderDetailsSheetProps) 
 
   return (
     <Sheet open={!!orderId} onOpenChange={(open) => !open && onClose()}>
-      <SheetContent className="w-[400px] sm:w-[540px]">
+      <SheetContent className="w-full sm:max-w-135">
         <SheetHeader>
           <SheetTitle>Order Details</SheetTitle>
           <SheetDescription>View transaction details and items.</SheetDescription>
@@ -98,10 +98,12 @@ export function OrderDetailsSheet({ orderId, onClose }: OrderDetailsSheetProps) 
                 <span className="text-muted-foreground">Subtotal</span>
                 <span>{formatCurrency(order.subtotal)}</span>
               </div>
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Tax</span>
-                <span>{formatCurrency(order.taxTotal)}</span>
-              </div>
+              {(order.taxTotal ?? 0) > 0 && (
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Tax</span>
+                  <span>{formatCurrency(order.taxTotal ?? 0)}</span>
+                </div>
+              )}
               {(order.discountTotal ?? 0) > 0 && (
                 <div className="flex justify-between text-green-600">
                   <span>Discount</span>

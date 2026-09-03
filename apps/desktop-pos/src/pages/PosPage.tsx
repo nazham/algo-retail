@@ -404,11 +404,18 @@ export default function PosPage() {
               <span>Subtotal</span>
               <span>{formatCurrency(totals.subtotal)}</span>
             </div>
-            <div className="flex justify-between text-green-600 font-medium">
-              <span>Discount</span>
-              {/*<span>Rs. {(totals.discount / 100).toFixed(2)}</span>*/}
-              <span> {formatCurrency(totals.discount)}</span>
-            </div>
+            {totals.tax > 0 && (
+              <div className="flex justify-between">
+                <span>Tax</span>
+                <span>{formatCurrency(totals.tax)}</span>
+              </div>
+            )}
+            {totals.discount > 0 && (
+              <div className="flex justify-between text-green-600 font-medium">
+                <span>Discount</span>
+                <span>- {formatCurrency(totals.discount)}</span>
+              </div>
+            )}
           </div>
 
           <div className="flex justify-between font-bold text-xl text-foreground py-1 border-t border-input">
