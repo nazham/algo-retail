@@ -1,8 +1,8 @@
 import { Button } from '@repo/ui/components/ui/button';
-import { Minus, PauseCircle, Plus, RotateCcw, Search, ShoppingCart, Trash2 } from 'lucide-react';
+import { PauseCircle, RotateCcw, Search, ShoppingCart, Trash2 } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
-import { CartItemDiscount } from '../features/pos/components/CartItemDiscount';
+import { CartItemRow } from '../features/pos/components/CartItemRow';
 import { CheckoutModal } from '../features/pos/components/CheckoutModal';
 import RecallOrderModal from '../features/pos/components/RecallOrderModal';
 import { useCategories, useProducts } from '../features/pos/hooks/use-pos-data';
@@ -295,100 +295,19 @@ export default function PosPage() {
             </div>
           ) : (
             items.map((item) => (
-              <div
+              <CartItemRow
                 key={item.productId}
-                className="bg-card border border-border p-3 rounded-lg shadow-sm flex flex-col gap-2"
-              >
-                {/* ROW 1: Name & Total Price */}
-                <div className="flex justify-between items-start gap-2">
-                  <div
-                    className="font-medium text-sm text-card-foreground truncate leading-tight flex-1"
-                    title={item.name}
-                  >
-                    {item.name}
-                  </div>
-                  <div className="font-bold text-base text-foreground whitespace-nowrap">
-                    <span className="text-primary">
-                      {formatCurrency((item.price - (item.discount || 0)) * item.quantity)}
-                    </span>
-                  </div>
-                </div>
-
-                {/* ROW 2: Price Breakdown & Discount Value */}
-                <div className="flex items-center gap-2 text-xs">
-                  <span className="text-muted-foreground">
-                    {formatCurrency(item.price)} x {item.quantity}
-                  </span>
-                  {(item.discount || 0) > 0 && (
-                    <span className="text-green-600 font-medium">
-                      -{formatCurrency((item.discount || 0) * item.quantity)}
-                    </span>
-                  )}
-                </div>
-
-                {/* ROW 3: Quantity Controls & Actions */}
-                <div className="flex justify-between items-center mt-1">
-                  {/* Quantity Controls Pill */}
-                  <div className="flex items-center bg-secondary/50 rounded-md h-7 overflow-hidden">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-7 w-7 hover:bg-transparent shrink-0"
-                      onClick={() => updateQuantity(item.productId, -1)}
-                    >
-                      <Minus size={14} />
-                    </Button>
-
-                    {editingItemId === item.productId ? (
-                      <input
-                        autoFocus
-                        type="text"
-                        className="w-12 text-center text-sm font-bold bg-transparent border-none focus:outline-none p-0 mx-1"
-                        value={quantityInput.displayValue}
-                        onChange={quantityInput.handleChange}
-                        onBlur={handleQuantityBlur}
-                        onKeyDown={handleQuantityKeyDown}
-                        onClick={(e) => e.stopPropagation()}
-                      />
-                    ) : (
-                      <span
-                        className="min-w-6 max-w-24 px-1 text-center text-sm font-bold cursor-pointer select-none truncate"
-                        onClick={() => handleQuantityClick(item)}
-                        title={item.quantity.toString()}
-                      >
-                        {item.quantity}
-                      </span>
-                    )}
-
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-7 w-7 hover:bg-transparent shrink-0"
-                      onClick={() => updateQuantity(item.productId, +1)}
-                    >
-                      <Plus size={14} />
-                    </Button>
-                  </div>
-
-                  {/* Actions (Discount & Trash) */}
-                  <div className="flex items-center gap-1">
-                    <CartItemDiscount
-                      currentDiscount={item.discount || 0}
-                      maxDiscount={item.price}
-                      onUpdate={(val) => setDiscount(item.productId, val)}
-                    />
-
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-8 w-8 text-muted-foreground hover:text-destructive hover:bg-transparent"
-                      onClick={() => removeFromCart(item.productId)}
-                    >
-                      <Trash2 size={16} />
-                    </Button>
-                  </div>
-                </div>
-              </div>
+                item={item}
+                isEditingQuantity={editingItemId === item.productId}
+                quantityDisplayValue={quantityInput.displayValue}
+                onQuantityChange={quantityInput.handleChange}
+                onQuantityBlur={handleQuantityBlur}
+                onQuantityKeyDown={handleQuantityKeyDown}
+                onStartEditQuantity={() => handleQuantityClick(item)}
+                onUpdateQuantity={(delta) => updateQuantity(item.productId, delta)}
+                onSetDiscount={(discount) => setDiscount(item.productId, discount)}
+                onRemove={() => removeFromCart(item.productId)}
+              />
             ))
           )}
         </div>
