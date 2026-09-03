@@ -19,25 +19,28 @@ export const registerPrintHandlers = () => {
     } = data;
 
     // Use provided shop config or fall back to defaults
-    const shopConfig = providedShopConfig || getShopConfig();
+    const shopConfig = providedShopConfig ?? getShopConfig();
 
-    // Calculate totals based on items to ensure consistency
+    // Calculate totals from items for breakdown display rows
     const calculatedSubTotal = items.reduce(
-      (sum, item) => sum + item.quantity * (item.unitPrice || 0),
+      (sum, item) => sum + item.quantity * (item.unitPrice ?? 0),
       0,
     );
     const calculatedTotalDiscount = items.reduce(
-      (sum, item) => sum + item.quantity * (item.discountAmount || 0),
+      (sum, item) => sum + item.quantity * (item.discountAmount ?? 0),
       0,
     );
-    const calculatedGrandTotal = calculatedSubTotal - calculatedTotalDiscount;
+    // ⚠️ Trust order.grandTotal from the caller (backend-confirmed) as the single source of truth.
+    // Do NOT re-derive the grand total here — any drift would cause the receipt to show a wrong total.
 
     const templateData: ReceiptTemplateData = {
       shop: shopConfig,
       receiptData: {
         orderNumber: order.orderNumber,
-        grandTotal: calculatedGrandTotal,
+        createdAt: order.createdAt,
+        grandTotal: order.grandTotal,
         subtotal: calculatedSubTotal,
+        taxTotal: order.taxTotal ?? 0,
         discount: calculatedTotalDiscount,
         paymentMethod: order.paymentMethod,
       },
@@ -68,14 +71,16 @@ export const registerPrintHandlers = () => {
     'printer:test-print',
     async (_, payload?: { printerName?: string; shopConfig?: ShopConfig }) => {
       const printerName = payload?.printerName;
-      const shopConfig = payload?.shopConfig || getShopConfig();
+      const shopConfig = payload?.shopConfig ?? getShopConfig();
 
       const testData: ReceiptTemplateData = {
         shop: shopConfig,
         receiptData: {
           orderNumber: 'TEST-001',
-          grandTotal: 100.0,
-          subtotal: 100.0,
+          createdAt: new Date().toISOString(),
+          grandTotal: 10000,
+          subtotal: 10000,
+          taxTotal: 0,
           discount: 0,
           paymentMethod: 'Cash',
         },
@@ -83,8 +88,8 @@ export const registerPrintHandlers = () => {
           {
             productName: 'Test Item',
             quantity: 1,
-            subtotal: 100.0,
-            unitPrice: 100.0,
+            subtotal: 10000,
+            unitPrice: 10000,
             discountAmount: 0,
           },
         ],

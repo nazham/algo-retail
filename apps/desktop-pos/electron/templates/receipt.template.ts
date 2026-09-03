@@ -1,5 +1,5 @@
 import type { ReceiptTemplateData } from '../services/printer.types';
-import { formatCurrency } from '../utils/common.utils';
+import { formatCurrency, formatAmount } from '@algo/types';
 
 /**
  * Generate receipt CSS
@@ -45,9 +45,6 @@ function getReceiptCSS(): string {
       .bold-divider {
         border-top: 2px solid #000;
         margin: 2mm 0;
-        letter-spacing: 0.8px;
-        margin-bottom: 1.5mm;
-        word-break: break-word;
       }
       .store-info { 
         font-size: 10px; 
@@ -156,12 +153,12 @@ function getReceiptCSS(): string {
  */
 export function generateReceipt(data: ReceiptTemplateData): string {
   const { shop, receiptData, items, customerName, cashierName, paymentDetails } = data;
-  const fmt = formatCurrency;
 
   // Totals are now calculated in the service/controller layer and passed via receiptData
-  const totalDiscount = receiptData.discount || 0;
-  const subTotal = receiptData.subtotal || 0;
-  const grandTotal = receiptData.grandTotal || 0;
+  const totalDiscount = receiptData.discount ?? 0;
+  const totalTax = receiptData.taxTotal ?? 0;
+  const subTotal = receiptData.subtotal ?? 0;
+  const grandTotal = receiptData.grandTotal ?? 0;
 
   // Format address lines cleanly
   const addressLines = [shop.addressLine1, shop.addressLine2].map((a) => a?.trim()).filter(Boolean);
@@ -194,7 +191,7 @@ export function generateReceipt(data: ReceiptTemplateData): string {
         <div class="meta-info">
           <div class="meta-row">
             <span style="font-weight: bold;">#${receiptData.orderNumber}</span>
-            <span>${new Date().toLocaleString('en-US', {
+            <span>${new Date(receiptData.createdAt || Date.now()).toLocaleString('en-US', {
               year: 'numeric',
               month: 'short',
               day: 'numeric',
@@ -209,6 +206,7 @@ export function generateReceipt(data: ReceiptTemplateData): string {
           </div>
         </div>
 
+        <!-- Items Divider -->
         <div class="section-divider"></div>
 
         <!-- Items Table -->
@@ -227,30 +225,17 @@ export function generateReceipt(data: ReceiptTemplateData): string {
           <tbody>
             ${items
               .map((item) => {
+                const effectiveUnitPrice = (item.unitPrice ?? 0) - (item.discountAmount ?? 0);
+                const lineTotal = item.quantity * effectiveUnitPrice;
                 return `
               <tr class="item-name-row">
                 <td colspan="4">${item.productName}</td>
               </tr>
               <tr class="item-details-row">
                 <td class="qty">${item.quantity}</td>
-                <td>${((item.unitPrice || 0) / 100).toLocaleString('en-US', {
-                  minimumFractionDigits: 2,
-                  maximumFractionDigits: 2,
-                })}</td>
-                <td class="disc">${(
-                  ((item.unitPrice || 0) - (item.discountAmount || 0)) /
-                  100
-                ).toLocaleString('en-US', {
-                  minimumFractionDigits: 2,
-                  maximumFractionDigits: 2,
-                })}</td>
-                <td class="total">${(
-                  (item.quantity * ((item.unitPrice || 0) - (item.discountAmount || 0))) /
-                  100
-                ).toLocaleString('en-US', {
-                  minimumFractionDigits: 2,
-                  maximumFractionDigits: 2,
-                })}</td>
+                <td>${formatAmount(item.unitPrice)}</td>
+                <td class="disc">${formatAmount(effectiveUnitPrice)}</td>
+                <td class="total">${formatAmount(lineTotal)}</td>
               </tr>
             `;
               })
@@ -265,12 +250,28 @@ export function generateReceipt(data: ReceiptTemplateData): string {
           <table width="100%" style="font-size: 11px; margin-bottom: 1mm;">
             <tr>
               <td style="text-align: left; padding: 0.5mm 0;">Subtotal:</td>
-              <td style="text-align: right; padding: 0.5mm 0;">${fmt(subTotal)}</td>
+              <td style="text-align: right; padding: 0.5mm 0;">${formatCurrency(subTotal)}</td>
             </tr>
+            ${
+              totalTax > 0
+                ? `
+            <tr>
+              <td style="text-align: left; padding: 0.5mm 0;">Tax:</td>
+              <td style="text-align: right; padding: 0.5mm 0;">${formatCurrency(totalTax)}</td>
+            </tr>
+            `
+                : ''
+            }
+            ${
+              totalDiscount > 0
+                ? `
             <tr>
               <td style="text-align: left; padding: 0.5mm 0;">Discount:</td>
-              <td style="text-align: right; padding: 0.5mm 0;">- ${fmt(totalDiscount)}</td>
+              <td style="text-align: right; padding: 0.5mm 0;">- ${formatCurrency(totalDiscount)}</td>
             </tr>
+            `
+                : ''
+            }
           </table>
         </div>
 
@@ -280,15 +281,15 @@ export function generateReceipt(data: ReceiptTemplateData): string {
           <table width="100%" style="font-size: 16px; font-weight: bold;">
             <tr>
               <td style="text-align: left;">TOTAL:</td>
-              <td style="text-align: right;">${fmt(grandTotal)}</td>
+              <td style="text-align: right;">${formatCurrency(grandTotal)}</td>
             </tr>
           </table>
         </div>
 
         <div class="payment-info">
           Payment: ${paymentDetails?.method || receiptData.paymentMethod || 'CASH'}<br>
-          Received: ${fmt(paymentDetails?.tenderedAmount || grandTotal)}<br>
-          Change: ${fmt(paymentDetails?.changeDue || 0)}
+          Received: ${formatCurrency(paymentDetails?.tenderedAmount ?? grandTotal)}<br>
+          Change: ${formatCurrency(paymentDetails?.changeDue ?? 0)}
         </div>
 
         <div class="section-divider" style="margin-top: 0;"></div>

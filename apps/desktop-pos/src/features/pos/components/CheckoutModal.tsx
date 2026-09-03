@@ -163,16 +163,18 @@ export function CheckoutModal({ isOpen, onClose, onComplete }: CheckoutModalProp
         const printData: PrintReceiptDto = {
           order: {
             orderNumber: orderResult.data.orderNumber,
+            createdAt: orderResult.data.createdAt ?? new Date().toISOString(),
             grandTotal: totals.total,
             subtotal: totals.subtotal,
             discountTotal: totals.discount,
+            taxTotal: totals.tax,
             paymentMethod,
           },
           items: items.map((item) => ({
             productName: item.name,
             unitPrice: item.price,
             quantity: item.quantity,
-            discountAmount: item.discount || 0,
+            discountAmount: item.discount ?? 0,
             subtotal: item.price * item.quantity,
           })),
           paymentDetails: {

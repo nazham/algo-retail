@@ -14,16 +14,18 @@ export function usePrintReceipt() {
     return {
       order: {
         orderNumber: order.orderNumber,
+        createdAt: order.createdAt,
         grandTotal: order.grandTotal,
         subtotal: order.subtotal,
         discountTotal: order.discountTotal,
+        taxTotal: order.taxTotal,
         paymentMethod: order.paymentMethod,
       },
       items: order.items.map((item) => ({
         productName: item.productName,
         unitPrice: item.unitPrice,
         quantity: item.quantity,
-        discountAmount: item.discountAmount || 0,
+        discountAmount: item.discountAmount ?? 0,
         subtotal: item.unitPrice * item.quantity,
       })),
       paymentDetails: {
